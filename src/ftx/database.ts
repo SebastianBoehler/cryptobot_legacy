@@ -7,6 +7,9 @@ import { getMarkets, getHistoricalPrices } from './utils';
 const mysqlClient = new mysql('ftx');
 
 main()
+.catch(e => {
+    console.error(e)
+})
 async function main() {
     console.log(new Date().toLocaleString())
     const allMarkets = await getMarkets()
@@ -30,7 +33,7 @@ async function refreshData(symbol: string) {
     const startTime = new Date()
     startTime.setMinutes(startTime.getMinutes() - 3)
 
-    let historical = await getHistoricalPrices(symbol, startTime.getTime())
+    let historical = await getHistoricalPrices(symbol, startTime.getTime() / 1000)
     if (historical[historical.length - 1]['time'] === latestTime) return
 
     historical = historical.filter((item) => item['time'] > latestTime)
