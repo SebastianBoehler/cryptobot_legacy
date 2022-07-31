@@ -20,7 +20,7 @@ export type Market = {
     priceIncrement: number
     sizeIncrement: number
     restricted: boolean
-    volume24h: number
+    volumeUsd24h: number
     largeOrderThreshold: number
     isEtfMarket: boolean
 }

@@ -1,6 +1,11 @@
 import mysql from 'mysql';
 import { HistoricalPrice } from '../types/ftx';
-import { RowDataPacket } from '../types/mysql'
+import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
+
+import * as dotenv from 'dotenv';
+dotenv.config({
+    path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
+});
 
 class sql_class {
     connnection: mysql.Connection;
@@ -15,11 +20,24 @@ class sql_class {
         this.connnection.connect()
     }
 
-    async priceHistory(symbol: string, options: string = 'LIMIT 0, 2') {
-        return new Promise<RowDataPacket[]>((resolve, reject) => {
-            this.connnection.query(`SELECT * FROM ${symbol} ${options}`, (err, results) => {
+    async getPriceHistory(symbol: string, options: string = '', limit?: number) {
+        return new Promise<RowDataPacketPriceParsed[]>((resolve, reject) => {
+            this.connnection.query(`SELECT * FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
                 if (err) reject(err)
-                else resolve(results)
+                else resolve(results.map((item: RowDataPacketPrice) => {
+                    return {
+                        id: +item.id,
+                        price: +item.price,
+                        volume: +item.volume,
+                        time: +item.time,
+                        bid: +item.bid,
+                        ask: +item.ask,
+                        open: +item.open,
+                        close: +item.close,
+                        high: +item.high,
+                        low: +item.low,
+                    }
+                }))
             })
         })
     }
@@ -38,6 +56,15 @@ class sql_class {
             this.connnection.query(`INSERT INTO ${symbol.replace('-', '')} (time, open, high, low, close, price, volume) VALUES (${data.time}, ${data.open}, ${data.high}, ${data.low}, ${data.close}, ${data.close}, ${data.volume})`, (err) => {
                 if (err) reject(err)
                 else resolve()
+            })
+        })
+    }
+
+    async getPriceHistoryTimes(symbol: string, options: string = '') {
+        return new Promise<number[]>((resolve, reject) => {
+            this.connnection.query(`SELECT time FROM ${symbol.replace('-', '')} ${options}`, (err, results) => {
+                if (err) reject(err)
+                else resolve(results.map((item: RowDataPacketPrice) => +item.time))
             })
         })
     }

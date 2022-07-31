@@ -5,6 +5,6 @@ console.log(process.env.TEST, 'das ist immernoch test');
 const mysql = new sql('ftx');
 
 (async () => {
-    const data = await mysql.priceHistory('BTCPERP');
+    const data = await mysql.getPriceHistory('BTCPERP');
     console.log(data)
 })()
