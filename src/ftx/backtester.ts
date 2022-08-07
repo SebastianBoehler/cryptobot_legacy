@@ -207,7 +207,6 @@ const leverage = +(process.env.LEVERAGE || 5);
             }
 
             for (const rule in storage) {
-                console.log('Rule', rule)
                 const transactions = storage[rule]['transactions']
                 if (transactions.length < 1) continue
                 const exits = transactions.filter((item: orderObject) => item['type'].includes('Exit'))
