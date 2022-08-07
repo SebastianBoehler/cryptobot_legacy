@@ -1,22 +1,26 @@
 import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
-import { OrderTypes, Rule } from '../types/trading';
+import { orderObject, OrderTypes, Rule } from '../types/trading';
 import { calculateProfit, getMarkets } from './utils';
 
 const mysqlClient = new mysql('ftx');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 14);
-const rulesToTest = ['test']
-let invest = 500
+startTime.setDate(startTime.getDate() - 21);
+const rulesToTest = ['test', 'test2', 'test3', 'test4']
+let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 
 (async () => {
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
     const symbols = [...new Set(markets.map((item: Market) => item['name']))]
+
+    const tables: {
+            [key: string]: {}
+        } = {}
 
     //for every symbol
     for (const symbol of symbols) {
@@ -25,7 +29,7 @@ const leverage = +(process.env.LEVERAGE || 5);
 
         const storage: {
             [key: string]: {
-                transactions: any[]
+                transactions: orderObject[]
                 indexes: {
                     'Long Entry': number
                     'Long Exit': number
@@ -37,15 +41,14 @@ const leverage = +(process.env.LEVERAGE || 5);
 
         //iterate over history
         for (const {time: timestamp, price} of history) {
-            console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol} ${storage['test']?.transactions.length}`)
+            console.clear()
+            console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
+            console.table(tables)
 
-            const [indicators5min, indicators25min, indicators90min] = await Promise.all([
+            const [indicators5min,indicators25min] = await Promise.all([
                 generateIndicators(symbol, 5, timestamp),
                 generateIndicators(symbol, 25, timestamp),
-                generateIndicators(symbol, 90, timestamp),
             ])
-
-            if (indicators5min && indicators25min && indicators90min) console.log()
 
             //iterate over rules
             for (const rule of rulesToTest) {
@@ -64,28 +67,84 @@ const leverage = +(process.env.LEVERAGE || 5);
 
                 let {fee, netProfit, priceChange, netProfitPercentage, exitInvestSize} = await calculateProfit(latestTransaction, price)
 
+                //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
                 } = {
-                  'test': {
+                    'test': {
                         'Long Entry': [[
                             indicators25min['EMA_8'] < indicators25min['EMA_13'],
                         ], [
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
                        ]],
                        'Long Exit': [[
-                            netProfitPercentage > 0.5 || netProfitPercentage < -1
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
                        ]],
                        'Short Entry': [[false]],
                        'Short Exit': [[false]]
-                    }
+                    },
+                    'test2': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < 0,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                       ]],
+                       'Short Entry': [[false]],
+                       'Short Exit': [[false]]
+                    },
+                    'test3': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < 0,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                       ]]
+                    },
+                    'test4': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < 0,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                       ]]
+                    },
                 }
 
                 //there is an entry
                 const hasOpenPosition = latestTransaction && latestTransaction['type'].includes('Entry')
 
                 if (hasOpenPosition) {
-                    console.log(`${rule} profit: ${netProfit?.toFixed(2)}$ | ${netProfitPercentage.toFixed(2)}% ${priceChange!.toFixed(2)}% | Trxs: ${transactions.length} | Wallet: ${latestTransaction['invest']}`)
+                    //console.log(`${rule} profit: ${netProfit?.toFixed(2)}$ | ${netProfitPercentage.toFixed(2)}% ${priceChange!.toFixed(2)}% ${(priceChange! * leverage).toFixed(2)}% | Trxs: ${transactions.length} | Wallet: ${latestTransaction['invest']}`)
 
                     if (latestTransaction['type'].includes('Long')) {
                         await checkRule(rule, 'Long Exit')
@@ -106,13 +165,13 @@ const leverage = +(process.env.LEVERAGE || 5);
                         storage[rule]['indexes'][type]++
                         
                         if (storage[rule]['indexes'][type] >= rules[rule][type].length) {
+                            let invest = startInvest * leverage
                             if (latestTransaction) invest = exitInvestSize
-                            else invest = invest * leverage
                             //execute order
                             const feeDecimal = process.env.FTX_FEE || 0.000665
                             if (!fee) fee = invest * +feeDecimal
 
-                            let obj: any = {
+                            let obj: orderObject = {
                                 price,
                                 timestamp,
                                 type,
@@ -146,8 +205,34 @@ const leverage = +(process.env.LEVERAGE || 5);
                     }
                 }
             }
+
+            for (const rule in storage) {
+                console.log('Rule', rule)
+                const transactions = storage[rule]['transactions']
+                if (transactions.length < 1) continue
+                const exits = transactions.filter((item: orderObject) => item['type'].includes('Exit'))
+
+                const profit = exits.reduce((acc, item) => acc + item['netProfit']!, 0)
+                const feeTotal = exits.reduce((acc, item) => acc + item['feeSum']!, 0)
+                const ratio = exits.filter((item) => item['netProfit']! > 0).length / exits.length
+                let profitPercentage = 1
+                
+                const profits = exits.map((item: orderObject) => item['netProfitPercentage']!)
+                for (const percent of profits) {
+                    profitPercentage *= 1 + (percent / 100)
+                }
+                profitPercentage = (profitPercentage - 1) * 100
+
+                tables[`${transactions[0]['symbol'].replace('-PERP', '')} ${rule}`] = {
+                    'Net Profit': profit.toFixed(2) + '$',
+                    'Profit Percentage': profitPercentage.toFixed(2) + '%',
+                    'Fee Total': feeTotal.toFixed(2) + '$',
+                    'Transactions': transactions.length,
+                    'Win Ratio': (ratio * 100).toFixed(0) + '%',
+                    'Invested': (transactions[0]['invest'] / leverage).toFixed(0) + '$',
+                }
+            }
         }
-        break
     }
 })()
 

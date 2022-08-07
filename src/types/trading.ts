@@ -6,3 +6,22 @@ export type Rule = {
 }
 
 export type OrderTypes = 'Long Entry' | 'Long Exit' | 'Short Entry' | 'Short Exit'
+
+export type orderObject = {
+    price: number
+    timestamp: number
+    type: string
+    action: string,
+    symbol: string
+    invest: number
+    size: number
+    fee: number
+    platform: 'ftx' | 'binance' | 'coinbase'
+    avgPrice: number
+    status: 'DEMO' | 'live',
+    index: number | undefined
+    feeSum?: number
+    netProfit?: number
+    netProfitPercentage?: number
+    priceChange?: number
+}

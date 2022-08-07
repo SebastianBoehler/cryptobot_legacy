@@ -1,6 +1,6 @@
 import mysql from './mysql';
 import {
-    EMA
+    EMA, MACD
 } from 'technicalindicators';
 
 const mysqlClient = new mysql('ftx');
@@ -8,9 +8,9 @@ const mysqlClient = new mysql('ftx');
 async function generateIndicators(symbol: string, granularity: number, timestamp: number = new Date().getTime()) {
     const repaintNo = await stopRepainting(timestamp, granularity)
     const repaintDate = new Date(timestamp)
+    const limit = (55 * granularity) + (granularity) * 100 * 5
     repaintDate.setMinutes(repaintDate.getMinutes() - repaintNo)
     repaintDate.setSeconds(0)
-    const limit = 50000
     //console.log(granularity, new Date(timestamp).toLocaleTimeString(), repaintNo, repaintDate.toLocaleTimeString())
 
     let history = await mysqlClient.getPriceHistory(symbol, `WHERE time <= ${repaintDate.getTime()}`, limit)
@@ -32,6 +32,7 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         else return undefined
     })
 
+    //console.log(history.length)
     const closes = history.map((item) => item['close'])
     //const highs = history.map((item) => item['high'])
     //const lows = history.map((item) => item['low'])
@@ -56,11 +57,21 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         period: 55
     })
 
+    const macd = MACD.calculate({
+        values: closes,
+        fastPeriod: 12,
+        slowPeriod: 26,
+        signalPeriod: 9,
+        SimpleMAOscillator: true,
+        SimpleMASignal: true
+    })
+
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
         EMA_21: EMA_21[EMA_21.length - 1],
         EMA_55: EMA_55[EMA_55.length - 1],
+        MACD: macd[macd.length - 1]
     }
 }
 
