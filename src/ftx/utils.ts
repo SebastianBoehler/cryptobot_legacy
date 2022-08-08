@@ -50,12 +50,14 @@ async function calculateProfit(entry: any, price: number, exit?: any) {
     const fee = InvestSizeBrutto * feeDecimal
     const priceChange = (price / entry['price'] - 1) * 100
 
-    const netProfit = bruttoProfit - entry['fee'] - fee
+    const netProfit = bruttoProfit - (entry['fee'] + fee)
     const netProfitPercentage = netProfit / (entry['invest'] / leverage) * 100
     const exitInvestSize = entry['invest'] + netProfit
 
     return {
         fee,
+        feeSum: entry['fee'] + fee,
+        bruttoProfit,
         netProfit,
         priceChange,
         netProfitPercentage,
