@@ -41,7 +41,7 @@ const leverage = +(process.env.LEVERAGE || 5);
 
         //iterate over history
         for (const {time: timestamp, price} of history) {
-            //console.clear()
+            console.clear()
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
             console.table(tables)
 
@@ -234,19 +234,18 @@ const leverage = +(process.env.LEVERAGE || 5);
                 const feeTotal = exits.reduce((acc, item) => acc + item['feeSum']!, 0)
 
                 const profits = exits.map((item: orderObject) => +item['netProfitPercentage']!.toFixed(9))
-                const profitTotal = profits.reduce((acc, item) => acc + item, 0)
 
                 const ratio = exits.filter((item) => item['netProfit']! > 0).length / exits.length
                 let profitPercentage = 1
                 
                 
                 for (const percent of profits) {
-                    console.log('calc profit', profitPercentage, percent, (percent / 100 + 1))
+                    //console.log('calc profit', profitPercentage, percent, (percent / 100 + 1))
                     profitPercentage = profitPercentage * (percent / 100 + 1)
                 }
                 profitPercentage = (profitPercentage - 1) * 100
 
-                console.log(profits, profitPercentage, profitTotal)
+                //console.log(profits, profitPercentage, profitTotal)
 
                 tables[`${transactions[0]['symbol'].replace('-PERP', '')} ${rule}`] = {
                     'Net Profit': profit.toFixed(2) + '$',
