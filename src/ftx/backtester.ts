@@ -231,6 +231,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                 const exits = transactions.filter((item: orderObject) => item['type'].includes('Exit'))
 
                 const profit = exits.reduce((acc, item) => acc + item['netProfit']!, 0)
+                const profitLong = exits.filter((item: orderObject) => item['type'].includes('Long')).reduce((acc, item) => acc + item['netProfit']!, 0)
                 const feeTotal = exits.reduce((acc, item) => acc + item['feeSum']!, 0)
 
                 const profits = exits.map((item: orderObject) => +item['netProfitPercentage']!.toFixed(9))
@@ -251,6 +252,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                     'Net Profit': profit.toFixed(2) + '$',
                     'Profit %': profitPercentage.toFixed(2) + '%',
                     'Profit % 2': (profit / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%', //more accurate until using big numbers
+                    'Profit Longs': (profitLong / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%', //more accurate until using big numbers
                     'Fee Total': feeTotal.toFixed(2) + '$',
                     'Transactions': transactions.length,
                     'Win Ratio': (ratio * 100).toFixed(0) + '%',

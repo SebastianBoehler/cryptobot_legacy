@@ -3,6 +3,7 @@ import { HistoricalPrice } from '../types/ftx';
 import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
 
 import * as dotenv from 'dotenv';
+import { orderObject } from '../types/trading';
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
 });
@@ -65,6 +66,15 @@ class sql_class {
             this.connnection.query(`SELECT time FROM ${symbol.replace('-', '')} ${options}`, (err, results) => {
                 if (err) reject(err)
                 else resolve(results.map((item: RowDataPacketPrice) => +item.time))
+            })
+        })
+    }
+
+    async writeTransaction(data: orderObject) {
+        return new Promise<void>((resolve, reject) => {
+            this.connnection.query(`INSERT INTO transactions (price, timestamp, type, action, symbol, invest, size, fee, platform, avgPrice, status, index) VALUES (${data.price}, ${data.timestamp}, '${data.type}', '${data.action}', '${data.symbol}', ${data.invest}, ${data.size}, ${data.fee}, '${data.platform}', ${data.avgPrice}, '${data.status}', ${data.index})`, (err) => {
+                if (err) reject(err)
+                else resolve()
             })
         })
     }
