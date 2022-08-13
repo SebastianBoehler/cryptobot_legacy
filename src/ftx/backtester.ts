@@ -51,7 +51,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                 generateIndicators(symbol, 60, timestamp)
             ])
 
-            if (storage['test']?.transactions.length >= 4) throw 'stop'
+            //if (storage['test']?.transactions.length >= 4) throw 'stop'
 
             //iterate over rules
             for (const rule of rulesToTest) {
