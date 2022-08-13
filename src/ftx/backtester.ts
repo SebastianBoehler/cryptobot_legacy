@@ -8,7 +8,7 @@ const mysqlClient = new mysql('ftx');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 21);
+startTime.setDate(startTime.getDate() - 28);
 const rulesToTest = ['test', 'test2', 'test3', 'test4']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
@@ -41,14 +41,17 @@ const leverage = +(process.env.LEVERAGE || 5);
 
         //iterate over history
         for (const {time: timestamp, price} of history) {
-            console.clear()
+            //console.clear()
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
             console.table(tables)
 
-            const [indicators5min,indicators25min] = await Promise.all([
+            const [indicators5min,indicators25min,indicators60min] = await Promise.all([
                 generateIndicators(symbol, 5, timestamp),
                 generateIndicators(symbol, 25, timestamp),
+                generateIndicators(symbol, 60, timestamp)
             ])
+
+            if (storage['test']?.transactions.length >= 4) throw 'stop'
 
             //iterate over rules
             for (const rule of rulesToTest) {
@@ -67,6 +70,7 @@ const leverage = +(process.env.LEVERAGE || 5);
 
                 let {fee, netProfit, priceChange, netProfitPercentage, exitInvestSize} = await calculateProfit(latestTransaction, price)
 
+                const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
                 //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
@@ -78,64 +82,79 @@ const leverage = +(process.env.LEVERAGE || 5);
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
                        ]],
                        'Long Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                            profitThreshold
                        ]],
                        'Short Entry': [[false]],
                        'Short Exit': [[false]]
                     },
                     'test2': {
                         'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < 0,
-                        ], [
-                            indicators25min['MACD']['histogram']! > 0,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
-                       ]],
-                       'Long Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                       ]],
-                       'Short Entry': [[false]],
-                       'Short Exit': [[false]]
-                    },
-                    'test3': {
-                        'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < 0,
-                        ], [
-                            indicators25min['MACD']['histogram']! > 0,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
-                       ]],
-                       'Long Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                       ]],
-                       'Short Entry': [[
-                            indicators25min['MACD']['histogram']! > 0,
-                        ], [
-                            indicators25min['MACD']['histogram']! < 0,
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
-                       ]],
-                       'Short Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                       ]]
-                    },
-                    'test4': {
-                        'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < -0.15,
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
                             indicators5min['MACD']['histogram']! > 0,
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
                        ]],
                        'Long Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                            profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > 0.15,
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
                             indicators5min['MACD']['histogram']! < 0,
                             indicators25min['EMA_8'] < indicators25min['EMA_13'],
                        ]],
                        'Short Exit': [[
-                            netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                            profitThreshold
+                       ]]
+                    },
+                    'test3': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    },
+                    'test4': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
                        ]]
                     },
                 }
@@ -213,18 +232,26 @@ const leverage = +(process.env.LEVERAGE || 5);
 
                 const profit = exits.reduce((acc, item) => acc + item['netProfit']!, 0)
                 const feeTotal = exits.reduce((acc, item) => acc + item['feeSum']!, 0)
+
+                const profits = exits.map((item: orderObject) => +item['netProfitPercentage']!.toFixed(9))
+                const profitTotal = profits.reduce((acc, item) => acc + item, 0)
+
                 const ratio = exits.filter((item) => item['netProfit']! > 0).length / exits.length
                 let profitPercentage = 1
                 
-                const profits = exits.map((item: orderObject) => item['netProfitPercentage']!)
+                
                 for (const percent of profits) {
-                    profitPercentage *= 1 + (percent / 100)
+                    console.log('calc profit', profitPercentage, percent, (percent / 100 + 1))
+                    profitPercentage = profitPercentage * (percent / 100 + 1)
                 }
                 profitPercentage = (profitPercentage - 1) * 100
 
+                console.log(profits, profitPercentage, profitTotal)
+
                 tables[`${transactions[0]['symbol'].replace('-PERP', '')} ${rule}`] = {
                     'Net Profit': profit.toFixed(2) + '$',
-                    'Profit Percentage': profitPercentage.toFixed(2) + '%',
+                    'Profit %': profitPercentage.toFixed(2) + '%',
+                    'Profit % 2': (profit / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%', //more accurate until using big numbers
                     'Fee Total': feeTotal.toFixed(2) + '$',
                     'Transactions': transactions.length,
                     'Win Ratio': (ratio * 100).toFixed(0) + '%',

@@ -1,6 +1,6 @@
 import mysql from './mysql';
 import {
-    EMA, MACD
+    EMA, MACD, RSI
 } from 'technicalindicators';
 
 const mysqlClient = new mysql('ftx');
@@ -66,12 +66,19 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         SimpleMASignal: true
     })
 
+    const rsi = RSI.calculate({
+        values: closes,
+        period: 14
+    })
+
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
         EMA_21: EMA_21[EMA_21.length - 1],
         EMA_55: EMA_55[EMA_55.length - 1],
-        MACD: macd[macd.length - 1]
+        MACD: macd[macd.length - 1],
+        MACD_prev: macd[macd.length - 2],
+        RSI: rsi[rsi.length - 1]
     }
 }
 
