@@ -36,6 +36,12 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
     const closes = history.map((item) => item['close'])
     //const highs = history.map((item) => item['high'])
     //const lows = history.map((item) => item['low'])
+    if (closes.length < 50) throw {
+        message: 'Not enough data to generate indicators',
+        symbol,
+        granularity,
+        limit
+    }
 
     const EMA_8 = EMA.calculate({
         values: closes,
@@ -78,7 +84,7 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         EMA_55: EMA_55[EMA_55.length - 1],
         MACD: macd[macd.length - 1],
         MACD_prev: macd[macd.length - 2],
-        RSI: rsi[rsi.length - 1]
+        RSI: rsi[rsi.length - 1],
     }
 }
 

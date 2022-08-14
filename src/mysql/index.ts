@@ -9,21 +9,20 @@ dotenv.config({
 });
 
 class sql_class {
-    connnection: mysql.Connection;
+    pool: mysql.Pool;
 
     constructor(database: string) {
-        this.connnection = mysql.createConnection({
+        this.pool = mysql.createPool({
             host: process.env.SQL_HOST,
             user: process.env.SQL_USER,
             password: process.env.SQL_PASSWORD,
             database: database
         })
-        this.connnection.connect()
     }
 
     async getPriceHistory(symbol: string, options: string = '', limit?: number) {
         return new Promise<RowDataPacketPriceParsed[]>((resolve, reject) => {
-            this.connnection.query(`SELECT * FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
+            this.pool.query(`SELECT * FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
                 if (err) reject(err)
                 else resolve(results.map((item: RowDataPacketPrice) => {
                     return {
@@ -45,7 +44,7 @@ class sql_class {
 
     async getLastPriceTimestamp(symbol: string) {
         return new Promise<number>((resolve, reject) => {
-            this.connnection.query(`SELECT time FROM ${symbol.replace('-', '')} ORDER BY time DESC LIMIT 1`, (err, results) => {
+            this.pool.query(`SELECT time FROM ${symbol.replace('-', '')} ORDER BY time DESC LIMIT 1`, (err, results) => {
                 if (err) reject(err)
                 else resolve(+results[0].time)
             })
@@ -54,7 +53,7 @@ class sql_class {
 
     async pushNewPriceData(symbol: string, data: HistoricalPrice) {
         return new Promise<void>((resolve, reject) => {
-            this.connnection.query(`INSERT INTO ${symbol.replace('-', '')} (time, open, high, low, close, price, volume) VALUES (${data.time}, ${data.open}, ${data.high}, ${data.low}, ${data.close}, ${data.close}, ${data.volume})`, (err) => {
+            this.pool.query(`INSERT INTO ${symbol.replace('-', '')} (time, open, high, low, close, price, volume) VALUES (${data.time}, ${data.open}, ${data.high}, ${data.low}, ${data.close}, ${data.close}, ${data.volume})`, (err) => {
                 if (err) reject(err)
                 else resolve()
             })
@@ -63,7 +62,7 @@ class sql_class {
 
     async getPriceHistoryTimes(symbol: string, options: string = '') {
         return new Promise<number[]>((resolve, reject) => {
-            this.connnection.query(`SELECT time FROM ${symbol.replace('-', '')} ${options}`, (err, results) => {
+            this.pool.query(`SELECT time FROM ${symbol.replace('-', '')} ${options}`, (err, results) => {
                 if (err) reject(err)
                 else resolve(results.map((item: RowDataPacketPrice) => +item.time))
             })
@@ -72,7 +71,7 @@ class sql_class {
 
     async writeTransaction(data: orderObject) {
         return new Promise<void>((resolve, reject) => {
-            this.connnection.query(`INSERT INTO transactions (price, timestamp, type, action, symbol, invest, size, fee, platform, avgPrice, status, index) VALUES (${data.price}, ${data.timestamp}, '${data.type}', '${data.action}', '${data.symbol}', ${data.invest}, ${data.size}, ${data.fee}, '${data.platform}', ${data.avgPrice}, '${data.status}', ${data.index})`, (err) => {
+            this.pool.query(`INSERT INTO transactions (price, timestamp, type, action, symbol, invest, size, fee, platform, avgPrice, status, index) VALUES (${data.price}, ${data.timestamp}, '${data.type}', '${data.action}', '${data.symbol}', ${data.invest}, ${data.size}, ${data.fee}, '${data.platform}', ${data.avgPrice}, '${data.status}', ${data.index})`, (err) => {
                 if (err) reject(err)
                 else resolve()
             })

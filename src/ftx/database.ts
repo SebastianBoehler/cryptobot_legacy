@@ -13,10 +13,20 @@ main()
 async function main() {
     console.log(new Date().toLocaleString())
     const allMarkets = await getMarkets()
+    .catch(e => {
+        console.error(e)
+        console.error('unabled to get markets')
+        return []
+    })
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual')
     const symbols = [...new Set(markets.map((item: Market) => item['name']))]
 
-    await Promise.all(symbols.map(refreshData))
+    try {
+        await Promise.all(symbols.map(refreshData))
+    } catch (error) {
+        console.error(error)
+        console.error('Promise all failed')
+    }
     console.log('done')
     main()
 }

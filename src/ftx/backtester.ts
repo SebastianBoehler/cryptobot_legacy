@@ -9,9 +9,11 @@ const mysqlClient = new mysql('ftx');
 //variables
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
-const rulesToTest = ['test', 'test2', 'test3', 'test4']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
+
+let endTime
 
 (async () => {
     const allMarkets = await getMarkets()
@@ -51,6 +53,8 @@ const leverage = +(process.env.LEVERAGE || 5);
                 generateIndicators(symbol, 60, timestamp)
             ])
 
+            if (endTime && timestamp > endTime) break
+
             //if (storage['test']?.transactions.length >= 4) throw 'stop'
 
             //iterate over rules
@@ -71,6 +75,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                 let {fee, netProfit, priceChange, netProfitPercentage, exitInvestSize} = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                const profitThreshold2 = netProfitPercentage > 2 * leverage || netProfitPercentage < -1.5 * leverage
                 //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
@@ -140,7 +145,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                             indicators25min['MACD']['histogram']! > 0,
                             indicators25min['RSI'] < 50,
                             indicators5min['MACD']['histogram']! > 0,
-                            indicators60min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -151,10 +156,34 @@ const leverage = +(process.env.LEVERAGE || 5);
                             indicators25min['MACD']['histogram']! < 0,
                             indicators25min['RSI'] > 50,
                             indicators5min['MACD']['histogram']! < 0,
-                            indicators60min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
+                       ]]
+                    },
+                    'test5': {
+                        'Long Entry': [[
+                            indicators60min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators60min['MACD']['histogram']! > 0,
+                            indicators60min['RSI'] < 50,
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators60min['MACD']['histogram']! < 0,
+                            indicators60min['RSI'] > 50,
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators60min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold2
                        ]]
                     },
                 }
@@ -260,6 +289,7 @@ const leverage = +(process.env.LEVERAGE || 5);
                 }
             }
         }
+        if (!endTime) endTime = new Date(history[history.length - 1]['time']).getTime()
     }
 })()
 
