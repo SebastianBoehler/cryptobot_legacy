@@ -9,7 +9,7 @@ const mysqlClient = new mysql('ftx');
 //variables
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 
@@ -176,7 +176,7 @@ let endTime
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['histogram']! > 0.15,
+                            indicators60min['MACD']['histogram']! > 0.15,
                         ], [
                             indicators60min['MACD']['histogram']! < 0,
                             indicators60min['RSI'] > 50,
@@ -185,6 +185,32 @@ let endTime
                        ]],
                        'Short Exit': [[
                             profitThreshold2
+                       ]]
+                    },
+                    'test6': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators60min['STOCH_RSI']['k'] > indicators60min['STOCH_RSI']['d']
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d']
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
                        ]]
                     },
                 }
