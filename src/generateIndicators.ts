@@ -14,28 +14,45 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
     //console.log(granularity, new Date(timestamp).toLocaleTimeString(), repaintNo, repaintDate.toLocaleTimeString())
 
     let history = await mysqlClient.getPriceHistory(symbol, `WHERE time <= ${repaintDate.getTime()}`, limit)
-    
-    if (granularity > 1) history = history.filter((item, index) => {
-        const temp = history.slice(index - granularity - 1, index - 1)
 
-        if (temp.length > 0 && index % granularity == 0) {
-            //console.log(granularity, temp.length, new Date(temp[temp.length - 1]['time']).toLocaleTimeString())
-            return {
-               time: temp[temp.length - 1]['time'],
-               open: temp[0]['open'],
-              close: temp[temp.length - 1]['close'],
-              high: Math.max(...temp.map((item) => item['high'])),
-              low: Math.min(...temp.map((item) => item['low'])),
-              volume: temp.map((item) => item['volume']).reduce((a,b) => a + b, 0)
-            }
+    //console.log('repaint', repaintDate.toLocaleString(), granularity)
+
+    let pointInTime = repaintDate.getTime()
+
+    const transformedHistory = granularity === 1 ? history : []
+
+    while (pointInTime >= history[0]['time'] && granularity > 1) {
+        const temp = history.filter(item => item['time'] < pointInTime && item['time'] >= (pointInTime - (granularity * 60 * 1000)))
+        //console.log('temp',temp.length, new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
+        if (temp.length < granularity * 0.6) {
+            //console.log('break', new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString())
+            //console.log(pointInTime, pointInTime - (granularity * 60 * 1000))
+            pointInTime -= (granularity * 60 * 1000)
+            continue
         }
-        else return undefined
-    })
 
-    //console.log(history.length)
-    const closes = history.map((item) => item['close'])
-    //const highs = history.map((item) => item['high'])
-    //const lows = history.map((item) => item['low'])
+        transformedHistory.push({
+            time: pointInTime,
+            open: temp[0]['open'],
+            high: Math.max(...temp.map(item => item['high'])),
+            low: Math.min(...temp.map(item => item['low'])),
+            close: temp[temp.length - 1]['close'],
+            price: temp[temp.length - 1]['close'],
+            volume: temp.reduce((acc, item) => acc + item['volume'], 0)
+        })
+
+        //console.log(new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString(), temp.length,)
+        //console.log(new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
+        pointInTime -= (granularity * 60 * 1000)
+    }
+
+    transformedHistory.reverse()
+
+    //console.log(transformedHistory.length, transformedHistory[transformedHistory.length - 1], granularity)
+
+    const closes = transformedHistory.map((item) => item['close'])
+    //const highs = transformedHistory.map((item) => item['high'])
+    //const lows = transformedHistory.map((item) => item['low'])
     if (closes.length < 50) throw {
         message: 'Not enough data to generate indicators',
         symbol,

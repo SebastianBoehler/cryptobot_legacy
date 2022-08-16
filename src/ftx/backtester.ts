@@ -9,7 +9,8 @@ const mysqlClient = new mysql('ftx');
 //variables
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6']
+//startTime.setHours(startTime.getHours() - 5);
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 
@@ -43,10 +44,11 @@ let endTime
 
         //iterate over history
         for (const {time: timestamp, price} of history) {
-            console.clear()
+            //console.clear()
+            console.log('\n\n')
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
-            console.log(`Start: ${startTime.toLocaleString()} | End: ${endTime ? endTime.toLocaleString() : null} | Leverage ${leverage}`)
-            console.table(tables)
+            //console.log(`Start: ${startTime.toLocaleString()} | End: ${endTime ? new Date(endTime).toLocaleString() : null} | Leverage ${leverage}`)
+            //console.table(tables)
 
             const [indicators5min,indicators25min,indicators60min] = await Promise.all([
                 generateIndicators(symbol, 5, timestamp),
@@ -57,6 +59,7 @@ let endTime
             if (endTime && timestamp > endTime) break
 
             //if (storage['test']?.transactions.length >= 4) throw 'stop'
+            console.log(indicators25min.MACD.MACD! / indicators25min.MACD.signal!, indicators25min.MACD.histogram!, indicators5min['EMA_55'], price)
 
             //iterate over rules
             for (const rule of rulesToTest) {
@@ -77,21 +80,34 @@ let endTime
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
                 const profitThreshold2 = netProfitPercentage > 2 * leverage || netProfitPercentage < -1.5 * leverage
+                //const profitThreshold3 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
                 //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
                 } = {
                     'test': {
                         'Long Entry': [[
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators25min['MACD']['histogram']! < -0.15,
                         ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
                        ]],
-                       'Short Entry': [[false]],
-                       'Short Exit': [[false]]
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
                     },
                     'test2': {
                         'Long Entry': [[
@@ -213,6 +229,32 @@ let endTime
                             profitThreshold
                        ]]
                     },
+                    'test7': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    }
                 }
 
                 //there is an entry

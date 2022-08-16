@@ -41,12 +41,14 @@ async function refreshData(symbol: string) {
     if (latestTime > minAgo.getTime()) return
 
     const startTime = new Date()
-    startTime.setMinutes(startTime.getMinutes() - 3)
+    startTime.setMinutes(startTime.getMinutes() - 4)
 
     let historical = await getHistoricalPrices(symbol, startTime.getTime() / 1000)
     if (historical[historical.length - 1]['time'] === latestTime) return
 
-    historical = historical.filter((item) => item['time'] > latestTime)
+    const currentMin = new Date().getMinutes()
+
+    historical = historical.filter((item) => item['time'] > latestTime && new Date(item['time']).getMinutes() !== currentMin)
 
     console.log('write new data', symbol, historical.length)
     for (let priceObj of historical) {

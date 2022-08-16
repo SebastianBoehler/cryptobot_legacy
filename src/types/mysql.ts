@@ -12,12 +12,12 @@ export type RowDataPacketPrice = {
 }
 
 export type RowDataPacketPriceParsed = {
-    id: number
+    id?: number
     price: number
     volume: number
     time: number
-    bid: number
-    ask: number
+    bid?: number
+    ask?: number
     open: number
     close: number
     high: number
