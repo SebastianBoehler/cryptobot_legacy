@@ -8,7 +8,7 @@ const mysqlClient = new mysql('ftx');
 async function generateIndicators(symbol: string, granularity: number, timestamp: number = new Date().getTime()) {
     const repaintNo = await stopRepainting(timestamp, granularity)
     const repaintDate = new Date(timestamp)
-    const limit = (55 * granularity) + (granularity) * 100 * 5
+    const limit = (55 * granularity) + (granularity) * 40 * 5
     repaintDate.setMinutes(repaintDate.getMinutes() - repaintNo)
     repaintDate.setSeconds(0)
     //console.log(granularity, new Date(timestamp).toLocaleTimeString(), repaintNo, repaintDate.toLocaleTimeString())

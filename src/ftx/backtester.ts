@@ -59,7 +59,7 @@ let endTime
             if (endTime && timestamp > endTime) break
 
             //if (storage['test']?.transactions.length >= 4) throw 'stop'
-            console.log(indicators25min.MACD.MACD! / indicators25min.MACD.signal!, indicators25min.MACD.histogram!, indicators5min['EMA_55'], price)
+            //console.log(indicators25min.MACD.MACD! / indicators25min.MACD.signal!, indicators25min.MACD.histogram!, indicators5min['EMA_55'], price)
 
             //iterate over rules
             for (const rule of rulesToTest) {
