@@ -6,6 +6,11 @@ import { getMarkets, getHistoricalPrices } from './utils';
 
 const mysqlClient = new mysql('ftx');
 
+process.on('unhandledRejection', () => {
+    console.error('unhandledRejection')
+    process.exit(1)
+})
+
 main()
 .catch(e => {
     console.error(e)

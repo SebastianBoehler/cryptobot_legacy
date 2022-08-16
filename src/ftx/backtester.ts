@@ -10,7 +10,7 @@ const mysqlClient = new mysql('ftx');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
 //startTime.setHours(startTime.getHours() - 5);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 
@@ -111,20 +111,22 @@ let endTime
                     },
                     'test2': {
                         'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < -0.15,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
-                            indicators5min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['histogram']! > 0.15,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
-                            indicators5min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] < indicators25min['EMA_13'],
                        ]],
                        'Short Exit': [[
@@ -254,7 +256,31 @@ let endTime
                        'Short Exit': [[
                             profitThreshold
                        ]]
-                    }
+                    },
+                    'test8': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 60,
+                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 40,
+                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
+                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    },
                 }
 
                 //there is an entry
