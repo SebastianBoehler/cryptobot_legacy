@@ -22,16 +22,12 @@ class sql_class {
 
     async getPriceHistory(symbol: string, options: string = '', limit?: number) {
         return new Promise<RowDataPacketPriceParsed[]>((resolve, reject) => {
-            this.pool.query(`SELECT * FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
+            this.pool.query(`SELECT volume, time, open, close, high, low FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
                 if (err) reject(err)
                 else resolve(results.map((item: RowDataPacketPrice) => {
                     return {
-                        id: +item.id,
-                        price: +item.price,
                         volume: +item.volume,
                         time: +item.time,
-                        bid: +item.bid,
-                        ask: +item.ask,
                         open: +item.open,
                         close: +item.close,
                         high: +item.high,

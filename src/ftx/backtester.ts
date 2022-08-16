@@ -43,7 +43,7 @@ let endTime
         } = {}
 
         //iterate over history
-        for (const {time: timestamp, price} of history) {
+        for (const {time: timestamp, close: price} of history) {
             console.clear()
             //console.log('\n\n')
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)

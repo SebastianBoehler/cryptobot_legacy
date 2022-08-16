@@ -13,7 +13,7 @@ export type RowDataPacketPrice = {
 
 export type RowDataPacketPriceParsed = {
     id?: number
-    price: number
+    price?: number
     volume: number
     time: number
     bid?: number
