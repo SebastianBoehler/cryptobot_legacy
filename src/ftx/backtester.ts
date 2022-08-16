@@ -44,11 +44,11 @@ let endTime
 
         //iterate over history
         for (const {time: timestamp, price} of history) {
-            //console.clear()
-            console.log('\n\n')
+            console.clear()
+            //console.log('\n\n')
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
-            //console.log(`Start: ${startTime.toLocaleString()} | End: ${endTime ? new Date(endTime).toLocaleString() : null} | Leverage ${leverage}`)
-            //console.table(tables)
+            console.log(`Start: ${startTime.toLocaleString()} | End: ${endTime ? new Date(endTime).toLocaleString() : null} | Leverage ${leverage}`)
+            console.table(tables)
 
             const [indicators5min,indicators25min,indicators60min] = await Promise.all([
                 generateIndicators(symbol, 5, timestamp),
