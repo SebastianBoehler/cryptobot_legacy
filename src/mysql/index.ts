@@ -66,8 +66,27 @@ class sql_class {
     }
 
     async writeTransaction(data: orderObject) {
+        console.log(data)
         return new Promise<void>((resolve, reject) => {
-            this.pool.query(`INSERT INTO transactions (price, timestamp, type, action, symbol, invest, size, fee, platform, avgPrice, status, index) VALUES (${data.price}, ${data.timestamp}, '${data.type}', '${data.action}', '${data.symbol}', ${data.invest}, ${data.size}, ${data.fee}, '${data.platform}', ${data.avgPrice}, '${data.status}', ${data.index})`, (err) => {
+            this.pool.query(`INSERT INTO backtester (rule,symbol,time,orderID,side,profit,data) VALUES ('${data.rule}','${data.symbol}','${data.timestamp}','${data.orderId}','${data.type}',${data.netProfitPercentage || null},'${JSON.stringify(data)}')`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
+    async deleteTable(table: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`DROP TABLE ${table.replace('-', '')}`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
+    async emptyTable(table: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`TRUNCATE TABLE ${table.replace('-', '')}`, (err) => {
                 if (err) reject(err)
                 else resolve()
             })

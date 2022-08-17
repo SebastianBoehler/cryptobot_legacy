@@ -1,10 +1,12 @@
+import BigNumber from 'bignumber.js';
 import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
 import { calculateProfit, getMarkets } from './utils';
 
-const mysqlClient = new mysql('ftx');
+const sqlClientFtx = new mysql('ftx');
+const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
@@ -13,10 +15,10 @@ startTime.setDate(startTime.getDate() - 28);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
-
 let endTime
 
 (async () => {
+    //await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
     const symbols = [...new Set(markets.map((item: Market) => item['name']))]
@@ -28,7 +30,7 @@ let endTime
     //for every symbol
     for (const symbol of symbols) {
         console.info(`Backtesting ${symbol}`)
-        const history = await mysqlClient.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
+        const history = await sqlClientFtx.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
 
         const storage: {
             [key: string]: {
@@ -326,7 +328,9 @@ let endTime
                                 platform: 'ftx',
                                 avgPrice: price,
                                 status: 'DEMO',
-                                index: rule.match(/\d+/) ? +rule.match(/\d+/)![0] : undefined
+                                index: rule.match(/\d+/) ? +rule.match(/\d+/)![0] : undefined,
+                                rule,
+                                orderId: Math.random().toString(36)
                             }
 
                             if (type.includes('Exit')) {
@@ -334,9 +338,12 @@ let endTime
                                 obj['netProfit'] = netProfit
                                 obj['netProfitPercentage'] = netProfitPercentage
                                 obj['priceChange'] = priceChange
+                                obj['entryId'] = latestTransaction['entryId']
                             }
 
                             storage[rule]['transactions'].push(obj)
+
+                            if (process.env.WRITE_TO_DB) await sqlClientStorage.writeTransaction(obj)
 
                             storage[rule]['indexes'] = {
                                'Long Entry': 0,
@@ -361,14 +368,14 @@ let endTime
                 const profits = exits.map((item: orderObject) => +item['netProfitPercentage']!.toFixed(9))
 
                 const ratio = exits.filter((item) => item['netProfit']! > 0).length / exits.length
-                let profitPercentage = 1
+                let profitCalculation = new BigNumber(1)
                 
                 
                 for (const percent of profits) {
                     //console.log('calc profit', profitPercentage, percent, (percent / 100 + 1))
-                    profitPercentage = profitPercentage * (percent / 100 + 1)
+                    profitCalculation = profitCalculation.times((percent / 100 + 1))
                 }
-                profitPercentage = (profitPercentage - 1) * 100
+                const profitPercentage = (profitCalculation.toNumber() - 1) * 100
 
                 //console.log(profits, profitPercentage, profitTotal)
 

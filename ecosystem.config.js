@@ -20,17 +20,6 @@ module.exports = {
             NODE_ENV: "dev"
         },
         watch: true
-    },
-    {
-        name: "ftx_backtester 2",
-        script: "./build/ftx/backtester.js",
-        env_prod: {
-            NODE_ENV: "prod2"
-        },
-        env_dev: {
-            NODE_ENV: "dev"
-        },
-        watch: true
     }
     ]
 }

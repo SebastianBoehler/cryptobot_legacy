@@ -20,8 +20,11 @@ export type orderObject = {
     avgPrice: number
     status: 'DEMO' | 'live',
     index: number | undefined
+    orderId: string
+    entryId?: string
     feeSum?: number
     netProfit?: number
     netProfitPercentage?: number
     priceChange?: number
+    rule?: string
 }
