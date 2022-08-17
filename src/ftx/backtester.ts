@@ -261,9 +261,9 @@ let endTime
                     },
                     'test8': {
                         'Long Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.25,
                         ], [
-                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] < 60,
                             indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
@@ -272,9 +272,9 @@ let endTime
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.25,
                         ], [
-                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] > 40,
                             indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] < indicators25min['EMA_13'],
