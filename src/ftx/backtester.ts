@@ -45,6 +45,7 @@ let endTime
         } = {}
 
         //iterate over history
+        let prevTimestamp = history[0]['time']
         for (const {time: timestamp, close: price} of history) {
             console.clear()
             //console.log('\n\n')
@@ -289,8 +290,12 @@ let endTime
                 const hasOpenPosition = latestTransaction && latestTransaction['type'].includes('Entry')
 
                 if (hasOpenPosition) {
-                    //console.log(`${rule} profit: ${netProfit?.toFixed(2)}$ | ${netProfitPercentage.toFixed(2)}% ${priceChange!.toFixed(2)}% ${(priceChange! * leverage).toFixed(2)}% | Trxs: ${transactions.length} | Wallet: ${latestTransaction['invest']}`)
-
+                    const diff = timestamp - prevTimestamp / 1000 / 60
+                    if (diff > 5) {
+                        //remove last transaction
+                        console.warn('removed latest entry due to skip in price database')
+                        storage[rule].transactions.pop()
+                    }
                     if (latestTransaction['type'].includes('Long')) {
                         await checkRule(rule, 'Long Exit')
                     } else {
@@ -391,6 +396,7 @@ let endTime
                     'Invested': (transactions[0]['invest'] / leverage).toFixed(0) + '$',
                 }
             }
+            prevTimestamp = timestamp
         }
         if (!endTime) endTime = new Date(history[history.length - 1]['time']).getTime()
     }
