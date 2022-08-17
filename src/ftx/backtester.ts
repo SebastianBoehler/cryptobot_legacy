@@ -12,7 +12,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
 //startTime.setHours(startTime.getHours() - 5);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8']
+const rulesToTest = ['test']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -339,6 +339,7 @@ let endTime
                                 obj['netProfitPercentage'] = netProfitPercentage
                                 obj['priceChange'] = priceChange
                                 obj['entryId'] = latestTransaction['entryId']
+                                obj['holdDuration'] = timestamp - latestTransaction['timestamp'] / 1000 / 60
                             }
 
                             storage[rule]['transactions'].push(obj)

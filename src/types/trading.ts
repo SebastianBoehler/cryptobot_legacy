@@ -1,3 +1,4 @@
+
 export type Rule = {
     'Long Entry': boolean[][]
     'Long Exit': boolean[][]
@@ -27,4 +28,5 @@ export type orderObject = {
     netProfitPercentage?: number
     priceChange?: number
     rule?: string
+    holdDuration?: number
 }
