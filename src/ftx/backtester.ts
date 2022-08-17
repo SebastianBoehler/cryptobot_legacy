@@ -78,6 +78,7 @@ let endTime
 
                 const transactions = storage[rule]['transactions']
                 const latestTransaction = transactions[transactions.length - 1]
+                const holdDuration = latestTransaction ? (timestamp - latestTransaction['timestamp']) / 1000 / 60 : 0
 
                 let {fee, netProfit, priceChange, netProfitPercentage, exitInvestSize} = await calculateProfit(latestTransaction, price)
 
@@ -347,7 +348,7 @@ let endTime
                                 obj['netProfitPercentage'] = netProfitPercentage
                                 obj['priceChange'] = priceChange
                                 obj['entryId'] = latestTransaction['entryId']
-                                obj['holdDuration'] = timestamp - latestTransaction['timestamp'] / 1000 / 60
+                                obj['holdDuration'] = holdDuration
                             }
 
                             storage[rule]['transactions'].push(obj)
