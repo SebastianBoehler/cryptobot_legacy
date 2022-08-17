@@ -290,12 +290,14 @@ let endTime
                 const hasOpenPosition = latestTransaction && latestTransaction['type'].includes('Entry')
 
                 if (hasOpenPosition) {
-                    const diff = timestamp - prevTimestamp / 1000 / 60
+                    const diff = (timestamp - prevTimestamp) / 1000 / 60
+                    console.log('diff',diff)
                     if (diff > 5) {
                         //remove last transaction
                         console.warn('removed latest entry due to skip in price database')
-                        await sqlClientStorage.deleteTransaction(latestTransaction['orderId'])
-                        storage[rule].transactions.pop()
+                        const removedTrx = storage[rule].transactions.pop()
+                        if (removedTrx) await sqlClientStorage.deleteTransaction(removedTrx['orderId'])
+                        continue
                     }
                     if (latestTransaction['type'].includes('Long')) {
                         await checkRule(rule, 'Long Exit')

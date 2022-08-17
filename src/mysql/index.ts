@@ -66,7 +66,6 @@ class sql_class {
     }
 
     async writeTransaction(data: orderObject) {
-        console.log(data)
         return new Promise<void>((resolve, reject) => {
             this.pool.query(`INSERT INTO backtester (rule,symbol,time,orderID,side,profit,data) VALUES ('${data.rule}','${data.symbol}','${data.timestamp}','${data.orderId}','${data.type}',${data.netProfitPercentage || null},'${JSON.stringify(data)}')`, (err) => {
                 if (err) reject(err)
