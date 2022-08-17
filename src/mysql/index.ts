@@ -75,6 +75,15 @@ class sql_class {
         })
     }
 
+    async deleteTransaction(orderId: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`DELETE FROM backtester WHERE orderId = '${orderId}'`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
     async deleteTable(table: string) {
         return new Promise<void>((resolve, reject) => {
             this.pool.query(`DROP TABLE ${table.replace('-', '')}`, (err) => {

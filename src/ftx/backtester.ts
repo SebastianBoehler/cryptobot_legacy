@@ -294,6 +294,7 @@ let endTime
                     if (diff > 5) {
                         //remove last transaction
                         console.warn('removed latest entry due to skip in price database')
+                        await sqlClientStorage.deleteTransaction(latestTransaction['orderId'])
                         storage[rule].transactions.pop()
                     }
                     if (latestTransaction['type'].includes('Long')) {
