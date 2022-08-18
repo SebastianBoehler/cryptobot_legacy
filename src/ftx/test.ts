@@ -67,7 +67,7 @@ const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
     const exit = {
         type: 'Short Exit',
         price: exitFills['result'][0]['price'],
-        invest: profit['exitInvestSize'],
+        invest: profit['netInvest'],
         fee: exitFills['result'][0]['fee'],
         feeRate: exitFills['result'][0]['feeRate'],
         size: exitFills['result'][0]['size'],
