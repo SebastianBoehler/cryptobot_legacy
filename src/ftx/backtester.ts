@@ -12,7 +12,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 28);
 //startTime.setHours(startTime.getHours() - 5);
-const rulesToTest = ['test']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -293,7 +293,7 @@ let endTime
                 if (hasOpenPosition) {
                     const diff = (timestamp - prevTimestamp) / 1000 / 60
                     console.log('diff',diff)
-                    if (diff > 5) {
+                    if (diff > 5 && profitThreshold) {
                         //remove last transaction
                         console.warn('removed latest entry due to skip in price database')
                         const removedTrx = storage[rule].transactions.pop()
