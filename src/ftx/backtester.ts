@@ -80,7 +80,13 @@ let endTime
                 const latestTransaction = transactions[transactions.length - 1]
                 const holdDuration = latestTransaction ? (timestamp - latestTransaction['timestamp']) / 1000 / 60 : 0
 
-                let {fee, netProfit, priceChange, netProfitPercentage, exitInvestSize} = await calculateProfit(latestTransaction, price)
+                let {
+                    fee, 
+                    netProfit, 
+                    priceChange, 
+                    netProfitPercentage, 
+                    netInvest
+                } = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
                 const profitThreshold2 = netProfitPercentage > 2 * leverage || netProfitPercentage < -1.5 * leverage
@@ -292,7 +298,6 @@ let endTime
 
                 if (hasOpenPosition) {
                     const diff = (timestamp - prevTimestamp) / 1000 / 60
-                    console.log('diff',diff)
                     if (diff > 5 && profitThreshold) {
                         //remove last transaction
                         console.warn('removed latest entry due to skip in price database')
@@ -320,7 +325,7 @@ let endTime
                         
                         if (storage[rule]['indexes'][type] >= rules[rule][type].length) {
                             let invest = startInvest * leverage
-                            if (latestTransaction) invest = exitInvestSize
+                            if (latestTransaction) invest = netInvest * leverage
                             //execute order
                             const feeDecimal = process.env.FTX_FEE || 0.000665
                             if (!fee) fee = invest * +feeDecimal
@@ -332,6 +337,7 @@ let endTime
                                 action: type,
                                 symbol,
                                 invest,
+                                netInvest: netInvest || startInvest,
                                 size: invest / price,
                                 fee,
                                 platform: 'ftx',

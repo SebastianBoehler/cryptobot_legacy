@@ -15,6 +15,7 @@ export type orderObject = {
     action: string,
     symbol: string
     invest: number
+    netInvest: number
     size: number
     fee: number
     platform: 'ftx' | 'binance' | 'coinbase'

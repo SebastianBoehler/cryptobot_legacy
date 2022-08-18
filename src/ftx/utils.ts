@@ -34,13 +34,15 @@ async function calculateProfit(entry: any, price: number, exit?: any) {
     if (!entry) return {
         netProfit: 0,
         netProfitPercentage: 0,
-        exitInvestSize: 0
+        //exitInvestSize: 0,
+        netInvest: 0
     }
     const type = entry['type']
     if (type.includes('Exit')) return {
         netProfit: 0,
         netProfitPercentage: 0,
-        exitInvestSize: entry['invest']
+        //exitInvestSize: entry['invest'],
+        netInvest: entry['netInvest']
     }
     
     const leverage = +(process.env.LEVERAGE || 5)
@@ -52,7 +54,7 @@ async function calculateProfit(entry: any, price: number, exit?: any) {
 
     const netProfit = bruttoProfit - (entry['fee'] + fee)
     const netProfitPercentage = netProfit / (entry['invest'] / leverage) * 100
-    const exitInvestSize = entry['invest'] + netProfit
+    const netInvest = entry['netInvest'] + netProfit
 
     return {
         fee,
@@ -61,7 +63,7 @@ async function calculateProfit(entry: any, price: number, exit?: any) {
         netProfit,
         priceChange,
         netProfitPercentage,
-        exitInvestSize
+        netInvest
     }
 }
 
