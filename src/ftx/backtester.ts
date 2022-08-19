@@ -18,7 +18,7 @@ const leverage = +(process.env.LEVERAGE || 5);
 let endTime
 
 (async () => {
-    //await sqlClientStorage.emptyTable('backtester')
+    await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
     const symbols = [...new Set(markets.map((item: Market) => item['name']))]
@@ -102,7 +102,7 @@ let endTime
                             indicators25min['MACD']['histogram']! > 0,
                             indicators25min['RSI'] < 50,
                             indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators25min['EMA_8'] > indicators25min['EMA_21'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -113,7 +113,7 @@ let endTime
                             indicators25min['MACD']['histogram']! < 0,
                             indicators25min['RSI'] > 50,
                             indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators25min['EMA_8'] < indicators25min['EMA_21'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
@@ -124,9 +124,10 @@ let endTime
                             indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] < 50,
-                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_21'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -135,9 +136,10 @@ let endTime
                             indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] > 50,
-                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators60min['EMA_21'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
@@ -269,23 +271,25 @@ let endTime
                     },
                     'test8': {
                         'Long Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.25,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! < -0.2,
                         ], [
+                            indicators25min['MACD']['histogram']! > 0,
                             indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
-                            indicators25min['RSI'] < 60,
-                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.25,
+                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! > 0.2,
                         ], [
+                            indicators25min['MACD']['histogram']! < 0,
                             indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
-                            indicators25min['RSI'] > 40,
-                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
