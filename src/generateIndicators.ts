@@ -8,7 +8,7 @@ const mysqlClient = new mysql('ftx');
 async function generateIndicators(symbol: string, granularity: number, timestamp: number = new Date().getTime()) {
     const repaintNo = await stopRepainting(timestamp, granularity)
     const repaintDate = new Date(timestamp)
-    const limit = (55 * granularity) + (granularity) * 45 * 5
+    const limit = (55 * granularity) + (granularity) * 35 * 5
     repaintDate.setMinutes(repaintDate.getMinutes() - repaintNo)
     repaintDate.setSeconds(0)
     //console.log(granularity, new Date(timestamp).toLocaleTimeString(), repaintNo, repaintDate.toLocaleTimeString())
@@ -47,8 +47,6 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
     }
 
     transformedHistory.reverse()
-
-    //console.log(transformedHistory.length, transformedHistory[transformedHistory.length - 1], granularity)
 
     const closes = transformedHistory.map((item) => item['close'])
     //const highs = transformedHistory.map((item) => item['high'])
