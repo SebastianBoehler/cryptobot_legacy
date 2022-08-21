@@ -15,14 +15,14 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
 
     let history = await mysqlClient.getPriceHistory(symbol, `WHERE time <= ${repaintDate.getTime()}`, limit)
 
-    //console.log('repaint', repaintDate.toLocaleString(), granularity)
+    //console.log('repaint', repaintDate.toLocaleString(), repaintDate.toLocaleTimeString(), granularity)
 
     let pointInTime = repaintDate.getTime()
 
     const transformedHistory = granularity === 1 ? history : []
 
     while (pointInTime >= history[0]['time'] && granularity > 1) {
-        const temp = history.filter(item => item['time'] < pointInTime && item['time'] >= (pointInTime - (granularity * 60 * 1000)))
+        const temp = history.filter(item => item['time'] >= pointInTime && item['time'] < (pointInTime + (granularity * 60 * 1000)))
         //console.log('temp',temp.length, new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
         if (temp.length < granularity * 0.6) {
             //console.log('break', new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString())
@@ -40,13 +40,13 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
             price: temp[temp.length - 1]['close'],
             volume: temp.reduce((acc, item) => acc + item['volume'], 0)
         })
-
         //console.log(new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString(), temp.length,)
         //console.log(new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
         pointInTime -= (granularity * 60 * 1000)
     }
 
     transformedHistory.reverse()
+    //console.log(new Date(transformedHistory[transformedHistory.length - 1]['time']).toLocaleString(), transformedHistory[transformedHistory.length - 1])
 
     const closes = transformedHistory.map((item) => item['close'])
     //const highs = transformedHistory.map((item) => item['high'])
