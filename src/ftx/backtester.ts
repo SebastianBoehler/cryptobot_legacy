@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
