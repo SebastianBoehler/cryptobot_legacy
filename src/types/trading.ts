@@ -30,4 +30,6 @@ export type orderObject = {
     priceChange?: number
     rule?: string
     holdDuration?: number
+    details?: {[key: string]: number} 
+    entryDetails?: {[key: string]: number}
 }

@@ -89,7 +89,6 @@ let endTime
                 } = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                const profitThreshold2 = netProfitPercentage > 2 * leverage || netProfitPercentage < -1.5 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
                 //enable rules in rulesToTest
                 const rules: {
@@ -100,9 +99,10 @@ let endTime
                             indicators25min['MACD']['histogram']! < -0.15,
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] < 50,
-                            indicators5min['MACD']['histogram']! > indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] > indicators25min['EMA_21'],
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -111,9 +111,10 @@ let endTime
                             indicators25min['MACD']['histogram']! > 0.15,
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] > 50,
-                            indicators5min['MACD']['histogram']! < indicators5min['MACD_prev']['histogram']!,
-                            indicators25min['EMA_8'] < indicators25min['EMA_21'],
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
@@ -150,9 +151,10 @@ let endTime
                             indicators25min['MACD']['histogram']! < -0.15,
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] < 50,
                             indicators5min['MACD']['histogram']! > 0,
-                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                            indicators60min['EMA_8'] > indicators60min['EMA_21'],
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -161,9 +163,10 @@ let endTime
                             indicators25min['MACD']['histogram']! > 0.15,
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
                             indicators25min['RSI'] > 50,
                             indicators5min['MACD']['histogram']! < 0,
-                            indicators25min['EMA_8'] < indicators25min['EMA_13'],
+                            indicators60min['EMA_8'] < indicators60min['EMA_21'],
                        ]],
                        'Short Exit': [[
                             profitThreshold
@@ -214,7 +217,7 @@ let endTime
                             indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
-                            profitThreshold2
+                            profitThreshold
                        ]]
                     },
                     'test6': {
@@ -297,6 +300,12 @@ let endTime
                     },
                 }
 
+                const details = {
+                    '25m EMA_8 > EMA_55': indicators25min['EMA_8'] / indicators25min['EMA_55'],
+                    '25m RSI': indicators25min['RSI'],
+                    '60m RSI': indicators60min['RSI'],
+                }
+
                 //there is an entry
                 const hasOpenPosition = latestTransaction && latestTransaction['type'].includes('Entry')
 
@@ -349,7 +358,8 @@ let endTime
                                 status: 'DEMO',
                                 index: rule.match(/\d+/) ? +rule.match(/\d+/)![0] : undefined,
                                 rule,
-                                orderId: Math.random().toString(36)
+                                orderId: Math.random().toString(36),
+                                details
                             }
 
                             if (type.includes('Exit')) {
@@ -359,6 +369,7 @@ let endTime
                                 obj['priceChange'] = priceChange
                                 obj['entryId'] = latestTransaction['entryId']
                                 obj['holdDuration'] = holdDuration
+                                obj['entryDetails'] = latestTransaction['details']
                             }
 
                             storage[rule]['transactions'].push(obj)
@@ -385,29 +396,17 @@ let endTime
                 const profitLong = exits.filter((item: orderObject) => item['type'].includes('Long')).reduce((acc, item) => acc + item['netProfit']!, 0)
                 const feeTotal = exits.reduce((acc, item) => acc + item['feeSum']!, 0)
 
-                const profits = exits.map((item: orderObject) => +item['netProfitPercentage']!.toFixed(9))
-
                 const ratio = exits.filter((item) => item['netProfit']! > 0).length / exits.length
-                let profitCalculation = new BigNumber(1)
-                
-                
-                for (const percent of profits) {
-                    //console.log('calc profit', profitPercentage, percent, (percent / 100 + 1))
-                    profitCalculation = profitCalculation.times((percent / 100 + 1))
-                }
-                const profitPercentage = (profitCalculation.toNumber() - 1) * 100
 
                 //console.log(profits, profitPercentage, profitTotal)
 
                 tables[`${transactions[0]['symbol'].replace('-PERP', '')} ${rule}`] = {
                     'Net Profit': profit.toFixed(2) + '$',
-                    'Profit %': profitPercentage.toFixed(2) + '%',
-                    'Profit % 2': (profit / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%', //more accurate until using big numbers
-                    'Profit Longs': (profitLong / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%', //more accurate until using big numbers
+                    'Profit %': (profit / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%',
+                    'Profit Longs': (profitLong / (transactions[0]['invest'] / leverage) * 100).toFixed(2) + '%',
                     'Fee Total': feeTotal.toFixed(2) + '$',
                     'Transactions': transactions.length,
                     'Win Ratio': (ratio * 100).toFixed(0) + '%',
-                    'Invested': (transactions[0]['invest'] / leverage).toFixed(0) + '$',
                 }
             }
             prevTimestamp = timestamp
