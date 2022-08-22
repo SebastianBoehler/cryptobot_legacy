@@ -278,7 +278,8 @@ let endTime
                     },
                     'test8': {
                         'Long Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! - 1 < -0.6,
+                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 1.5,
+                            indicators25min['MACD']['histogram']! < 0
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
                             indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
@@ -290,7 +291,8 @@ let endTime
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            indicators25min['MACD']['MACD']! / indicators25min['MACD']['signal']! - 1 > 0.6,
+                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 1.5,
+                            indicators25min['MACD']['histogram']! > 0
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
                             indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
@@ -304,7 +306,7 @@ let endTime
                     },
                     'test9': {
                         'Long Entry': [[
-                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 2.5,
+                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 2,
                             indicators25min['MACD']['histogram']! < 0
                         ], [
                             indicators25min['MACD']['histogram']! > 0,
@@ -317,7 +319,7 @@ let endTime
                             profitThreshold
                        ]],
                        'Short Entry': [[
-                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 2.5,
+                            Math.abs(indicators25min.MACD.MACD!) / Math.abs(indicators25min.MACD.signal!) > 2,
                             indicators25min['MACD']['histogram']! > 0
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
