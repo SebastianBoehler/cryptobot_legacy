@@ -45,7 +45,11 @@ let endTime
 
         //iterate over history
         let prevTimestamp = history[0]['time']
+        let lastSkip: number | null = null
         for (const {time: timestamp, close: price} of history) {
+            const diff = (timestamp - prevTimestamp) / 1000 / 60
+            prevTimestamp = timestamp
+
             console.clear()
             //console.log('\n\n')
             console.log(`${new Date(timestamp).toLocaleString()} | Testing ${symbol}`)
@@ -338,8 +342,8 @@ let endTime
                 const hasOpenPosition = latestTransaction && latestTransaction['type'].includes('Entry')
 
                 if (hasOpenPosition) {
-                    const diff = (timestamp - prevTimestamp) / 1000 / 60
-                    if (diff > 5 && profitThreshold) {
+                    if (diff > 5) {
+                        lastSkip = timestamp
                         //remove last transaction
                         console.warn('removed latest entry due to skip in price database')
                         const removedTrx = storage[rule].transactions.pop()
@@ -352,6 +356,16 @@ let endTime
                         await checkRule(rule, 'Short Exit')
                     }
                 } else {
+                    if (diff > 5) {
+                        lastSkip = timestamp
+                        console.log('missing price data, diff:', diff)
+                        continue
+                    }
+                    //lastSkip at least 30min ago
+                    if (lastSkip && timestamp - lastSkip < 1000 * 60 * 30) {
+                        console.log('skipped due to last skip less than 30m ago')
+                        continue
+                    }
                     await checkRule(rule, 'Long Entry')
                     await checkRule(rule, 'Short Entry')
                 }
@@ -437,7 +451,6 @@ let endTime
                     'Win Ratio': (ratio * 100).toFixed(0) + '%',
                 }
             }
-            prevTimestamp = timestamp
         }
         if (!endTime) endTime = new Date(history[history.length - 1]['time']).getTime()
     }
