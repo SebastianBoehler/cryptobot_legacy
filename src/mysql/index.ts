@@ -20,6 +20,15 @@ class sql_class {
         })
     }
 
+    async createTable(table: string, columns: string[]) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`CREATE TABLE ${table.replace('-', '')} (${columns.join(',')})`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
     async getPriceHistory(symbol: string, options: string = '', limit?: number) {
         return new Promise<RowDataPacketPriceParsed[]>((resolve, reject) => {
             this.pool.query(`SELECT volume, time, open, close, high, low FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
@@ -42,7 +51,8 @@ class sql_class {
         return new Promise<number>((resolve, reject) => {
             this.pool.query(`SELECT time FROM ${symbol.replace('-', '')} ORDER BY time DESC LIMIT 1`, (err, results) => {
                 if (err) reject(err)
-                else resolve(+results[0].time)
+                else if (results[0]) resolve(+results[0].time)
+                else resolve(0)
             })
         })
     }

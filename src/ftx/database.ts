@@ -38,6 +38,24 @@ async function main() {
 
 async function refreshData(symbol: string) {
     const latestTime = await mysqlClient.getLastPriceTimestamp(symbol)
+    .catch(async e => {
+        if (e.message.includes('ER_NO_SUCH_TABLE')) {
+            await mysqlClient.createTable(symbol, [
+                'id int auto_increment primary key', 
+                'time VARCHAR(255)', 
+                'open VARCHAR(255)', 
+                'close VARCHAR(255)', 
+                'high VARCHAR(255)', 
+                'low VARCHAR(255)', 
+                'volume VARCHAR(255)', 
+                'price VARCHAR(255)',
+                'bid VARCHAR(255)',
+                'ask VARCHAR(255)',
+            ])
+        }
+        else console.error('unable to get latest time')
+        return 0
+    })
     //console.log(latestTime, new Date(latestTime).toLocaleString())
 
     const minAgo = new Date()

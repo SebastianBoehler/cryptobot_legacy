@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 31);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -95,7 +95,7 @@ let endTime
                 } = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                //const profitThreshold3 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
+                const profitThreshold2 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
                 //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
@@ -339,7 +339,8 @@ let endTime
                             indicators25min['MACD']['histogram']! > 0,
                             indicators25min['RSI'] < 50,
                             indicators5min['MACD']['histogram']! > 0,
-                            indicators60min['STOCH_RSI']['k'] > indicators60min['STOCH_RSI']['d']
+                            indicators60min['STOCH_RSI']['k'] > indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
                        ]],
                        'Long Exit': [[
                             profitThreshold
@@ -350,10 +351,35 @@ let endTime
                             indicators25min['MACD']['histogram']! < 0,
                             indicators25min['RSI'] > 50,
                             indicators5min['MACD']['histogram']! < 0,
-                            indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d']
+                            indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
                        ]],
                        'Short Exit': [[
                             profitThreshold
+                       ]]
+                    },
+                    'test11': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.25,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold2 || holdDuration > 150
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.25,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['EMA_8'] < indicators60min['EMA_13'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold2 || holdDuration > 150
                        ]]
                     },
                 }
@@ -361,7 +387,10 @@ let endTime
                 const details = {
                     '25m EMA_8 / EMA_55': indicators25min['EMA_8'] / indicators25min['EMA_55'],
                     '25m RSI': indicators25min['RSI'],
+                    '25m histogram': indicators25min['MACD']['histogram']!,
                     '60m RSI': indicators60min['RSI'],
+                    '60m EMA_8 / EMA_13': indicators60min['EMA_8'] / indicators60min['EMA_13'],
+                    '60m histogram': indicators60min['MACD']['histogram']!,
                 }
 
                 //there is an entry
