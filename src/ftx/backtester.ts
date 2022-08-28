@@ -375,7 +375,7 @@ let endTime
                             indicators60min['EMA_8'] > indicators60min['EMA_13'],
                        ]],
                        'Long Exit': [[
-                            profitThreshold2 || holdDuration > 60
+                            profitThreshold || holdDuration > 60
                        ]],
                        'Short Entry': [[
                             indicators25min['MACD']['histogram']! > 0.25,
@@ -386,7 +386,7 @@ let endTime
                             indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
-                            profitThreshold2 || holdDuration > 60
+                            profitThreshold || holdDuration > 60
                        ]]
                     },
                     'test12': {
@@ -407,6 +407,34 @@ let endTime
                         ], [
                             indicators25min['MACD']['histogram']! < 0,
                             indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold3
+                       ]]
+                    },
+                    'test13': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['STOCH_RSI']['k'] > indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold3
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
                             indicators5min['MACD']['histogram']! < 0,
                             indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d'],
                             indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
@@ -486,14 +514,14 @@ let endTime
                         details
                     }
 
-                    if (price / max < 0.994) {
-                        //short
+                    if (price / max < 0.994 && price / min < 1.01) {
+                        //short profit and no loss
                         obj['type'] = 'Short Entry'
                         obj['action'] = 'Short Entry'
                         await sqlClientStorage.writeTransaction(obj)
-                    }
-                    if (price / min < 1.006) {
-                        //long
+                    } 
+                    if (price / min < 1.006 && price / max > 0.99) {
+                        //long profit and no loss
                         obj['type'] = 'Long Entry'
                         obj['action'] = 'Long Entry'
                         await sqlClientStorage.writeTransaction(obj)
