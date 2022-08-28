@@ -9,9 +9,9 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 31);
+startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'correlation']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -96,10 +96,17 @@ let endTime
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
                 const profitThreshold2 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
+                const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
                 //enable rules in rulesToTest
                 const rules: {
                    [key: string]: Rule
                 } = {
+                    'correlation': {
+                        'Long Entry': [[false]],
+                        'Long Exit': [[]],
+                        'Short Entry': [[false]],
+                        'Short Exit': [[]]
+                    },
                     'test': {
                         'Long Entry': [[
                             indicators25min['MACD']['histogram']! < -0.15,
@@ -368,7 +375,7 @@ let endTime
                             indicators60min['EMA_8'] > indicators60min['EMA_13'],
                        ]],
                        'Long Exit': [[
-                            profitThreshold2 || holdDuration > 150
+                            profitThreshold2 || holdDuration > 60
                        ]],
                        'Short Entry': [[
                             indicators25min['MACD']['histogram']! > 0.25,
@@ -379,12 +386,41 @@ let endTime
                             indicators60min['EMA_8'] < indicators60min['EMA_13'],
                        ]],
                        'Short Exit': [[
-                            profitThreshold2 || holdDuration > 150
+                            profitThreshold2 || holdDuration > 60
+                       ]]
+                    },
+                    'test12': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['STOCH_RSI']['k'] > indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold3
+                       ]],
+                       'Short Entry': [[
+                            indicators25min['MACD']['histogram']! > 0.15,
+                        ], [
+                            indicators25min['MACD']['histogram']! < 0,
+                            indicators25min['RSI'] > 50,
+                            indicators5min['MACD']['histogram']! < 0,
+                            indicators60min['STOCH_RSI']['k'] < indicators60min['STOCH_RSI']['d'],
+                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold3
                        ]]
                     },
                 }
 
                 const details = {
+                    '5m histogram': indicators5min['MACD']['histogram']!,
+                    '5m EMA_8 / EMA_55': indicators5min['EMA_8'] / indicators5min['EMA_13'],
+                    '5m RSI': indicators5min['RSI'],
                     '25m EMA_8 / EMA_55': indicators25min['EMA_8'] / indicators25min['EMA_55'],
                     '25m RSI': indicators25min['RSI'],
                     '25m histogram': indicators25min['MACD']['histogram']!,
@@ -423,6 +459,45 @@ let endTime
                     }
                     await checkRule(rule, 'Long Entry')
                     await checkRule(rule, 'Short Entry')
+                }
+
+                if (rule === 'correlation' && timestamp / 1000 / 60 % 15 === 0) {
+                    const startTime = timestamp - (1000 * 60 * 30) //30min
+                    const temp = history.filter(item => item.time <= timestamp && item.time >= startTime)
+                    const max = Math.max(...temp.map(item => item['close']))
+                    const min = Math.min(...temp.map(item => item['close']))
+
+                    let obj: orderObject = {
+                        price,
+                        timestamp,
+                        type: '',
+                        action: '',
+                        symbol,
+                        invest: 0,
+                        netInvest: netInvest || startInvest,
+                        size: 0,
+                        fee: 0,
+                        platform: 'ftx',
+                        avgPrice: price,
+                        status: 'DEMO',
+                        index: rule.match(/\d+/) ? +rule.match(/\d+/)![0] : undefined,
+                        rule,
+                        orderId: Math.random().toString(36),
+                        details
+                    }
+
+                    if (price / max < 0.994) {
+                        //short
+                        obj['type'] = 'Short Entry'
+                        obj['action'] = 'Short Entry'
+                        await sqlClientStorage.writeTransaction(obj)
+                    }
+                    if (price / min < 1.006) {
+                        //long
+                        obj['type'] = 'Long Entry'
+                        obj['action'] = 'Long Entry'
+                        await sqlClientStorage.writeTransaction(obj)
+                    }
                 }
 
                 async function checkRule(rule: string, type: OrderTypes) {
