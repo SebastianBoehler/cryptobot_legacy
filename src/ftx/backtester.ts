@@ -95,7 +95,7 @@ let endTime
                 } = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
-                const profitThreshold2 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
+                //const profitThreshold2 = netProfitPercentage > 0.7 * leverage || netProfitPercentage < -1 * leverage
                 const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
                 //enable rules in rulesToTest
                 const rules: {
