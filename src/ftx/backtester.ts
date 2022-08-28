@@ -461,7 +461,7 @@ let endTime
                     await checkRule(rule, 'Short Entry')
                 }
 
-                if (rule === 'correlation' && timestamp / 1000 / 60 % 15 === 0) {
+                if (rule === 'correlation' && timestamp / 1000 / 60 % 90 === 0) {
                     const startTime = timestamp - (1000 * 60 * 30) //30min
                     const temp = history.filter(item => item.time <= timestamp && item.time >= startTime)
                     const max = Math.max(...temp.map(item => item['close']))
