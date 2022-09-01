@@ -67,7 +67,12 @@ async function refreshData(symbol: string) {
     startTime.setMinutes(startTime.getMinutes() - 4)
 
     let historical = await getHistoricalPrices(symbol, startTime.getTime() / 1000)
-    if (historical[historical.length - 1]['time'] === latestTime) return
+    .catch(e => {
+        console.error(e)
+        console.error('unable to get historical prices')
+        return undefined
+    })
+    if (!historical || historical[historical.length - 1]['time'] === latestTime) return
 
     const currentMin = new Date().getMinutes()
 

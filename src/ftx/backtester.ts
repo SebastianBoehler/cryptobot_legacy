@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'correlation']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -49,8 +49,6 @@ let endTime
         for (const {time: timestamp, close: price} of history) {
             const diff = (timestamp - prevTimestamp) / 1000 / 60
             prevTimestamp = timestamp
-
-            //if (timestamp / 1000 / 60 % 15 !== 0) continue
 
             console.clear()
             //console.log('\n\n')
@@ -447,13 +445,13 @@ let endTime
 
                 const details = {
                     '5m histogram': indicators5min['MACD']['histogram']!,
-                    '5m EMA_8 / EMA_55': indicators5min['EMA_8'] / indicators5min['EMA_13'],
+                    '5m EMA_8 / EMA_55': indicators5min['EMA_8'] / indicators5min['EMA_55'],
                     '5m RSI': indicators5min['RSI'],
                     '25m EMA_8 / EMA_55': indicators25min['EMA_8'] / indicators25min['EMA_55'],
                     '25m RSI': indicators25min['RSI'],
                     '25m histogram': indicators25min['MACD']['histogram']!,
                     '60m RSI': indicators60min['RSI'],
-                    '60m EMA_8 / EMA_13': indicators60min['EMA_8'] / indicators60min['EMA_13'],
+                    '60m EMA_8 / EMA_55': indicators60min['EMA_8'] / indicators60min['EMA_55'],
                     '60m histogram': indicators60min['MACD']['histogram']!,
                 }
 
@@ -489,7 +487,7 @@ let endTime
                     await checkRule(rule, 'Short Entry')
                 }
 
-                if (rule === 'correlation' && timestamp / 1000 / 60 % 90 === 0) {
+                if (rule === 'correlation' && timestamp / 1000 / 60 % 25 === 0) {
                     const startTime = timestamp - (1000 * 60 * 30) //30min
                     const temp = history.filter(item => item.time <= timestamp && item.time >= startTime)
                     const max = Math.max(...temp.map(item => item['close']))
@@ -501,7 +499,7 @@ let endTime
                         type: '',
                         action: '',
                         symbol,
-                        invest: 0,
+                        invest: (netInvest || startInvest) * leverage,
                         netInvest: netInvest || startInvest,
                         size: 0,
                         fee: 0,
@@ -511,20 +509,41 @@ let endTime
                         index: rule.match(/\d+/) ? +rule.match(/\d+/)![0] : undefined,
                         rule,
                         orderId: Math.random().toString(36),
-                        details
+                        details,
                     }
+
+                    const feeDecimal = process.env.FTX_FEE || 0.000665
+                    obj['fee'] = obj['invest'] * +feeDecimal
 
                     if (price / max < 0.994 && price / min < 1.01) {
                         //short profit and no loss
-                        obj['type'] = 'Short Entry'
-                        obj['action'] = 'Short Entry'
-                        await sqlClientStorage.writeTransaction(obj)
-                    } 
-                    if (price / min < 1.006 && price / max > 0.99) {
+                        obj['type'] = 'Short Exit'
+                        obj['action'] = 'Short Exit'
+                        await sqlClientStorage.writeTransaction({
+                            ...obj,
+                            ...await calculateProfit({
+                                type: 'Short Entry',
+                                invest: obj['invest'],
+                                netInvest: obj['netInvest'],
+                                fee: obj['fee'],
+                                price: max,
+                            }, price)
+                        })
+                    }
+                    if (price / min > 1.006 && price / max > 0.99) {
                         //long profit and no loss
-                        obj['type'] = 'Long Entry'
-                        obj['action'] = 'Long Entry'
-                        await sqlClientStorage.writeTransaction(obj)
+                        obj['type'] = 'Long Exit'
+                        obj['action'] = 'Long Exit'
+                        await sqlClientStorage.writeTransaction({
+                            ...obj,
+                            ...await calculateProfit({
+                                type: 'Long Entry',
+                                invest: obj['invest'],
+                                netInvest: obj['netInvest'],
+                                fee: obj['fee'],
+                                price: min,
+                            }, price)
+                        })
                     }
                 }
 

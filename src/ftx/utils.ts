@@ -2,6 +2,7 @@ import {
     RestClient,
 } from 'ftx-api'
 import { HistoricalPrice, Market } from '../types/ftx';
+import { orderObject } from '../types/trading';
 
 const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
 
@@ -29,7 +30,7 @@ async function getHistoricalPrices(symbol: string, start_time: number) {
     else return []
 }
 
-async function calculateProfit(entry: any, price: number, exit?: any) {
+async function calculateProfit(entry: orderObject | any, price: number, exit?: any) {
     const feeDecimal = +(process.env.FTX_FEE || 0.000665)
     if (!entry) return {
         netProfit: 0,
@@ -52,9 +53,13 @@ async function calculateProfit(entry: any, price: number, exit?: any) {
     const fee = InvestSizeBrutto * feeDecimal
     const priceChange = (price / entry['price'] - 1) * 100
 
+    console.log(InvestSizeBrutto, bruttoProfit)
+
     const netProfit = bruttoProfit - (entry['fee'] + fee)
     const netProfitPercentage = netProfit / (entry['invest'] / leverage) * 100
     const netInvest = entry['netInvest'] + netProfit
+
+    console.log(entry['fee'], fee)
 
     return {
         fee,
