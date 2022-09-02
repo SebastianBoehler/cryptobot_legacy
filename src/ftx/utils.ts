@@ -53,13 +53,9 @@ async function calculateProfit(entry: orderObject | any, price: number, exit?: a
     const fee = InvestSizeBrutto * feeDecimal
     const priceChange = (price / entry['price'] - 1) * 100
 
-    console.log(InvestSizeBrutto, bruttoProfit)
-
     const netProfit = bruttoProfit - (entry['fee'] + fee)
     const netProfitPercentage = netProfit / (entry['invest'] / leverage) * 100
     const netInvest = entry['netInvest'] + netProfit
-
-    console.log(entry['fee'], fee)
 
     return {
         fee,
