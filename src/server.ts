@@ -10,6 +10,7 @@ const port = process.env.PORT || 3000;
 import ftxRoutes from './ftx/routes';
 
 server.use('/ftx', ftxRoutes);
+//server.use('/mysql', mysqlRoutes);
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
