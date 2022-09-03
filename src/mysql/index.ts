@@ -4,8 +4,11 @@ import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
 
 import * as dotenv from 'dotenv';
 import { orderObject } from '../types/trading';
+
+console.log('provided env', process.env.NODE_ENV, process.env.DB_HOST)
+const path = process.env.NODE_ENV || 'prod'
 dotenv.config({
-    path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
+    path: `${path.split(' ').join('')}.env`
 });
 
 class sql_class {
