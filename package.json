@@ -7,6 +7,7 @@
     "build": "npx tsc",
     "watch": "npx tsc -w",
     "test": "SET NODE_ENV=dev && nodemon src/ftx/test.ts",
+    "index": "SET NODE_ENV=dev && nodemon src/index.ts",
     "nodemon": "SET NODE_ENV=dev && nodemon src/ftx/backtester.ts",
     "nodemon:database": "SET NODE_ENV=dev && nodemon src/ftx/database.ts",
     "pm2:start": "pm2 start ecosystem.config.js --env prod",
@@ -23,6 +24,7 @@
   "dependencies": {
     "bignumber.js": "^9.1.0",
     "dotenv": "^16.0.1",
+    "fs": "^0.0.1-security",
     "ftx-api": "^1.1.13",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.19",

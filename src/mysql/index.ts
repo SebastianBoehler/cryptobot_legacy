@@ -5,10 +5,8 @@ import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
 import * as dotenv from 'dotenv';
 import { orderObject } from '../types/trading';
 
-console.log('provided env', process.env.NODE_ENV, process.env.SQL_HOST)
-const path = process.env.NODE_ENV || 'prod'
 dotenv.config({
-    path: `${path.split(' ').join('')}.env`
+    path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
 });
 
 class sql_class {
@@ -16,11 +14,10 @@ class sql_class {
 
     constructor(database: string) {
         this.pool = mysql.createPool({
-            queueLimit: 100,
-            connectionLimit: 75,
             host: process.env.SQL_HOST,
             user: process.env.SQL_USER,
             password: process.env.SQL_PASSWORD,
+            port: +(process.env.SQL_PORT || 3306),
             database: database
         })
     }
