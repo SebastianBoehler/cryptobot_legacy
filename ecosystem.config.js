@@ -20,6 +20,17 @@ module.exports = {
             NODE_ENV: "dev"
         },
         watch: true
+    },
+    {
+        name: "server",
+        script: "./build/server.js",
+        env_prod: {
+            NODE_ENV: "prod"
+        },
+        env_dev: {
+            NODE_ENV: "dev"
+        },
+        watch: true
     }
     ]
 }
