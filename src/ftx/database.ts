@@ -53,7 +53,7 @@ async function refreshData(symbol: string) {
                 'ask VARCHAR(255)',
             ])
         }
-        else console.error('unable to get latest time')
+        else if (e.code !== 'POOL_ENQUEUELIMIT') console.error('unable to get latest time', e)
         return 0
     })
     //console.log(latestTime, new Date(latestTime).toLocaleString())
