@@ -16,6 +16,8 @@ class sql_class {
 
     constructor(database: string) {
         this.pool = mysql.createPool({
+            queueLimit: 50,
+            connectionLimit: 35,
             host: process.env.SQL_HOST,
             user: process.env.SQL_USER,
             password: process.env.SQL_PASSWORD,
