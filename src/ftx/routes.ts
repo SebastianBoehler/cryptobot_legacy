@@ -19,6 +19,8 @@ router.get('/dev', async (req: Request, res: Response) => {
             generateIndicators(symbol, 60, new Date().getTime())
         ])
 
+        console.log(indicators25min)
+
         obj[symbol] = {
             long: {
                 main: {
