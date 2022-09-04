@@ -7,7 +7,7 @@ import { orderObject } from '../types/trading';
 
 const path = process.env.NODE_ENV ? process.env.NODE_ENV.split(' ').join('') : 'prod'
 dotenv.config({
-    path
+    path: path + '.env'
 });
 
 class sql_class {
