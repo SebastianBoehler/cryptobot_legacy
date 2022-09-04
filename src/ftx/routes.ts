@@ -13,7 +13,6 @@ router.get('/dev', async (req: Request, res: Response) => {
     const obj: {[key: string]: any} = {}
 
     for (const market of futures) {
-        break
         const symbol = market.name
         const [indicators25min ,indicators60min] = await Promise.all([
             generateIndicators(symbol, 25, new Date().getTime()),
@@ -21,8 +20,14 @@ router.get('/dev', async (req: Request, res: Response) => {
         ])
 
         obj[symbol] = {
-            indicators25min,
-            indicators60min
+            long: {
+                main: {
+                    '60m MACD histogram': indicators60min['MACD']['histogram']! > 0
+                },
+                optional: {
+                    '60m RSI': indicators60min['RSI'] < 75
+                }
+            },
         }
     }
 

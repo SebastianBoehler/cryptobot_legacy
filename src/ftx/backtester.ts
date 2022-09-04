@@ -30,6 +30,7 @@ let endTime
     for (const symbol of symbols) {
         console.info(`Backtesting ${symbol}`)
         const history = await sqlClientFtx.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
+        if (!history.length) continue
 
         const storage: {
             [key: string]: {

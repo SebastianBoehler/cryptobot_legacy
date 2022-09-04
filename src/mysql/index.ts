@@ -5,6 +5,7 @@ import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
 import * as dotenv from 'dotenv';
 import { orderObject } from '../types/trading';
 
+console.log(process.env)
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
 });
