@@ -27,7 +27,7 @@ async function main() {
     const symbols = [...new Set(markets.map((item: Market) => item['name']))]
 
     try {
-        await Promise.allSettled(symbols.map(refreshData))
+        const result = await Promise.allSettled(symbols.map(refreshData))
     } catch (error) {
         console.error(error)
         console.error('Promise all failed')
