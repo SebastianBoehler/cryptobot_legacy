@@ -47,7 +47,9 @@ router.get('/transactions', async (req: Request, res: Response) => {
 })
 
 router.post('/priceHistory', async (req: Request, res: Response) => {
-    const { symbol, time} = req.body
+    if (!req.body) return res.status(400).send('No body')
+    
+    const { symbol, time } = req.body
     const string = ` WHERE time > ${time}`
     const history = await ftxStorage.getPriceHistory(symbol, string, undefined, 'close, time')
     res.send(history)

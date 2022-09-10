@@ -9,6 +9,8 @@ const port = process.env.PORT || 3001;
 
 import ftxRoutes from './ftx/routes';
 
+server.use(express.json());
+
 server.use('/ftx', ftxRoutes);
 //server.use('/mysql', mysqlRoutes);
 
