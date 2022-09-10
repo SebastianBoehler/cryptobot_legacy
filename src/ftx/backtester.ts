@@ -9,7 +9,7 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 35);
+startTime.setDate(startTime.getDate() - 60);
 //startTime.setHours(startTime.getHours() - 15);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13']
 let startInvest = 500
@@ -364,6 +364,7 @@ let endTime
                             profitThreshold
                        ]]
                     },
+                    //copy of test5 with holdDuration
                     'test11': {
                         'Long Entry': [[
                             indicators25min['MACD']['histogram']! < -0.25,
