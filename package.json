@@ -11,7 +11,7 @@
     "index": "SET NODE_ENV=dev && nodemon src/index.ts",
     "nodemon": "SET NODE_ENV=dev && nodemon src/ftx/backtester.ts",
     "nodemon:database": "SET NODE_ENV=dev && nodemon src/ftx/database.ts",
-    "pm2:start": "pm2 start ecosystem.config.js --env prod",
+    "pm2:start": "npm run build && pm2 start ecosystem.config.js --env prod",
     "pm2:stop": "pm2 stop ecosystem.config.js",
     "pm2:restart": "npm run build && pm2 restart ecosystem.config.js --env prod"
   },
