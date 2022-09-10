@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'correlation']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -20,7 +20,7 @@ let endTime
     await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
-    const symbols = [...new Set(markets.map((item: Market) => item['name']))]
+    const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(0, 20)
 
     const tables: {
             [key: string]: {}

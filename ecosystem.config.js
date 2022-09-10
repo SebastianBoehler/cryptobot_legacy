@@ -32,5 +32,15 @@ module.exports = {
         },
         watch: true
     }
-    ]
+    ],
+    deploy: {
+        prod: {
+            user: "root",
+            host: "localhost",
+            ref: "origin/main",
+            repo: "git@github.com:SebastianBoehler/cryptobot3.0.git",
+            path: "/root/cryptobot3.0",
+            "post-deploy": "npm run pm2:restart"
+        }
+    }
 }

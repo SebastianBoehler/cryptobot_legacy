@@ -1,6 +1,6 @@
 import mysql from 'mysql';
 import { HistoricalPrice } from '../types/ftx';
-import { RowDataPacketPrice, RowDataPacketPriceParsed } from '../types/mysql'
+import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTransactionRaw} from '../types/mysql'
 
 import * as dotenv from 'dotenv';
 import { orderObject } from '../types/trading';
@@ -34,9 +34,9 @@ class sql_class {
         })
     }
 
-    async getPriceHistory(symbol: string, options: string = '', limit?: number) {
+    async getPriceHistory(symbol: string, options: string = '', limit?: number, fields: string = 'volume, time, open, close, high, low') {
         return new Promise<RowDataPacketPriceParsed[]>((resolve, reject) => {
-            this.pool.query(`SELECT volume, time, open, close, high, low FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
+            this.pool.query(`SELECT ${fields} FROM (SELECT * FROM ${symbol.replace('-', '')} ${options} ORDER BY id DESC ${limit ? `LIMIT ${limit}` : ''}) sub ORDER BY id ASC`, (err, results) => {
                 if (err) reject(err)
                 else resolve(results.map((item: RowDataPacketPrice) => {
                     return {
@@ -112,6 +112,15 @@ class sql_class {
             this.pool.query(`TRUNCATE TABLE ${table.replace('-', '')}`, (err) => {
                 if (err) reject(err)
                 else resolve()
+            })
+        })
+    }
+
+    async loadTransactions(table: string) {
+        return new Promise<orderObject[]>((resolve, reject) => {
+            this.pool.query(`SELECT data FROM ${table.replace('-', '')}`, (err: any, result: RowDataPacketTransactionRaw[]) => {
+                if (err) reject(err)
+                else resolve(result.map(item => JSON.parse(item.data)))
             })
         })
     }

@@ -1,3 +1,5 @@
+import { orderObject } from "./trading"
+
 export type RowDataPacketPrice = {
     id: number
     price: string
@@ -22,4 +24,26 @@ export type RowDataPacketPriceParsed = {
     close: number
     high: number
     low: number
+}
+
+export type RowDataPacketTransactionRaw = {
+    id?: number
+    rule: string
+    symbol: string
+    orderId: string
+    time: number
+    side: string
+    profit: number
+    data: string
+}
+
+export type RowDataPacketTransactionParsed = {
+    id?: number
+    rule: string
+    symbol: string
+    orderId: string
+    time: number
+    side: string
+    profit: number
+    data: orderObject
 }
