@@ -42,12 +42,13 @@ router.get('/overview', async (req: Request, res: Response) => {
 
 router.get('/transactions', async (req: Request, res: Response) => {
     const transactions = await sqlClientStorage.loadTransactions('backtester')
+    res.setHeader('Cache-Control', `s-maxage=${86400}`);
     res.send(transactions)
 })
 
-router.post('priceHistory', async (req: Request, res: Response) => {
-    const { symbol, timestamp} = req.body
-    const string = ` WHERE time > ${timestamp}`
+router.post('/priceHistory', async (req: Request, res: Response) => {
+    const { symbol, time} = req.body
+    const string = ` WHERE time > ${time}`
     const history = await ftxStorage.getPriceHistory(symbol, string, undefined, 'close, time')
     res.send(history)
 })

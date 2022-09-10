@@ -479,8 +479,8 @@ let endTime
                         console.log('missing price data, diff:', diff)
                         continue
                     }
-                    //lastSkip at least 30min ago
-                    if (lastSkip && timestamp - lastSkip < 1000 * 60 * 30) {
+                    //lastSkip at least 90min ago
+                    if (lastSkip && timestamp - lastSkip < 1000 * 60 * 90) {
                         console.log('skipped due to last skip less than 30m ago')
                         continue
                     }
