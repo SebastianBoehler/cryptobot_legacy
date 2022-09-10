@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import cors from 'cors';
 import * as dotenv from 'dotenv';
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
@@ -9,6 +10,7 @@ const port = process.env.PORT || 3001;
 
 import ftxRoutes from './ftx/routes';
 
+server.use(cors())
 server.use(express.json());
 
 server.use('/ftx', ftxRoutes);
