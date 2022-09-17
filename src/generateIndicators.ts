@@ -102,13 +102,6 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         stochasticPeriod: 14,
     })
 
-    const HA = HeikinAshi.calculate({
-        open: opens,
-        high: highs,
-        low: lows,
-        close: closes
-    })
-
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
@@ -118,12 +111,6 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         MACD_prev: macd[macd.length - 2],
         RSI: rsi[rsi.length - 1],
         STOCH_RSI: stochrsi[stochrsi.length - 1],
-        HA: {
-            close: HA['close']![HA['close']!.length - 1],
-            open: HA['open']![HA['open']!.length - 1],
-            high: HA['high']![HA['high']!.length - 1],
-            low: HA['low']![HA['low']!.length - 1],
-        },
         close: closes[closes.length - 1],
         open: opens[opens.length - 1],
         high: highs[highs.length - 1],
