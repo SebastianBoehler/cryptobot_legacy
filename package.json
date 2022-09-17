@@ -7,6 +7,7 @@
     "build": "npx tsc",
     "watch": "npx tsc -w",
     "test": "SET NODE_ENV=dev && nodemon src/ftx/test.ts",
+    "trader": "SET NODE_ENV=dev && nodemon src/ftx/trader.ts",
     "server": "SET NODE_ENV=dev && nodemon src/server.ts",
     "index": "SET NODE_ENV=dev && nodemon src/index.ts",
     "nodemon": "SET NODE_ENV=dev && nodemon src/ftx/backtester.ts",

@@ -14,30 +14,43 @@ router.get('/ping', (req: Request, res: Response) => {
 router.get('/overview', async (req: Request, res: Response) => {
     const markets = await getMarkets()
     const futures = markets.filter(item => item['futureType'] === 'perpetual' && item['enabled'])
+    const sorted = futures.sort((a, b) => b['volumeUsd24h'] - a['volumeUsd24h']).slice(0, 8)
     const obj: {[key: string]: any} = {}
 
-    for (const market of futures) {
-        const symbol = market.name
-        const [indicators25min ,indicators60min] = await Promise.all([
-            generateIndicators(symbol, 25, new Date().getTime()),
-            generateIndicators(symbol, 60, new Date().getTime())
-        ])
+    for (const market of sorted) {
+        try {
+            const symbol = market.name
+            console.log(symbol)
+            const [indicators25min, indicators60min] = await Promise.all([
+                generateIndicators(symbol, 25, new Date().getTime()),
+                generateIndicators(symbol, 60, new Date().getTime())
+            ])
 
-        console.log(indicators25min)
+            console.log(indicators25min)
 
-        obj[symbol] = {
-            long: {
-                main: {
-                    '60m MACD histogram': indicators60min['MACD']['histogram']! > 0
+            obj[symbol] = {
+                long: {
+                    main: [
+                        {
+                            key: '60m MACD histogram',
+                            val: indicators60min['MACD']['histogram']! > 0
+                        }
+                    ],
+                    optional: [
+                        {
+                            key: '60m RSI',
+                            val: indicators60min['RSI'] > 50
+                        }
+                    ]
                 },
-                optional: {
-                    '60m RSI': indicators60min['RSI'] < 75
-                }
-            },
+            }
+        } catch (error) {
+            continue
         }
     }
 
-    res.send(markets)
+    res.setHeader('Cache-Control', `s-maxage=${86400}`);
+    res.send(obj)
 })
 
 router.get('/transactions', async (req: Request, res: Response) => {
@@ -48,7 +61,7 @@ router.get('/transactions', async (req: Request, res: Response) => {
 
 router.post('/priceHistory', async (req: Request, res: Response) => {
     if (!req.body) return res.status(400).send('No body')
-    
+
     const { symbol, time } = req.body
     const string = ` WHERE time > ${time}`
     const history = await ftxStorage.getPriceHistory(symbol, string, undefined, 'close, time')

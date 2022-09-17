@@ -34,3 +34,23 @@ export type HistoricalPrice = {
     close: number
     volume: number
 }
+
+export type TickerUpdate = {
+    channel: string
+    market: string
+    type: string
+    data: {
+        bid: number
+        ask: number
+        bidSize: number
+        askSize: number
+        last: number
+        time: number
+    }
+}
+
+export type SubscribeEvent = {
+    type: 'subscribed' | 'unsubscribed'
+    channel: string
+    market?: string
+}

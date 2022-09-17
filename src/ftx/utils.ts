@@ -4,6 +4,13 @@ import {
 import { HistoricalPrice, Market } from '../types/ftx';
 import { orderObject } from '../types/trading';
 
+import * as dotenv from 'dotenv';
+const path = process.env.NODE_ENV ? process.env.NODE_ENV.split(' ').join('') : 'prod'
+dotenv.config({
+    path: path + '.env'
+});
+
+
 const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
 
 async function getMarkets() {
@@ -68,8 +75,14 @@ async function calculateProfit(entry: orderObject | any, price: number, exit?: a
     }
 }
 
+async function getAccount() {
+    const acc = await FTXClient.getAccount()
+    return acc['result']
+}
+
 export {
     getMarkets,
     getHistoricalPrices,
-    calculateProfit
+    calculateProfit,
+    getAccount
 }

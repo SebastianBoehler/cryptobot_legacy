@@ -1,6 +1,6 @@
 import mysql from './mysql';
 import {
-    EMA, MACD, RSI, StochasticRSI
+    EMA, HeikinAshi, MACD, RSI, StochasticRSI
 } from 'technicalindicators';
 
 const mysqlClient = new mysql('ftx');
@@ -49,8 +49,10 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
     //console.log(new Date(transformedHistory[transformedHistory.length - 1]['time']).toLocaleString(), transformedHistory[transformedHistory.length - 1])
 
     const closes = transformedHistory.map((item) => item['close'])
-    //const highs = transformedHistory.map((item) => item['high'])
-    //const lows = transformedHistory.map((item) => item['low'])
+    const highs = transformedHistory.map((item) => item['high'])
+    const lows = transformedHistory.map((item) => item['low'])
+    const opens = transformedHistory.map((item) => item['open'])
+
     if (closes.length < 50) throw {
         message: 'Not enough data to generate indicators',
         symbol,
@@ -100,6 +102,13 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         stochasticPeriod: 14,
     })
 
+    const HA = HeikinAshi.calculate({
+        open: opens,
+        high: highs,
+        low: lows,
+        close: closes
+    })
+
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
@@ -109,6 +118,16 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         MACD_prev: macd[macd.length - 2],
         RSI: rsi[rsi.length - 1],
         STOCH_RSI: stochrsi[stochrsi.length - 1],
+        HA: {
+            close: HA['close']![HA['close']!.length - 1],
+            open: HA['open']![HA['open']!.length - 1],
+            high: HA['high']![HA['high']!.length - 1],
+            low: HA['low']![HA['low']!.length - 1],
+        },
+        close: closes[closes.length - 1],
+        open: opens[opens.length - 1],
+        high: highs[highs.length - 1],
+        low: lows[lows.length - 1],
     }
 }
 
