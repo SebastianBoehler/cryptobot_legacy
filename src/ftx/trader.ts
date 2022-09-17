@@ -18,7 +18,7 @@ wsFtx.subscribe({
     market: 'BTC-PERP'
 })
 
-let tickerData: TickerUpdate
+//let tickerData: TickerUpdate
 let subscribed: SubscribeEvent[] = []
 wsFtx.on('update', msg => {
     if (isWsSubscribedEvent(msg)) {
@@ -28,7 +28,7 @@ wsFtx.on('update', msg => {
     }
     if (isWsTradesEvent(msg)) return
 
-    if (msg['channel'] === 'ticker') tickerData = msg
+    //if (msg['channel'] === 'ticker') tickerData = msg
 })
 
 init()
