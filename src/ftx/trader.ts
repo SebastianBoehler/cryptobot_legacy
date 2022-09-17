@@ -6,7 +6,7 @@ import {
     isWsTradesEvent,
     WebsocketClient
 } from 'ftx-api'
-import { SubscribeEvent, TickerUpdate } from '../types/ftx';
+import { SubscribeEvent } from '../types/ftx';
 
 const wsFtx = new WebsocketClient({
     key: process.env.FTX_KEY,
