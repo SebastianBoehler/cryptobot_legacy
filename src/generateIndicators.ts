@@ -1,6 +1,6 @@
 import mysql from './mysql';
 import {
-    EMA, HeikinAshi, MACD, RSI, StochasticRSI
+    EMA, MACD, RSI, StochasticRSI
 } from 'technicalindicators';
 
 const mysqlClient = new mysql('ftx');
