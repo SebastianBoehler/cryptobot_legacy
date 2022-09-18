@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 30);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -202,6 +202,22 @@ let endTime
                         ]],
                        'Long Exit': [[
                             profitThreshold
+                       ]],
+                       'Short Entry': [[false]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    },
+                    'test8': {
+                        'Long Entry': [[
+                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
+                            indicators25min['ADX']['adx']! > 25,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                            indicators60min['MACD']['histogram']! > 0
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold ||
+                            indicators25min['ADX']['pdi']! < indicators25min['ADX']['mdi']!,
                        ]],
                        'Short Entry': [[false]],
                        'Short Exit': [[
