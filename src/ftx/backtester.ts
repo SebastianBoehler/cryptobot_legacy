@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 30);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
