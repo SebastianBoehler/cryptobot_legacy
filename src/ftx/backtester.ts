@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 30);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime
@@ -161,6 +161,39 @@ let endTime
                        ]],
                        'Short Entry': [[false]],
                        'Short Exit': [[]]
+                    },
+                    'test5': {
+                        'Long Entry': [[
+                            indicators25min['MACD']['histogram']! < -0.25,
+                        ], [
+                            indicators25min['MACD']['histogram']! > 0,
+                            indicators25min['RSI'] < 50,
+                            indicators5min['MACD']['histogram']! > 0,
+                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
+                       ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[false]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    },
+                    'test6': {
+                        'Long Entry': [[
+                            indicators60min['MACD']['histogram']! < 0
+                        ], [
+                            indicators60min['MACD']['histogram']! > 0,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                            indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[false]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
                     },
                 }
 
