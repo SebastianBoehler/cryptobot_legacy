@@ -1,6 +1,6 @@
 import mysql from 'mysql';
 import { HistoricalPrice } from '../types/ftx';
-import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTransactionRaw} from '../types/mysql'
+import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTableRaw, RowDataPacketTransactionRaw} from '../types/mysql'
 
 import * as dotenv from 'dotenv';
 import { orderObject } from '../types/trading';
@@ -29,6 +29,42 @@ class sql_class {
             this.pool.query(`CREATE TABLE ${table.replace('-', '')} (${columns.join(',')})`, (err) => {
                 if (err) reject(err)
                 else resolve()
+            })
+        })
+    }
+
+    async createIndex(table: string, column: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`CREATE INDEX ${column}_index ON ${table.replace('-', '')} (${column})`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
+    async deleteRows(table: string, options: string = '') {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`DELETE FROM ${table.replace('-', '')} ${options}`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
+    async changeColumnType(table: string, column: string, type: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.pool.query(`ALTER TABLE ${table.replace('-', '')} CHANGE COLUMN ${column} ${column} ${type}`, (err) => {
+                if (err) reject(err)
+                else resolve()
+            })
+        })
+    }
+
+    async getTablesInDatabase(database: string) {
+        return new Promise<string[]>((resolve, reject) => {
+            this.pool.query(`SELECT table_name FROM information_schema.tables WHERE table_schema = '${database}'`, (err, results) => {
+                if (err) reject(err)
+                else resolve(results.map((item: RowDataPacketTableRaw) => item.TABLE_NAME))
             })
         })
     }

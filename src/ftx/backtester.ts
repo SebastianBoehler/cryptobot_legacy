@@ -94,6 +94,7 @@ let endTime
                 } = await calculateProfit(latestTransaction, price)
 
                 const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                //const trailing = 
                 //const profitThreshold2 = netProfitPercentage > 0.75 * leverage || netProfitPercentage < -1 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.75 || netProfitPercentage < -0.5 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
@@ -164,13 +165,10 @@ let endTime
                     },
                     'test5': {
                         'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < -0.25,
-                        ], [
-                            indicators25min['MACD']['histogram']! > 0,
-                            indicators25min['RSI'] < 50,
-                            indicators5min['MACD']['histogram']! > 0,
-                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
-                       ]],
+                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
+                            indicators25min['ADX']['adx']! > 25,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                        ]],
                        'Long Exit': [[
                             profitThreshold
                        ]],
@@ -186,6 +184,21 @@ let endTime
                             indicators60min['MACD']['histogram']! > 0,
                             indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
                             indicators25min['EMA_8'] > indicators25min['EMA_13'],
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold
+                       ]],
+                       'Short Entry': [[false]],
+                       'Short Exit': [[
+                            profitThreshold
+                       ]]
+                    },
+                    'test7': {
+                        'Long Entry': [[
+                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
+                            indicators25min['ADX']['adx']! > 25,
+                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
+                            indicators60min['MACD']['histogram']! > 0
                         ]],
                        'Long Exit': [[
                             profitThreshold

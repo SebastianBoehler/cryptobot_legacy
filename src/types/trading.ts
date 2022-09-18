@@ -32,4 +32,6 @@ export type orderObject = {
     holdDuration?: number
     details?: {[key: string]: number} 
     entryDetails?: {[key: string]: number}
+    high?: number
+    low?: number
 }

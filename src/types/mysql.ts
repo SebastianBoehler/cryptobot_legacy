@@ -26,6 +26,10 @@ export type RowDataPacketPriceParsed = {
     low: number
 }
 
+export type RowDataPacketTableRaw = {
+    TABLE_NAME: string
+}
+
 export type RowDataPacketTransactionRaw = {
     id?: number
     rule: string

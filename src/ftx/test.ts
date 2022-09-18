@@ -3,6 +3,7 @@ import {
 } from 'ftx-api'
 import * as dotenv from 'dotenv';
 import { calculateProfit } from './utils';
+import { generateIndicators } from '../generateIndicators';
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
 });
@@ -11,6 +12,9 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
 
 (async () => {
+    const indicators = await generateIndicators('ETH-PERP', 25, new Date().getTime())
+    console.log(indicators)
+    return
     const market = 'BTC-PERP'
     let balance = await FTXClient.getBalances()
     let usdBalance = balance.result.find(b => b.coin === 'USD')

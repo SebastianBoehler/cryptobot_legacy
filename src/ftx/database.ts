@@ -42,16 +42,17 @@ async function refreshData(symbol: string) {
         if (e.message.includes('ER_NO_SUCH_TABLE')) {
             await mysqlClient.createTable(symbol, [
                 'id int auto_increment primary key', 
-                'time VARCHAR(255)', 
-                'open VARCHAR(255)', 
-                'close VARCHAR(255)', 
-                'high VARCHAR(255)', 
-                'low VARCHAR(255)', 
-                'volume VARCHAR(255)', 
-                'price VARCHAR(255)',
-                'bid VARCHAR(255)',
-                'ask VARCHAR(255)',
+                'time VARCHAR(13) NOT NULL UNIQUE', 
+                'open VARCHAR(100)', 
+                'close VARCHAR(100)', 
+                'high VARCHAR(100)', 
+                'low VARCHAR(100)', 
+                'volume VARCHAR(150)', 
+                'price VARCHAR(100)',
+                'bid VARCHAR(100)',
+                'ask VARCHAR(100)',
             ])
+            await mysqlClient.createIndex(symbol, 'time')
         }
         else if (e.code !== 'POOL_ENQUEUELIMIT') console.error('unable to get latest time', e)
         return 0

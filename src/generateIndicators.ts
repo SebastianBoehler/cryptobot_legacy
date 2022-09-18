@@ -1,5 +1,7 @@
 import mysql from './mysql';
 import {
+    ADL,
+    ADX,
     BollingerBands,
     EMA, MACD, RSI, StochasticRSI
 } from 'technicalindicators';
@@ -53,6 +55,7 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
     const highs = transformedHistory.map((item) => item['high'])
     const lows = transformedHistory.map((item) => item['low'])
     const opens = transformedHistory.map((item) => item['open'])
+    const volumes = transformedHistory.map((item) => item['volume'])
 
     if (closes.length < 50) throw {
         message: 'Not enough data to generate indicators',
@@ -109,6 +112,20 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         stdDev: 2
     })
 
+    const adl = ADL.calculate({
+        high: highs,
+        low: lows,
+        close: closes,
+        volume: volumes
+    })
+
+    const adx = ADX.calculate({
+        high: highs,
+        low: lows,
+        close: closes,
+        period: 14
+    })
+
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
@@ -123,6 +140,8 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         high: highs[highs.length - 1],
         low: lows[lows.length - 1],
         bollingerBands: bollinger[bollinger.length - 1],
+        ADL: adl[adl.length - 1],
+        ADX: adx[adx.length - 1],
     }
 }
 
