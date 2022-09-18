@@ -1,5 +1,6 @@
 import mysql from './mysql';
 import {
+    BollingerBands,
     EMA, MACD, RSI, StochasticRSI
 } from 'technicalindicators';
 
@@ -102,6 +103,12 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         stochasticPeriod: 14,
     })
 
+    const bollinger = BollingerBands.calculate({
+        values: closes,
+        period: 14,
+        stdDev: 2
+    })
+
     return {
         EMA_8: EMA_8[EMA_8.length - 1],
         EMA_13: EMA_13[EMA_13.length - 1],
@@ -115,6 +122,7 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         open: opens[opens.length - 1],
         high: highs[highs.length - 1],
         low: lows[lows.length - 1],
+        bollingerBands: bollinger[bollinger.length - 1],
     }
 }
 
