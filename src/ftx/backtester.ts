@@ -14,9 +14,9 @@ startTime.setDate(startTime.getDate() - 30);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
-let endTime
+let endTime: number
 
-(async () => {
+async function main() {
     await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
@@ -125,7 +125,7 @@ let endTime
                         ]],
                        'Long Exit': [[
                             netProfitPercentage > 0.5 * leverage ||
-                            netProfitPercentage < -1 * leverage ||
+                            holdDuration > 180 ||
                             price >= indicators25min['bollingerBands']['upper']
                        ]],
                        'Short Entry': [[false]],
@@ -226,25 +226,15 @@ let endTime
                     },
                     'test9': {
                         'Long Entry': [[
-                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
-                            indicators25min['ADX']['adx']! > 25,
-                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
-                            indicators60min['MACD']['histogram']! > 0
+                            price < indicators25min['bollingerBands']['lower'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
                         ]],
                        'Long Exit': [[
-                            profitThreshold ||
-                            indicators25min['ADX']['pdi']! < indicators25min['ADX']['mdi']!,
+                            netProfitPercentage > 0.5 * leverage ||
+                            price >= indicators25min['bollingerBands']['upper']
                        ]],
-                       'Short Entry': [[
-                            indicators25min['ADX']['pdi']! < indicators25min['ADX']['mdi']!,
-                            indicators25min['ADX']['adx']! > 25,
-                            indicators25min['MACD']['histogram']! < indicators25min['MACD_prev']['histogram']!,
-                            indicators60min['MACD']['histogram']! < 0
-                        ]],
-                       'Short Exit': [[
-                            profitThreshold ||
-                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
-                       ]]
+                       'Short Entry': [[false]],
+                       'Short Exit': [[]]
                     },
                 }
 
@@ -438,8 +428,13 @@ let endTime
         }
         if (!endTime) endTime = new Date(history[history.length - 1]['time']).getTime()
     }
-})()
+    
+    setTimeout(() => {
+        main()
+    }, 1000 * 60 * 60);
+}
 
+main()
 
 async function checkIfTriggered(array: boolean[]) {
     if (array.length === array.filter((item) => item).length) return true
