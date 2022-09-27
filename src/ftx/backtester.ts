@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime: number
@@ -93,9 +93,11 @@ async function main() {
                     netInvest
                 } = await calculateProfit(latestTransaction, price)
 
-                const profitThreshold = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage
+                const takeProfit = netProfitPercentage > 0.5 * leverage
+                const stopLoss = netProfitPercentage < -1 * leverage
+                const profitThreshold = takeProfit || stopLoss
                 //const trailing = 
-                //const profitThreshold2 = netProfitPercentage > 0.75 * leverage || netProfitPercentage < -1 * leverage
+                const profitThreshold2 = takeProfit || stopLoss || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 //const profitThreshold3 = netProfitPercentage > 0.75 || netProfitPercentage < -0.5 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
                 //enable rules in rulesToTest
@@ -256,11 +258,32 @@ async function main() {
                             price < indicators25min['bollingerBands']['lower'],
                         ]],
                        'Long Exit': [[
-                            netProfitPercentage > 0.6 * leverage ||
+                            netProfitPercentage > 0.5 * leverage ||
                             price >= indicators25min['bollingerBands']['middle']
                        ]],
-                       'Short Entry': [[false]],
-                       'Short Exit': [[]]
+                       'Short Entry': [[
+                            price > indicators25min['bollingerBands']['upper'],
+                       ]],
+                       'Short Exit': [[
+                            netProfitPercentage > 0.5 * leverage ||
+                            price <= indicators25min['bollingerBands']['middle']
+                       ]]
+                    },
+                    'test12': {
+                        'Long Entry': [[
+                            price < indicators25min['bollingerBands']['lower'],
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold2 ||
+                            price >= indicators25min['bollingerBands']['middle']
+                       ]],
+                       'Short Entry': [[
+                            price > indicators25min['bollingerBands']['upper'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold2 ||
+                            price <= indicators25min['bollingerBands']['middle']
+                       ]]
                     },
                 }
 
