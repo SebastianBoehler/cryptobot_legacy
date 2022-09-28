@@ -11,7 +11,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime: number
@@ -97,7 +97,7 @@ async function main() {
                 const stopLoss = netProfitPercentage < -1 * leverage
                 const profitThreshold = takeProfit || stopLoss
                 //const trailing = 
-                const profitThreshold2 = takeProfit || stopLoss || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
+                const profitThreshold2 = takeProfit || netProfitPercentage < -2 * leverage || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold3 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 //const profitThreshold3 = netProfitPercentage > 0.75 || netProfitPercentage < -0.5 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
@@ -280,6 +280,26 @@ async function main() {
                        ]],
                        'Short Entry': [[
                             price > indicators25min['bollingerBands']['upper'],
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold3 ||
+                            price <= indicators25min['bollingerBands']['lower']
+                       ]]
+                    },
+                    'test13': {
+                        'Long Entry': [[
+                            price < indicators25min['bollingerBands']['lower'],
+                        ], [
+                            price > indicators25min['bollingerBands']['lower'],
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold3 ||
+                            price >= indicators25min['bollingerBands']['upper']
+                       ]],
+                       'Short Entry': [[
+                            price > indicators25min['bollingerBands']['upper'],
+                       ], [
+                            price < indicators25min['bollingerBands']['upper'],
                        ]],
                        'Short Exit': [[
                             profitThreshold3 ||
