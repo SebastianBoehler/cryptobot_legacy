@@ -9,7 +9,7 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 35);
+startTime.setDate(startTime.getDate() - 40);
 //startTime.setHours(startTime.getHours() - 15);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13']
 let startInvest = 500
@@ -96,6 +96,7 @@ async function main() {
                 const takeProfit = netProfitPercentage > 0.5 * leverage
                 const stopLoss = netProfitPercentage < -1 * leverage
                 const profitThreshold = takeProfit || stopLoss
+                const waitAfterLoss = !!latestTransaction?.netProfitPercentage && latestTransaction?.netProfitPercentage < 0 && timestamp - latestTransaction.timestamp < 1000 * 60 * 60 * 4
                 //const trailing = 
                 const profitThreshold2 = takeProfit || netProfitPercentage < -2 * leverage || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold3 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
@@ -197,17 +198,24 @@ async function main() {
                     },
                     'test7': {
                         'Long Entry': [[
-                            indicators25min['ADX']['pdi']! > indicators25min['ADX']['mdi']!,
-                            indicators25min['ADX']['adx']! > 25,
-                            indicators25min['MACD']['histogram']! > indicators25min['MACD_prev']['histogram']!,
-                            indicators60min['MACD']['histogram']! > 0
+                            waitAfterLoss,
+                            price < indicators25min['bollingerBands']['lower'],
+                        ], [
+                            price > indicators25min['bollingerBands']['lower'],
                         ]],
                        'Long Exit': [[
-                            profitThreshold
+                            profitThreshold3 ||
+                            price >= indicators25min['bollingerBands']['upper']
                        ]],
-                       'Short Entry': [[false]],
+                       'Short Entry': [[
+                            waitAfterLoss,
+                            price > indicators25min['bollingerBands']['upper'],
+                       ], [
+                            price < indicators25min['bollingerBands']['upper'],
+                       ]],
                        'Short Exit': [[
-                            profitThreshold
+                            profitThreshold3 ||
+                            price <= indicators25min['bollingerBands']['lower']
                        ]]
                     },
                     'test8': {
@@ -317,9 +325,12 @@ async function main() {
                     '25m EMA_8 / EMA_55': indicators25min['EMA_8'] / indicators25min['EMA_55'],
                     '25m RSI': indicators25min['RSI'],
                     '25m histogram': indicators25min['MACD']['histogram']!,
+                    '25m price / EMA_8': price / indicators25min['EMA_8'],
                     '60m RSI': indicators60min['RSI'],
                     '60m EMA_8 / EMA_55': indicators60min['EMA_8'] / indicators60min['EMA_55'],
                     '60m histogram': indicators60min['MACD']['histogram']!,
+                    '60m price / BB lower': price / indicators60min['bollingerBands']['lower'],
+                    '60m price / BB upper': price / indicators60min['bollingerBands']['upper'],
                 }
 
                 //there is an entry
