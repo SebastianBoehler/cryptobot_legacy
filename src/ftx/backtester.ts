@@ -98,7 +98,7 @@ async function main() {
                 const profitThreshold = takeProfit || stopLoss
                 const waitAfterLoss = 
                     !latestTransaction ||
-                    (latestTransaction.netProfitPercentage && (
+                    (!!latestTransaction.netProfitPercentage && (
                         latestTransaction.netProfitPercentage > 0 ||
                         (latestTransaction.netProfitPercentage < 0 && timestamp - latestTransaction.timestamp > 1000 * 60 * 60 * 4)
                     ))
