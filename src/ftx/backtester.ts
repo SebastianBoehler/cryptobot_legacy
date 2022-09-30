@@ -96,7 +96,12 @@ async function main() {
                 const takeProfit = netProfitPercentage > 0.5 * leverage
                 const stopLoss = netProfitPercentage < -1 * leverage
                 const profitThreshold = takeProfit || stopLoss
-                const waitAfterLoss = !latestTransaction || (!!latestTransaction?.netProfitPercentage && latestTransaction?.netProfitPercentage < 0 && timestamp - latestTransaction.timestamp < 1000 * 60 * 60 * 4)
+                const waitAfterLoss = 
+                    !latestTransaction ||
+                    (latestTransaction.netProfitPercentage && (
+                        latestTransaction.netProfitPercentage > 0 ||
+                        (latestTransaction.netProfitPercentage < 0 && timestamp - latestTransaction.timestamp > 1000 * 60 * 60 * 4)
+                    ))
                 //const trailing = 
                 const profitThreshold2 = takeProfit || netProfitPercentage < -2 * leverage || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold3 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
