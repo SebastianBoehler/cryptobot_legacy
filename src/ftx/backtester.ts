@@ -97,7 +97,7 @@ async function main() {
                 const stopLoss = netProfitPercentage < -1 * leverage
                 const profitThreshold = takeProfit || stopLoss
 
-                const lastProfit = latestTransaction.action.includes('Exit') ? latestTransaction.netProfitPercentage! : null
+                const lastProfit = latestTransaction?.action.includes('Exit') ? latestTransaction.netProfitPercentage! : null
                 const waitAfterLoss =  !!lastProfit &&
                     (   
                         lastProfit > 0 ||
