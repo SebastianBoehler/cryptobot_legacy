@@ -9,7 +9,7 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 40);
+startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 15);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16']
 let startInvest = 500
@@ -98,11 +98,8 @@ async function main() {
                 const profitThreshold = takeProfit || stopLoss
 
                 const lastProfit = latestTransaction?.action.includes('Exit') ? latestTransaction.netProfitPercentage! : null
-                const waitAfterLoss =  !!lastProfit &&
-                    (   
-                        lastProfit > 0 ||
-                        lastProfit < 0 && timestamp - latestTransaction.timestamp > 1000 * 60 * 60 * 5
-                    )
+                const wasLastTransactionProfitable = lastProfit && lastProfit > 0
+                const waitAfterLoss: boolean = wasLastTransactionProfitable ? false : timestamp - latestTransaction?.timestamp! < 1000 * 60 * 60 * 5
                 //const trailing = 
                 const profitThreshold2 = takeProfit || netProfitPercentage < -2 * leverage || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold3 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
@@ -405,11 +402,15 @@ async function main() {
                     '25m RSI': indicators25min['RSI'],
                     '25m histogram': indicators25min['MACD']['histogram']!,
                     '25m price / EMA_8': price / indicators25min['EMA_8'],
+                    '25m volume': indicators25min['volume'],
                     '60m RSI': indicators60min['RSI'],
                     '60m EMA_8 / EMA_55': indicators60min['EMA_8'] / indicators60min['EMA_55'],
                     '60m histogram': indicators60min['MACD']['histogram']!,
                     '60m price / BB lower': price / indicators60min['bollingerBands']['lower'],
                     '60m price / BB upper': price / indicators60min['bollingerBands']['upper'],
+                    '60m ADX pdi / mdi': indicators60min['ADX']['pdi'] / indicators60min['ADX']['mdi'],
+                    '60m ADL': indicators60min['ADL'],
+                    '60m volume': indicators60min['volume'],
                 }
 
                 //there is an entry

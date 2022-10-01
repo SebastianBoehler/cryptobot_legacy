@@ -139,6 +139,7 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
         open: opens[opens.length - 1],
         high: highs[highs.length - 1],
         low: lows[lows.length - 1],
+        volume: volumes[volumes.length - 1],
         bollingerBands: bollinger[bollinger.length - 1],
         ADL: adl[adl.length - 1],
         ADX: adx[adx.length - 1],
