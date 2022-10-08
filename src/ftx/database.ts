@@ -10,14 +10,16 @@ const mysqlClient = new mysql('ftx');
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
-    await sendToWebhook(JSON.stringify({
+    await sendToWebhook({
         content: 'unhandledRejection',
-        embeds: [{
-            title: e?.name,
-            description: e?.message,
-            color: 16711680,
-        }],
-    }))
+        username: 'database.ts',
+        embeds: [
+            {
+                title: e?.name || 'unknown',
+                description: e?.message || 'unknown',
+            }
+        ]
+    })
     process.exit(1)
 })
 
