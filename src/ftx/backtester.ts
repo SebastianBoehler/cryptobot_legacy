@@ -1,16 +1,30 @@
+import { sendToWebhook } from '../discord';
 import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
 import { calculateProfit, getMarkets } from './utils';
 
+process.on('unhandledRejection', async (e: any) => {
+    console.error('unhandledRejection', e)
+    await sendToWebhook(JSON.stringify({
+        content: 'unhandledRejection',
+        embeds: [{
+            title: e?.name,
+            description: e?.message,
+            color: 16711680,
+        }],
+    }))
+    process.exit(1)
+})
+
 const sqlClientFtx = new mysql('ftx');
 const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 35);
-//startTime.setHours(startTime.getHours() - 15);
+//startTime.setDate(startTime.getDate() - 35);
+startTime.setHours(startTime.getHours() - 0.2);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
@@ -64,6 +78,7 @@ async function main() {
             ])
 
             if (endTime && timestamp > endTime) break
+            if (!indicators5min || !indicators25min || !indicators60min) continue
 
             //if (storage['test']?.transactions.length >= 4) throw 'stop'
             //console.log(indicators25min['MACD']['histogram']! / price, indicators25min['MACD']['histogram']!)

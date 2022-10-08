@@ -3,11 +3,21 @@ import {
 } from '../types/ftx';
 import mysql from '../mysql/index';
 import { getMarkets, getHistoricalPrices } from './utils';
+import { sleep } from '../utils';
+import { sendToWebhook } from '../discord';
 
 const mysqlClient = new mysql('ftx');
 
-process.on('unhandledRejection', () => {
-    console.error('unhandledRejection')
+process.on('unhandledRejection', async (e: any) => {
+    console.error('unhandledRejection', e)
+    await sendToWebhook(JSON.stringify({
+        content: 'unhandledRejection',
+        embeds: [{
+            title: e?.name,
+            description: e?.message,
+            color: 16711680,
+        }],
+    }))
     process.exit(1)
 })
 
@@ -33,6 +43,7 @@ async function main() {
         console.error('Promise all failed')
     }
     console.log('done')
+    await sleep(1000 * 2.5)
     main()
 }
 
@@ -60,7 +71,7 @@ async function refreshData(symbol: string) {
     //console.log(latestTime, new Date(latestTime).toLocaleString())
 
     const minAgo = new Date()
-    minAgo.setSeconds(minAgo.getSeconds() - 61)
+    minAgo.setSeconds(minAgo.getSeconds() - 65)
 
     if (latestTime > minAgo.getTime()) return
 
