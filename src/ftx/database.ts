@@ -4,22 +4,11 @@ import {
 import mysql from '../mysql/index';
 import { getMarkets, getHistoricalPrices } from './utils';
 import { sleep } from '../utils';
-import { sendToWebhook } from '../discord';
 
 const mysqlClient = new mysql('ftx');
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
-    await sendToWebhook({
-        content: 'unhandledRejection',
-        username: 'database.ts',
-        embeds: [
-            {
-                title: e?.name || 'unknown',
-                description: e?.message || 'unknown',
-            }
-        ]
-    })
     process.exit(1)
 })
 

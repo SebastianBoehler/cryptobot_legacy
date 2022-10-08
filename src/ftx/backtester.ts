@@ -1,4 +1,3 @@
-import { sendToWebhook } from '../discord';
 import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
@@ -7,16 +6,6 @@ import { calculateProfit, getMarkets } from './utils';
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
-    await sendToWebhook({
-        content: 'unhandledRejection',
-        username: 'backtester.ts',
-        embeds: [
-            {
-                title: e?.name || 'unknown',
-                description: e?.message || 'unknown',
-            }
-        ]
-    })
     process.exit(1)
 })
 
