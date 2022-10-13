@@ -25,7 +25,7 @@ async function main() {
     await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
-    const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(0, 20)
+    const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(0, 24)
 
     const tables: {
             [key: string]: {}
