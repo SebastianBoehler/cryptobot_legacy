@@ -16,7 +16,7 @@ const sqlClientStorage = new mysql('storage');
 const startTime = new Date();
 startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 0.2);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19']
+const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19', 'test20']
 let startInvest = 500
 const leverage = +(process.env.LEVERAGE || 5);
 let endTime: number | undefined
@@ -426,11 +426,11 @@ async function main() {
                             price < indicators25min['bollingerBands']['lower'],
                         ], [
                             price > indicators25min['bollingerBands']['lower'],
-                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
+                            indicators25min['MACD']['histogram']! > 0
                         ]],
                        'Long Exit': [[
                             profitThreshold4 ||
-                            netProfitPercentage < -2 * leverage ||
                             price >= indicators25min['bollingerBands']['upper']
                        ]],
                        'Short Entry': [[
@@ -438,11 +438,11 @@ async function main() {
                             price > indicators25min['bollingerBands']['upper'],
                        ], [
                             price < indicators25min['bollingerBands']['upper'],
-                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!
+                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
+                            indicators25min['MACD']['histogram']! < 0
                        ]],
                        'Short Exit': [[
                             profitThreshold4 ||
-                            netProfitPercentage < -2 * leverage ||
                             price <= indicators25min['bollingerBands']['lower']
                        ]]
                     },
@@ -466,6 +466,27 @@ async function main() {
                             price < indicators25min['bollingerBands']['upper'],
                             indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
                             indicators25min['MACD']['histogram']! < 0
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold3 ||
+                            price <= indicators25min['bollingerBands']['lower']
+                       ]]
+                    },
+                    'test20': {
+                        'Long Entry': [[
+                            !waitAfterLoss,
+                            price < indicators25min['bollingerBands']['lower'],
+                        ], [
+                            price > indicators25min['bollingerBands']['lower'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
+                            indicators25min['MACD']['histogram']! > 0
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold3 ||
+                            price >= indicators25min['bollingerBands']['upper']
+                       ]],
+                       'Short Entry': [[
+                            false
                        ]],
                        'Short Exit': [[
                             profitThreshold3 ||
@@ -681,7 +702,7 @@ async function main() {
     
     setTimeout(() => {
         main()
-    }, 1000 * 60 * 60 * 4);
+    }, 1000 * 60 * 60 * 12);
 }
 
 main()
