@@ -2,6 +2,7 @@ import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
+import { sleep } from '../utils';
 import { calculateProfit, getMarkets } from './utils';
 
 process.on('unhandledRejection', async (e: any) => {
@@ -32,6 +33,8 @@ async function main() {
     const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(startIndex, endIndex)
 
     console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex}`)
+
+    await sleep(1000 * 15)
 
     const tables: {
             [key: string]: {}
