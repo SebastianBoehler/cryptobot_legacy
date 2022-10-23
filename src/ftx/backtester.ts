@@ -4,6 +4,7 @@ import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
 import { sleep } from '../utils';
 import { calculateProfit, getMarkets } from './utils';
+import config from '../config/config'
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
@@ -19,21 +20,20 @@ startTime.setDate(startTime.getDate() - 35);
 //startTime.setHours(startTime.getHours() - 0.2);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19', 'test20']
 let startInvest = 500
-const leverage = +(process.env.LEVERAGE || 5);
+const leverage = +(config.LEVERAGE || 5);
 let endTime: number | undefined
 
 async function main() {
-    if (process.env.START_INDEX = '0') await sqlClientStorage.emptyTable('backtester')
+    if (config.START_INDEX = '0') await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
 
-    const startIndex = +(process.env.START_INDEX || 0)
-    const endIndex = process.env.START_INDEX ? +process.env.START_INDEX + 10 : 26
+    const startIndex = +(config.START_INDEX || 0)
+    const endIndex = config.START_INDEX ? +config.START_INDEX + 10 : 26
 
     const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(startIndex, endIndex)
 
     console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex}`)
-    console.log(process.env.START_INDEX, process.env.LEVERAGE)
 
     await sleep(1000 * 15)
 

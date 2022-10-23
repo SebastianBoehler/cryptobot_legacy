@@ -3,15 +3,10 @@ import {
 } from 'ftx-api'
 import { HistoricalPrice, Market } from '../types/ftx';
 import { orderObject } from '../types/trading';
-
-import * as dotenv from 'dotenv';
-const path = process.env.NODE_ENV ? process.env.NODE_ENV.split(' ').join('') : 'prod'
-dotenv.config({
-    path: path + '.env'
-});
+import config from '../config/config'
 
 
-const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
+const FTXClient = new RestClient(config.FTX_KEY, config.FTX_SECRET);
 
 async function getMarkets() {
     const respMarkets: {
@@ -38,7 +33,7 @@ async function getHistoricalPrices(symbol: string, start_time: number) {
 }
 
 async function calculateProfit(entry: orderObject | any, price: number, exit?: any) {
-    const feeDecimal = +(process.env.FTX_FEE || 0.000665)
+    const feeDecimal = +(config.FTX_FEE || 0.000665)
     if (!entry) return {
         netProfit: 0,
         netProfitPercentage: 0,
@@ -53,7 +48,7 @@ async function calculateProfit(entry: orderObject | any, price: number, exit?: a
         netInvest: entry['netInvest']
     }
     
-    const leverage = +(process.env.LEVERAGE || 5)
+    const leverage = +(config.LEVERAGE || 5)
     const isLongOrder = type.includes('Long')
     const InvestSizeBrutto = isLongOrder ? entry['invest'] * (price / entry['price']) : entry['invest'] * (2 - price / entry['price'])
     const bruttoProfit = InvestSizeBrutto - entry['invest']

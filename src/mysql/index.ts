@@ -1,14 +1,8 @@
 import mysql from 'mysql';
 import { HistoricalPrice } from '../types/ftx';
 import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTableRaw, RowDataPacketTransactionRaw} from '../types/mysql'
-
-import * as dotenv from 'dotenv';
+import config from '../config/config'
 import { orderObject } from '../types/trading';
-
-const path = process.env.NODE_ENV ? process.env.NODE_ENV.split(' ').join('') : 'prod'
-dotenv.config({
-    path: path + '.env'
-});
 
 class sql_class {
     pool: mysql.Pool;
@@ -16,10 +10,10 @@ class sql_class {
     constructor(database: string) {
         this.pool = mysql.createPool({
             connectionLimit: 30,
-            host: process.env.SQL_HOST,
-            user: process.env.SQL_USER,
-            password: process.env.SQL_PASSWORD,
-            port: +(process.env.SQL_PORT || 3306),
+            host: config.SQL_HOST,
+            user: config.SQL_USER,
+            password: config.SQL_PASSWORD,
+            port: +(config.SQL_PORT || 3306),
             database: database
         })
     }

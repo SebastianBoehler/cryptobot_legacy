@@ -1,15 +1,13 @@
 import {
     RestClient,
 } from 'ftx-api'
-import * as dotenv from 'dotenv';
 import { calculateProfit } from './utils';
 import { generateIndicators } from '../generateIndicators';
-dotenv.config({
-    path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
-});
+import config from '../config/config'
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-const FTXClient = new RestClient(process.env.FTX_KEY, process.env.FTX_SECRET);
+const FTXClient = new RestClient(config.FTX_KEY, config.FTX_SECRET);
 
 (async () => {
     const indicators = await generateIndicators('ETH-PERP', 25, new Date().getTime())
