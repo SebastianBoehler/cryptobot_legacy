@@ -21,6 +21,8 @@ module.exports = {
             NODE_ENV: "dev",
             START_INDEX: '0'
         },
+        //exec_mode: "cluster",
+        //instances: "max",
         watch: false
     },
     {
@@ -34,6 +36,8 @@ module.exports = {
             NODE_ENV: "dev",
             START_INDEX: '10'
         },
+        //exec_mode: "cluster",
+        //instances: "max",
         watch: false
     },
     {
@@ -45,7 +49,9 @@ module.exports = {
         env_dev: {
             NODE_ENV: "dev"
         },
-        watch: false
+        watch: false,
+        exec_mode: "cluster",
+        instances: "max",
     }
     ],
 }
