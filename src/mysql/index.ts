@@ -147,14 +147,18 @@ class sql_class {
 
     async loadTransactions(table: string, limit?: number, id?: number) {
         return new Promise<orderObject[]>((resolve, reject) => {
-            let string = `SELECT data FROM ${table.replace('-', '')}`
+            let string = `SELECT data, id FROM ${table.replace('-', '')}`
 
             if (id) string += ` WHERE id > ${id}`
             if (limit) string += ` LIMIT ${limit}`
             
             this.pool.query(string, (err: any, result: RowDataPacketTransactionRaw[]) => {
                 if (err) reject(err)
-                else resolve(result.map(item => JSON.parse(item.data)))
+                else resolve(result.map(item => {
+                    const data = JSON.parse(item.data)
+                    data.db_id = item.id
+                    return data
+                }))
             })
         })
     }
