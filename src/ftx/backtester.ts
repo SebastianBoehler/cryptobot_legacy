@@ -35,7 +35,7 @@ async function main() {
 
     await sleep(1000 * 5)
 
-    console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex} | ${config.NODE_ENV}`)
+    console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex} | ${config.NODE_ENV} / ${config.START_INDEX}`)
 
     await sleep(1000 * 15)
 

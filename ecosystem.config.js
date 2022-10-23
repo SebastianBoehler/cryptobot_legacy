@@ -15,11 +15,11 @@ module.exports = {
         script: "./build/ftx/backtester.js",
         env_prod: {
             NODE_ENV: "prod",
-            START_INDEX: 0
+            START_INDEX: '0'
         },
         env_dev: {
             NODE_ENV: "dev",
-            START_INDEX: 0
+            START_INDEX: '0'
         },
         watch: false
     },
@@ -28,11 +28,11 @@ module.exports = {
         script: "./build/ftx/backtester.js",
         env_prod: {
             NODE_ENV: "prod",
-            START_INDEX: 10
+            START_INDEX: '10'
         },
         env_dev: {
             NODE_ENV: "dev",
-            START_INDEX: 10
+            START_INDEX: '10'
         },
         watch: false
     },
