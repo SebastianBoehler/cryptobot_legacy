@@ -41,6 +41,21 @@ module.exports = {
         watch: false
     },
     {
+        name: "ftx_backtester_1",
+        script: "./build/ftx/backtester.js",
+        env_prod: {
+            NODE_ENV: "prod",
+            START_INDEX: '20'
+        },
+        env_dev: {
+            NODE_ENV: "dev",
+            START_INDEX: '20'
+        },
+        //exec_mode: "cluster",
+        //instances: "max",
+        watch: false
+    },
+    {
         name: "server",
         script: "./build/server.js",
         env_prod: {
