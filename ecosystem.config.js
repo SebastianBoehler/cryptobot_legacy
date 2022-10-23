@@ -50,8 +50,6 @@ module.exports = {
             NODE_ENV: "dev"
         },
         watch: false,
-        exec_mode: "cluster",
-        instances: "max",
     }
     ],
 }
