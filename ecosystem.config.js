@@ -41,7 +41,7 @@ module.exports = {
         watch: false
     },
     {
-        name: "ftx_backtester_1",
+        name: "ftx_backtester_2",
         script: "./build/ftx/backtester.js",
         env_prod: {
             NODE_ENV: "prod",
