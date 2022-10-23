@@ -2,13 +2,12 @@ import { generateIndicators } from '../generateIndicators';
 import mysql from '../mysql';
 import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
-import { sleep } from '../utils';
 import { calculateProfit, getMarkets } from './utils';
 import config from '../config/config'
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
-    process.exit(1)
+    throw e
 })
 
 const sqlClientFtx = new mysql('ftx');
@@ -34,11 +33,7 @@ async function main() {
 
     const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(startIndex, endIndex)
 
-    await sleep(1000 * 5)
-
     console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex} | ${config.NODE_ENV} / ${config.START_INDEX}`)
-
-    await sleep(1000 * 15)
 
     const tables: {
             [key: string]: {}
@@ -714,7 +709,7 @@ async function main() {
     console.log('done testing')
     
     setTimeout(() => {
-        main()
+        //main()
     }, 1000 * 60 * 60 * 12);
 }
 

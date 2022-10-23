@@ -3,6 +3,7 @@ import { HistoricalPrice } from '../types/ftx';
 import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTableRaw, RowDataPacketTransactionRaw} from '../types/mysql'
 import config from '../config/config'
 import { orderObject } from '../types/trading';
+import { sleep } from '../utils';
 
 class sql_class {
     pool: mysql.Pool;
@@ -111,8 +112,13 @@ class sql_class {
 
     async writeTransaction(data: orderObject) {
         return new Promise<void>((resolve, reject) => {
-            this.pool.query(`INSERT INTO backtester (rule,symbol,time,orderID,side,profit,data) VALUES ('${data.rule}','${data.symbol}','${data.timestamp}','${data.orderId}','${data.type}',${data.netProfitPercentage || null},'${JSON.stringify(data)}')`, (err) => {
-                if (err) reject(err)
+            this.pool.query(`INSERT INTO backtester (rule,symbol,time,orderID,side,profit,data) VALUES ('${data.rule}','${data.symbol}','${data.timestamp}','${data.orderId}','${data.type}',${data.netProfitPercentage || null},'${JSON.stringify(data)}')`, async (err) => {
+                if (err) {
+                    console.log(err)
+                    await sleep(500)
+                    await this.writeTransaction(data)
+                    resolve()
+                }
                 else resolve()
             })
         })
@@ -120,8 +126,13 @@ class sql_class {
 
     async deleteTransaction(orderId: string) {
         return new Promise<void>((resolve, reject) => {
-            this.pool.query(`DELETE FROM backtester WHERE orderId = '${orderId}'`, (err) => {
-                if (err) reject(err)
+            this.pool.query(`DELETE FROM backtester WHERE orderId = '${orderId}'`, async (err) => {
+                if (err) {
+                    console.log(err)
+                    await sleep(500)
+                    await this.deleteTransaction(orderId)
+                    resolve()
+                }
                 else resolve()
             })
         })
