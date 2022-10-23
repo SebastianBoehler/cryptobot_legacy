@@ -25,7 +25,7 @@ let endTime: number | undefined
 
 async function main() {
     if (!config.START_INDEX) throw new Error('No start index provided')
-    if (config.START_INDEX = '0') await sqlClientStorage.emptyTable('backtester')
+    if (config.START_INDEX === '0') await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
 
