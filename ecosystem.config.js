@@ -14,10 +14,25 @@ module.exports = {
         name: "ftx_backtester",
         script: "./build/ftx/backtester.js",
         env_prod: {
-            NODE_ENV: "prod"
+            NODE_ENV: "prod",
+            START_INDEX: 0
         },
         env_dev: {
-            NODE_ENV: "dev"
+            NODE_ENV: "dev",
+            START_INDEX: 0
+        },
+        watch: true
+    },
+    {
+        name: "ftx_backtester",
+        script: "./build/ftx/backtester.js",
+        env_prod: {
+            NODE_ENV: "prod",
+            START_INDEX: 10
+        },
+        env_dev: {
+            NODE_ENV: "dev",
+            START_INDEX: 10
         },
         watch: true
     },

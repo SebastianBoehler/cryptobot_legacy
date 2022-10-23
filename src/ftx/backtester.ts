@@ -22,10 +22,14 @@ const leverage = +(process.env.LEVERAGE || 5);
 let endTime: number | undefined
 
 async function main() {
-    await sqlClientStorage.emptyTable('backtester')
+    if (process.env.START_INDEX = '0') await sqlClientStorage.emptyTable('backtester')
     const allMarkets = await getMarkets()
     const markets = allMarkets.filter((item: Market) => item['futureType'] === 'perpetual').sort(function (a: Market, b: Market) { return b['volumeUsd24h'] - a['volumeUsd24h']})
-    const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(0, 26)
+
+    const startIndex = +(process.env.START_INDEX || 0)
+    const endIndex = process.env.START_INDEX ? +process.env.START_INDEX + 10 : 26
+
+    const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(startIndex, endIndex)
 
     const tables: {
             [key: string]: {}

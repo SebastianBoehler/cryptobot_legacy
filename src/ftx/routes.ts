@@ -54,7 +54,10 @@ router.get('/overview', async (req: Request, res: Response) => {
 })
 
 router.get('/transactions', async (req: Request, res: Response) => {
-    const transactions = await sqlClientStorage.loadTransactions('backtester')
+    //url params
+    const limit: number = +(req.query.limit as string)
+    const id: number = +(req.query.id as string)
+    const transactions = await sqlClientStorage.loadTransactions('backtester', limit, id)
     res.setHeader('Cache-Control', `s-maxage=${86400}`);
     res.send(transactions)
 })
