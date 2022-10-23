@@ -62,7 +62,7 @@ async function refreshData(symbol: string) {
     //console.log(latestTime, new Date(latestTime).toLocaleString())
 
     const minAgo = new Date()
-    minAgo.setSeconds(minAgo.getSeconds() - 100)
+    minAgo.setSeconds(minAgo.getSeconds() - 120)
 
     if (latestTime > minAgo.getTime()) return
 
