@@ -59,7 +59,8 @@ module.exports = {
         name: "server",
         script: "./build/server.js",
         env_prod: {
-            NODE_ENV: "prod"
+            NODE_ENV: "prod",
+            PORT: 80
         },
         env_dev: {
             NODE_ENV: "dev"
