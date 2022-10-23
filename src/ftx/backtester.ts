@@ -31,6 +31,8 @@ async function main() {
 
     const symbols = [...new Set(markets.map((item: Market) => item['name']))].slice(startIndex, endIndex)
 
+    console.info(`Testing ${symbols.length} symbols from ${startIndex} to ${endIndex}`)
+
     const tables: {
             [key: string]: {}
         } = {}

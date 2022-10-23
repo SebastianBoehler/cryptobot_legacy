@@ -8,10 +8,10 @@ module.exports = {
         env_dev: {
             NODE_ENV: "dev"
         },
-        watch: true
+        watch: false
     },
     {
-        name: "ftx_backtester",
+        name: "ftx_backtester_0",
         script: "./build/ftx/backtester.js",
         env_prod: {
             NODE_ENV: "prod",
@@ -21,10 +21,10 @@ module.exports = {
             NODE_ENV: "dev",
             START_INDEX: 0
         },
-        watch: true
+        watch: false
     },
     {
-        name: "ftx_backtester",
+        name: "ftx_backtester_1",
         script: "./build/ftx/backtester.js",
         env_prod: {
             NODE_ENV: "prod",
@@ -34,7 +34,7 @@ module.exports = {
             NODE_ENV: "dev",
             START_INDEX: 10
         },
-        watch: true
+        watch: false
     },
     {
         name: "server",
@@ -45,7 +45,7 @@ module.exports = {
         env_dev: {
             NODE_ENV: "dev"
         },
-        watch: true
+        watch: false
     }
     ],
 }
