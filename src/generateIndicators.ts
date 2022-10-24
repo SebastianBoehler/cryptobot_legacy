@@ -18,6 +18,11 @@ async function generateIndicators(symbol: string, granularity: number, timestamp
 
     let history = await mysqlClient.getPriceHistory(symbol, `WHERE time <= ${repaintDate.getTime()}`, limit)
 
+    if (history.length / granularity < 100) {
+        console.error(`No enough data in db for ${symbol} ${granularity}m [${history.length}] [${limit}]`)
+        return
+    }
+
     //console.log('repaint', repaintDate.toLocaleString(), repaintDate.toLocaleTimeString(), granularity)
 
     let pointInTime = repaintDate.getTime()

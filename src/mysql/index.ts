@@ -113,12 +113,7 @@ class sql_class {
     async writeTransaction(data: orderObject) {
         return new Promise<void>((resolve, reject) => {
             this.pool.query(`INSERT INTO backtester (rule,symbol,time,orderID,side,profit,data) VALUES ('${data.rule}','${data.symbol}','${data.timestamp}','${data.orderId}','${data.type}',${data.netProfitPercentage || null},'${JSON.stringify(data)}')`, async (err) => {
-                if (err) {
-                    console.log(err)
-                    await sleep(500)
-                    await this.writeTransaction(data)
-                    resolve()
-                }
+                if (err) reject(err)
                 else resolve()
             })
         })
@@ -127,12 +122,7 @@ class sql_class {
     async deleteTransaction(orderId: string) {
         return new Promise<void>((resolve, reject) => {
             this.pool.query(`DELETE FROM backtester WHERE orderId = '${orderId}'`, async (err) => {
-                if (err) {
-                    console.log(err)
-                    await sleep(500)
-                    await this.deleteTransaction(orderId)
-                    resolve()
-                }
+                if (err) reject(err)
                 else resolve()
             })
         })

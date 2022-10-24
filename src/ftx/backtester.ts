@@ -75,9 +75,16 @@ async function main() {
                 generateIndicators(symbol, 25, timestamp),
                 generateIndicators(symbol, 60, timestamp)
             ])
+            .catch(e => {
+                console.error(`${symbol} / ${timestamp} / ${history.length}`,e)
+                return [null, null, null]
+            })
 
             if (endTime && timestamp > endTime) break
-            if (!indicators5min || !indicators25min || !indicators60min) continue
+            if (!indicators5min || !indicators25min || !indicators60min) {
+                console.error('no indicators')
+                continue
+            }
 
             //if (storage['test']?.transactions.length >= 4) throw 'stop'
             //console.log(indicators25min['MACD']['histogram']! / price, indicators25min['MACD']['histogram']!)
