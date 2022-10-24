@@ -45,7 +45,6 @@ async function main() {
         console.info(`Backtesting ${symbol}`)
         const history = await sqlClientFtx.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
         if (!history.length) continue
-        if (history.length < 60 * 60 * 24 * (timeframe - 1)) continue
 
         const storage: {
             [key: string]: {
