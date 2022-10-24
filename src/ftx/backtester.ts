@@ -15,7 +15,8 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-startTime.setDate(startTime.getDate() - 35);
+const timeframe = 35
+startTime.setDate(startTime.getDate() - timeframe);
 //startTime.setHours(startTime.getHours() - 0.2);
 const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19', 'test20']
 let startInvest = 500
@@ -44,6 +45,7 @@ async function main() {
         console.info(`Backtesting ${symbol}`)
         const history = await sqlClientFtx.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
         if (!history.length) continue
+        if (history.length < 60 * 60 * 24 * (timeframe - 1)) continue
 
         const storage: {
             [key: string]: {
