@@ -26,6 +26,8 @@ router.get('/overview', async (req: Request, res: Response) => {
                 generateIndicators(symbol, 60, new Date().getTime())
             ])
 
+            if (!indicators25min || !indicators60min) continue
+
             console.log(indicators25min)
 
             obj[symbol] = {

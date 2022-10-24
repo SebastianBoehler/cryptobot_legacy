@@ -3,7 +3,6 @@ import { HistoricalPrice } from '../types/ftx';
 import { RowDataPacketPrice, RowDataPacketPriceParsed, RowDataPacketTableRaw, RowDataPacketTransactionRaw} from '../types/mysql'
 import config from '../config/config'
 import { orderObject } from '../types/trading';
-import { sleep } from '../utils';
 
 class sql_class {
     pool: mysql.Pool;
