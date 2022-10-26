@@ -7,7 +7,7 @@ import config from '../config/config'
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
-    throw e
+    process.exit(1)
 })
 
 const sqlClientFtx = new mysql('ftx');
@@ -15,10 +15,10 @@ const sqlClientStorage = new mysql('storage');
 
 //variables
 const startTime = new Date();
-const timeframe = 35
+const timeframe = 40
 startTime.setDate(startTime.getDate() - timeframe);
 //startTime.setHours(startTime.getHours() - 0.2);
-const rulesToTest = ['test', 'test2', 'test3', 'test4', 'test5', 'test6', 'test7', 'test8', 'test9', 'test10', 'test11', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19', 'test20']
+const rulesToTest = ['test', 'test2', 'test3', 'test6', 'test7', 'test9', 'test12', 'test13', 'test14', 'test15', 'test16', 'test17', 'test18', 'test19', 'test20', 'test21']
 let startInvest = 500
 const leverage = +(config.LEVERAGE || 5);
 let endTime: number | undefined
@@ -503,6 +503,28 @@ async function main() {
                        ]],
                        'Short Entry': [[
                             false
+                       ]],
+                       'Short Exit': [[
+                            profitThreshold3 ||
+                            price <= indicators25min['bollingerBands']['lower']
+                       ]]
+                    },
+                    'test21': {
+                        'Long Entry': [[
+                            price < indicators25min['bollingerBands']['lower'],
+                        ], [
+                            price > indicators25min['bollingerBands']['lower'],
+                            indicators60min['MACD']['histogram']! > indicators60min['MACD_prev']['histogram']!,
+                        ]],
+                       'Long Exit': [[
+                            profitThreshold3 ||
+                            price >= indicators25min['bollingerBands']['upper']
+                       ]],
+                       'Short Entry': [[
+                            price > indicators25min['bollingerBands']['upper'],
+                       ], [
+                            price < indicators25min['bollingerBands']['upper'],
+                            indicators60min['MACD']['histogram']! < indicators60min['MACD_prev']['histogram']!,
                        ]],
                        'Short Exit': [[
                             profitThreshold3 ||
