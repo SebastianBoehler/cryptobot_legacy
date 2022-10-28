@@ -50,7 +50,7 @@ async function main() {
         } = {}
 
     //for every symbol
-    let testIndex = 0
+    let testIndex = 1
     for (const symbol of symbols) {
         console.info(`Backtesting ${symbol}`)
         currentlyTestedSymbol.set(symbol)
