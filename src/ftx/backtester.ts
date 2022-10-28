@@ -4,6 +4,15 @@ import { Market } from '../types/ftx';
 import { orderObject, OrderTypes, Rule } from '../types/trading';
 import { calculateProfit, getMarkets } from './utils';
 import config from '../config/config'
+import io from '@pm2/io'
+
+const currentlyTestedSymbol = io.metric({
+    name: 'Currently tested symbol',
+})
+
+const currenltyTestedIndex = io.metric({
+    name: 'Currently tested index',
+})
 
 process.on('unhandledRejection', async (e: any) => {
     console.error('unhandledRejection', e)
@@ -41,8 +50,11 @@ async function main() {
         } = {}
 
     //for every symbol
+    let testIndex = 0
     for (const symbol of symbols) {
         console.info(`Backtesting ${symbol}`)
+        currentlyTestedSymbol.set(symbol)
+        currenltyTestedIndex.set(`${testIndex}/${symbols.length}`)
         const history = await sqlClientFtx.getPriceHistory(symbol, `WHERE time >= ${startTime.getTime()}`)
         if (!history.length) continue
 
@@ -733,7 +745,11 @@ async function main() {
             }
         }
         if (!endTime) endTime = new Date(history[history.length - 1]['time']).getTime()
+
+        testIndex++
     }
+
+    currentlyTestedSymbol.set(null)
 
     endTime = undefined
     console.log('done testing')
