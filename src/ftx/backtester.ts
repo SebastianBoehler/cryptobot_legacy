@@ -676,7 +676,7 @@ async function main() {
                             if (latestTransaction) invest = netInvest * leverage
 
                             if (invest > volume1m / 20) {
-                                console.warn(`Invest would be more than volume in last min!!!`)
+                                console.warn(`Invest would be more than volume in last min!!!`, invest, volume1m, volume1m / 20)
                                 tooBigVolumeCount.inc()
                             }
 
