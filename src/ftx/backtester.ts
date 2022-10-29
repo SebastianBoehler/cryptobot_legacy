@@ -7,11 +7,15 @@ import config from '../config/config'
 import io from '@pm2/io'
 
 const currentlyTestedSymbol = io.metric({
-    name: 'Currently tested symbol',
+    name: 'Testing symbol',
 })
 
 const currenltyTestedIndex = io.metric({
-    name: 'Currently tested index',
+    name: 'Testing index',
+})
+
+const tooBigVolumeCount = io.counter({
+    name: 'Too big volume count',
 })
 
 process.on('unhandledRejection', async (e: any) => {
@@ -73,7 +77,7 @@ async function main() {
         //iterate over history
         let prevTimestamp = history[0]['time']
         let lastSkip: number | null = null
-        for (const {time: timestamp, close: price} of history) {
+        for (const {time: timestamp, close: price, volume: volume1m} of history) {
             const diff = (timestamp - prevTimestamp) / 1000 / 60
             prevTimestamp = timestamp
 
@@ -138,6 +142,7 @@ async function main() {
                 const profitThreshold2 = takeProfit || netProfitPercentage < -2 * leverage || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold3 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage)
                 const profitThreshold4 = takeProfit || (holdDuration > 180 && netProfitPercentage > 0.2 * leverage) || (holdDuration > 360 && netProfitPercentage > -0.5 * leverage)
+                const profitThreshold5 = profitThreshold3 || netProfitPercentage < -2 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.75 || netProfitPercentage < -0.5 * leverage
                 //const profitThreshold3 = netProfitPercentage > 0.5 * leverage || netProfitPercentage < -1 * leverage || (netProfitPercentage > 0.35 * leverage && holdDuration > 30)
                 //enable rules in rulesToTest
@@ -174,20 +179,14 @@ async function main() {
                     },
                     'test3': {
                         'Long Entry': [[
-                            indicators25min['MACD']['histogram']! < -0.25,
-                        ], [
-                            indicators25min['MACD']['histogram']! > 0,
-                            indicators25min['RSI'] < 50,
-                            indicators5min['MACD']['histogram']! > 0,
-                            indicators60min['EMA_8'] > indicators60min['EMA_13'],
-                       ]],
+                            price < indicators25min['bollingerBands']['lower'],
+                        ]],
                        'Long Exit': [[
-                            profitThreshold
+                            profitThreshold5,
+                            price >= indicators25min['bollingerBands']['upper']
                        ]],
                        'Short Entry': [[false]],
-                       'Short Exit': [[
-                            profitThreshold
-                       ]]
+                       'Short Exit': [[]]
                     },
                     'test4': {
                         'Long Entry': [[
@@ -548,6 +547,7 @@ async function main() {
                 if (!rules[rule]) continue
 
                 const details = {
+                    '1m volume': volume1m,
                     '5m histogram': indicators5min['MACD']['histogram']!,
                     '5m EMA_8 / EMA_55': indicators5min['EMA_8'] / indicators5min['EMA_55'],
                     '5m RSI': indicators5min['RSI'],
@@ -582,6 +582,12 @@ async function main() {
                         if (removedTrx) await sqlClientStorage.deleteTransaction(removedTrx['orderId'])
                         continue
                     }
+
+                    if (netInvest * leverage > volume1m / 20) {
+                        console.warn(`Invest would be more than volume in last min!!!`)
+                        tooBigVolumeCount.inc()
+                    }
+
                     if (latestTransaction['type'].includes('Long')) {
                         await checkRule(rule, 'Long Exit')
                     } else {
@@ -697,6 +703,10 @@ async function main() {
                             }
 
                             if (type.includes('Exit')) {
+                                const timeframe = history.filter(item => item['time'] >= latestTransaction['timestamp'] && item['time'] <= timestamp)
+                                obj['high'] = Math.max(...timeframe.map(item => item['high']))
+                                obj['low'] = Math.min(...timeframe.map(item => item['low']))
+
                                 obj['feeSum'] = fee + latestTransaction['fee']
                                 obj['netProfit'] = netProfit
                                 obj['netProfitPercentage'] = netProfitPercentage

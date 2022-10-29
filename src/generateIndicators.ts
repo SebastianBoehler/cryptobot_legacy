@@ -5,8 +5,9 @@ import {
     BollingerBands,
     EMA, MACD, RSI, StochasticRSI
 } from 'technicalindicators';
+import config from './config/config';
 
-const mysqlClient = new mysql('ftx');
+const mysqlClient = new mysql(config.EXCHANGE);
 
 async function generateIndicators(symbol: string, granularity: number, timestamp: number = new Date().getTime()) {
     const repaintNo = await stopRepainting(timestamp, granularity)
