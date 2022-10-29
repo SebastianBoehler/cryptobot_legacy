@@ -583,11 +583,6 @@ async function main() {
                         continue
                     }
 
-                    if (netInvest * leverage > volume1m / 20) {
-                        console.warn(`Invest would be more than volume in last min!!!`)
-                        tooBigVolumeCount.inc()
-                    }
-
                     if (latestTransaction['type'].includes('Long')) {
                         await checkRule(rule, 'Long Exit')
                     } else {
@@ -679,6 +674,12 @@ async function main() {
                         if (storage[rule]['indexes'][type] >= rules[rule][type].length) {
                             let invest = startInvest * leverage
                             if (latestTransaction) invest = netInvest * leverage
+
+                            if (invest > volume1m / 20) {
+                                console.warn(`Invest would be more than volume in last min!!!`)
+                                tooBigVolumeCount.inc()
+                            }
+
                             //execute order
                             const feeDecimal = process.env.FTX_FEE || 0.000665
                             if (!fee) fee = invest * +feeDecimal
