@@ -1,27 +1,23 @@
-//import crypto from 'crypto'
-import CryptoJS from 'crypto-js'
+import crypto from 'crypto'
 
 class Coinbase {
-    private key: string;
-    private baseURL: string = 'https://api.coinbase.com/api/v3';
+    key: string;
+    baseURL: string = 'https://api.coinbase.com/api/v3';
 
     constructor(key: string) {
         this.key = key;
     }
 
-    createSignature(timestamp: number, method: string, path: string, body: string) {
+    createSignature(data: string) {
         const secret = 'WlXvIjcHa6yqenEfJfVRYTsLbmGKdgog'
-        const what = timestamp + method + path + body;
-        
-        const hash = CryptoJS.HmacSHA256(what, secret).toString()
-        return hash
+        return crypto.createHmac('sha256', secret).update(data).digest('hex');
     }
 
     createHeaders(timestamp: number, method: string, path: string, body: string) {
         return {
             accept: 'application/json',
             'CB-ACCESS-KEY': this.key,
-            'CB-ACCESS-SIGN': this.createSignature(timestamp, method, path, body),
+            'CB-ACCESS-SIGN': this.createSignature(timestamp + method + path + body),
             'CB-ACCESS-TIMESTAMP': timestamp.toString(),
         }
     }
@@ -31,10 +27,10 @@ class Coinbase {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', '/api/v3/brokerage/products', ''),
         });
-        console.log('status', resp.status)
+        //console.log('status', resp.status)
         const data = await resp.json();
 
-        return data
+        return data.products
     }
 }
 
