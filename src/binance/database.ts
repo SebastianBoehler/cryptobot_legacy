@@ -12,6 +12,8 @@ const client = new MainClient({
 
 async function main() {
     const markets = await client.getExchangeInfo()
+    const test = await client.get24hrChangeStatististics()
+    if (Array.isArray(test)) logger.info(test.find((item) => item.symbol === 'BTCBUSD'))
     const symbols = markets.symbols
         .filter((market) => 
             //market.symbol === 'BTCUSDT' &&
@@ -21,7 +23,7 @@ async function main() {
         .map((symbol) => symbol.symbol)
 
     const chunksOfSymbols = createChunks(symbols, 30)
-    logger.info('symbols', symbols.length)
+    logger.info('symbols', symbols.length, symbols)
 
     while (true) {
         for (const chunk of chunksOfSymbols) {

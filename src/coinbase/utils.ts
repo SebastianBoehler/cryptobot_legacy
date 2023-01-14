@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { logger } from '../utils';
 
 class Coinbase {
     key: string;
@@ -31,6 +32,32 @@ class Coinbase {
         const data = await resp.json();
 
         return data.products
+    }
+
+    async getKlines({ symbol, interval, startTime, endTime }: { symbol: string, interval: string, startTime: number, endTime: number }) {
+        logger.info({
+            symbol,
+            interval,
+            startTime,
+            endTime,
+        })
+        const resp = await fetch(`${this.baseURL}/brokerage/products/${symbol}/candles?granularity=${interval}&start=${startTime}&end=${endTime}`, {
+            method: 'GET',
+            headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', `/api/v3/brokerage/products/${symbol}/candles`, ''),
+        });
+        //console.log('status', resp.status)
+        const data: {
+            candles: {
+                start: string,
+                open: string,
+                high: string,
+                low: string,
+                close: string,
+                volume: string,
+            }[]
+        } = await resp.json();
+
+        return data.candles
     }
 }
 
