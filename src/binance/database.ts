@@ -2,8 +2,10 @@ import { MainClient } from 'binance'
 import config from '../config/config'
 import { createChunks, logger } from '../utils'
 import Mongo from '../mongodb'
+import { subMonths } from 'date-fns';
+import { timeKey } from './utils';
 
-const startTime = new Date('2022-10-01').getTime()
+const startTime = subMonths(new Date(), 3).getTime();
 const mongo = new Mongo('binance')
 const client = new MainClient({
     api_key: config.BINANCE_API_KEY,
@@ -12,17 +14,17 @@ const client = new MainClient({
 
 async function main() {
     const markets = await client.getExchangeInfo()
-    const test = await client.get24hrChangeStatististics()
-    if (Array.isArray(test)) logger.info(test.find((item) => item.symbol === 'BTCBUSD'))
     const symbols = markets.symbols
         .filter((market) => 
-            //market.symbol === 'BTCUSDT' &&
+            config.BN_ENABLED_PAIRS.length === 0 || config.BN_ENABLED_PAIRS.includes(market.symbol) &&
             market.status === 'TRADING' &&
             market.isSpotTradingAllowed
         )
         .map((symbol) => symbol.symbol)
 
-    const chunksOfSymbols = createChunks(symbols, 30)
+    if (config.BN_ENABLED_PAIRS.length > 0) symbols.filter((item) => config.BN_ENABLED_PAIRS.includes(item))
+
+    const chunksOfSymbols = createChunks(symbols, 35)
     logger.info('symbols', symbols.length, symbols)
 
     while (true) {
@@ -33,17 +35,14 @@ async function main() {
             } catch (error: unknown) {
                 logger.error(error)
             } finally {
-                //await sleep(1000 * 5)
+                //await sleep(1000)
             }
         }
     }
-
-    //await sleep(1000 * 2)
-    //main()
 }
 
 async function processSymbol(symbol: string) {
-    const lastCandle = await mongo.readLastCandle(symbol)
+    const lastCandle = await mongo.readLastCandle(symbol, timeKey)
     const candles = await client.getKlines({
         symbol,
         interval: '1m',
@@ -51,6 +50,7 @@ async function processSymbol(symbol: string) {
         startTime: lastCandle?.openTime.getTime() || startTime,
     })
 
+    if (candles.length === 0) return
     if (!lastCandle) {
         logger.info(`Creating unique index for ${symbol}`)
         await mongo.createUniqueIndex(symbol, 'openTime')

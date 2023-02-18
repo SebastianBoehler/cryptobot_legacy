@@ -1,7 +1,7 @@
 import crypto from 'crypto'
-import { logger } from '../utils';
+import { ProductsResponse } from './types';
 
-class Coinbase {
+class CoinbaseAdvanced {
     key: string;
     baseURL: string = 'https://api.coinbase.com/api/v3';
 
@@ -29,18 +29,12 @@ class Coinbase {
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', '/api/v3/brokerage/products', ''),
         });
         //console.log('status', resp.status)
-        const data = await resp.json();
+        const data: ProductsResponse = await resp.json();
 
         return data.products
     }
 
     async getKlines({ symbol, interval, startTime, endTime }: { symbol: string, interval: string, startTime: number, endTime: number }) {
-        logger.info({
-            symbol,
-            interval,
-            startTime,
-            endTime,
-        })
         const resp = await fetch(`${this.baseURL}/brokerage/products/${symbol}/candles?granularity=${interval}&start=${startTime}&end=${endTime}`, {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', `/api/v3/brokerage/products/${symbol}/candles`, ''),
@@ -61,4 +55,8 @@ class Coinbase {
     }
 }
 
-export default Coinbase
+export {
+    CoinbaseAdvanced,
+}
+
+export const timeKey = 'start'

@@ -1,10 +1,9 @@
 import { MongoClient } from 'mongodb';
-//JA9u6QobRh3Kzekn
-//mongodb+srv://admin:<password>@cluster0.9zi210f.mongodb.net/test
-const client = new MongoClient(`mongodb+srv://doadmin:9ng538R6v2CjmT17@db-mongodb-fra1-69253-e3316737.mongo.ondigitalocean.com/admin?tls=true&authSource=admin`)
+import config from '../config/config';
+const client = new MongoClient(config.MONGO_URL)
 
 class mongo {
-    public db: string
+    private db: string
 
     constructor(db: string) {
         this.db = db
@@ -21,10 +20,15 @@ class mongo {
         await collection.insertOne(data)
     }
 
-    async existingCollections() {
-        const db = client.db(this.db)
+    async existingCollections(database?: string) {
+        const db = client.db(database || this.db)
         const collections = await db.listCollections().toArray()
         return collections.map((collection) => collection.name)
+    }
+
+    async listDatabases() {
+        const databases = await client.db().admin().listDatabases()
+        return databases
     }
 
     async createUniqueIndex(collectionName: string, key: string) {
@@ -46,11 +50,23 @@ class mongo {
         return result
     }
 
-    async readLastCandle(collectionName: string) {
+    async readLastCandle(collectionName: string, timeKey: string) {
         const db = client.db(this.db)
         const collection = db.collection(collectionName)
-        const result = await collection.find().sort({ openTime: -1 }).limit(1).toArray()
+        const result = await collection.find().sort({ [timeKey]: -1 }).limit(1).toArray()
         return result[0]
+    }
+
+    async getStartAndEndDates(databse: string, collectionName: string, timeKey: string) {
+        const db = client.db(databse)
+        const collection = db.collection(collectionName)
+        const [startResult, endResult] = await Promise.all([
+            collection.find().sort({ [timeKey]: 1 }).limit(1).toArray(),
+            collection.find().sort({ [timeKey]: -1 }).limit(1).toArray()
+        ])
+        const start = startResult[0][timeKey]
+        const end = endResult[0][timeKey]
+        return { start, end } as unknown as { start: Date, end: Date }
     }
 }
 

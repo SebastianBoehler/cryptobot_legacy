@@ -18,3 +18,5 @@ class Binance {
 }
 
 export default Binance
+
+export const timeKey = 'openTime'
