@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { logger } from '../utils';
 import { ProductsResponse } from './types';
 
 class CoinbaseAdvanced {
@@ -6,6 +7,7 @@ class CoinbaseAdvanced {
     baseURL: string = 'https://api.coinbase.com/api/v3';
 
     constructor(key: string) {
+        logger.debug(`Initializing CoinbaseAdvanced with key ${key}`)
         this.key = key;
     }
 
@@ -28,7 +30,7 @@ class CoinbaseAdvanced {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', '/api/v3/brokerage/products', ''),
         });
-        //console.log('status', resp.status)
+        logger.debug('listProducts', resp.status)
         const data: ProductsResponse = await resp.json();
 
         return data.products
@@ -39,7 +41,7 @@ class CoinbaseAdvanced {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', `/api/v3/brokerage/products/${symbol}/candles`, ''),
         });
-        //console.log('status', resp.status)
+        logger.debug('getKlines', resp.status)
         const data: {
             candles: {
                 start: string,
