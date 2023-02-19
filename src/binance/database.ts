@@ -45,7 +45,7 @@ async function processSymbol(symbol: string) {
         symbol,
         interval: '1m',
         limit: 1000, //1000
-        startTime: lastCandle?.openTime.getTime() || startTime,
+        startTime: lastCandle ? lastCandle.openTime.getTime() : startTime,
     })
 
     if (candles.length === 0) return
