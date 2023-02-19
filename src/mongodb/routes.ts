@@ -1,15 +1,12 @@
 import express, { Request, Response } from 'express';
-import { timeKey as timeKeyBinance } from '../binance/utils';
-import { timeKey as timeKeyCoinbase } from '../coinbase/utils';
-import { timeKey as timeKeyDydx } from '../dydx/utils';
 const router = express.Router();
 import mongo from './index';
+import { getTimeKey } from './utils';
 const client = new mongo('admin');
 
-const cacheInSeconds = 60
+const cacheInSeconds = 60 * 5
 router.get('/databases', async (req: Request, res: Response) => {
     const databases = await client.listDatabases();
-    res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
     res.send(databases);
 });
 
@@ -20,9 +17,18 @@ router.get('/collections/:database', async (req: Request, res: Response) => {
         return;
     }
     const collections = await client.existingCollections(database);
-    res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
     res.json(collections);
 });
+
+router.get('/count/:database/:collection', async (req: Request, res: Response) => {
+    const { database, collection } = req.params;
+    if (!collection || !database) {
+        res.status(400).send('database and collection query parameter is required');
+        return;
+    }
+    const count = await client.getCount(collection, database);
+    res.json(count);
+})
 
 router.get('/timeframe/:database/:collection', async (req: Request, res: Response) => {
     const { database, collection } = req.params;
@@ -31,20 +37,10 @@ router.get('/timeframe/:database/:collection', async (req: Request, res: Respons
         return;
     }
 
-    let _timeKey = 'start'
-    switch(database) {
-        case 'binance':
-            _timeKey = timeKeyBinance
-            break;
-        case 'coinbase':
-            _timeKey = timeKeyCoinbase
-            break;
-        case 'dydx':
-            _timeKey = timeKeyDydx
-            break;
-    }
+    let _timeKey = getTimeKey(database)
 
     const result = await client.getStartAndEndDates(database, collection, _timeKey);
+    res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
     res.json(result);
 });
 

@@ -17,8 +17,8 @@ server.use(express.json());
 
 const middleware = (req: Request, res: any, next: any) => {
     logger.http(`Received ${req.method} request for ${req.url}`);
-    const cacheInSeconds = 30
-    res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
+    //const cacheInSeconds = 30
+    //res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
     next();
 };
 

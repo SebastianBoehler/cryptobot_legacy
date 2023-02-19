@@ -11,9 +11,9 @@ const mongo = new Mongo('coinbase')
 
 async function main() {
     const products = await client.listProducts()
-    const symbols: string[] = products.map((item) => item.product_id)
+    let symbols: string[] = products.map((item) => item.product_id)
 
-    if (config.CB_ENABLED_PAIRS.length > 0) symbols.filter((item) => config.CB_ENABLED_PAIRS.includes(item))
+    if (config.CB_ENABLED_PAIRS.length > 0) symbols = symbols.filter((item) => config.CB_ENABLED_PAIRS.includes(item))
 
     const chunks = createChunks(symbols, 5)
 

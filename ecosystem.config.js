@@ -1,7 +1,7 @@
 module.exports = {
     apps: [{
-        name: "ftx_database",
-        script: "./build/ftx/database.js",
+        name: "dydx_database",
+        script: "./build/dydx/database.js",
         env_prod: {
             NODE_ENV: "prod"
         },
@@ -11,45 +11,26 @@ module.exports = {
         watch: false
     },
     {
-        name: "ftx_backtester_0",
-        script: "./build/ftx/backtester.js",
+        name: "coinbase_database",
+        script: "./build/coinbase/database.js",
         env_prod: {
             NODE_ENV: "prod",
-            START_INDEX: '0'
         },
         env_dev: {
             NODE_ENV: "dev",
-            START_INDEX: '0'
         },
         //exec_mode: "cluster",
         //instances: "max",
         watch: false
     },
     {
-        name: "ftx_backtester_1",
-        script: "./build/ftx/backtester.js",
+        name: "binance_database",
+        script: "./build/binance/database.js",
         env_prod: {
             NODE_ENV: "prod",
-            START_INDEX: '10'
         },
         env_dev: {
             NODE_ENV: "dev",
-            START_INDEX: '10'
-        },
-        //exec_mode: "cluster",
-        //instances: "max",
-        watch: false
-    },
-    {
-        name: "ftx_backtester_2",
-        script: "./build/ftx/backtester.js",
-        env_prod: {
-            NODE_ENV: "prod",
-            START_INDEX: '20'
-        },
-        env_dev: {
-            NODE_ENV: "dev",
-            START_INDEX: '20'
         },
         //exec_mode: "cluster",
         //instances: "max",
@@ -68,6 +49,5 @@ module.exports = {
         watch: false,
         exec_mode: "cluster",
         instances: "max",
-    }
-    ],
+    }],
 }

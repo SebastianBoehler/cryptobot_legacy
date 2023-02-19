@@ -68,6 +68,13 @@ class mongo {
         const end = endResult[0][timeKey]
         return { start, end } as unknown as { start: Date, end: Date }
     }
+
+    async getCount(collectionName: string, database?: string) {
+        const db = client.db(database || this.db)
+        const collection = db.collection(collectionName)
+        const count = await collection.countDocuments()
+        return count
+    }
 }
 
 export default mongo

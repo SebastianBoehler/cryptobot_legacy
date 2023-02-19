@@ -12,9 +12,9 @@ const mongo = new Mongo('dydx')
 
 async function main() {
     const { markets } = await client.public.getMarkets()
-    const marketArray = Object.keys(markets)
+    let marketArray = Object.keys(markets)
 
-    if (config.DYDX_ENABLED_PAIRS.length > 0) marketArray.filter((item) => config.DYDX_ENABLED_PAIRS.includes(item))
+    if (config.DYDX_ENABLED_PAIRS.length > 0) marketArray = marketArray.filter((item) => config.DYDX_ENABLED_PAIRS.includes(item))
 
     const chunks = createChunks(marketArray, 5)
 

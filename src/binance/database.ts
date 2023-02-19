@@ -22,8 +22,6 @@ async function main() {
         )
         .map((symbol) => symbol.symbol)
 
-    if (config.BN_ENABLED_PAIRS.length > 0) symbols.filter((item) => config.BN_ENABLED_PAIRS.includes(item))
-
     const chunksOfSymbols = createChunks(symbols, 35)
     logger.info('symbols', symbols.length, symbols)
 
