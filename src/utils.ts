@@ -12,6 +12,5 @@ export const logger = {
     info: (message: any, ...data: any) => console.log(`[INFO](${new Date().toLocaleTimeString()})`, message, ...data),
     error: (message: any, ...data: any) => console.error(`[ERROR](${new Date().toLocaleTimeString()})`, message, ...data),
     warn: (message: any, ...data: any) => console.warn(`[WARN](${new Date().toLocaleTimeString()})`, message, ...data),
-    debug: (message: any, ...data: any) => console.debug(`[DEBUG](${new Date().toLocaleTimeString()})`, message, ...data),
     http: (message: any, ...data: any) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, message, ...data),
 }
