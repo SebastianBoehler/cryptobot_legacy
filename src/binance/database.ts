@@ -1,6 +1,6 @@
 import { MainClient } from 'binance'
 import config from '../config/config'
-import { createChunks, logger } from '../utils'
+import { createChunks, logger, sleep } from '../utils'
 import Mongo from '../mongodb'
 import { subMonths } from 'date-fns';
 import { timeKey } from './utils';
@@ -22,7 +22,7 @@ async function main() {
         )
         .map((symbol) => symbol.symbol)
 
-    const chunksOfSymbols = createChunks(symbols, 35)
+    const chunksOfSymbols = createChunks(symbols, 20)
     logger.info('symbols', symbols.length, symbols)
 
     while (true) {
@@ -33,7 +33,7 @@ async function main() {
             } catch (error: unknown) {
                 logger.error(error)
             } finally {
-                //await sleep(1000)
+                await sleep(1000 * 5)
             }
         }
     }
