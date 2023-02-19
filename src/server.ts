@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import cors from 'cors';
+import fs from 'fs';
 import * as dotenv from 'dotenv';
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(' ').join('')}.env`
@@ -11,6 +12,7 @@ const port = process.env.PORT || 3001;
 import ftxRoutes from './ftx/routes';
 import mongoRoutes from './mongodb/routes';
 import { logger } from './utils';
+import https from 'https';
 
 server.use(cors())
 server.use(express.json());
@@ -27,6 +29,12 @@ server.use(middleware);
 server.use('/ftx', ftxRoutes);
 server.use('/mongodb', mongoRoutes);
 
-server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+https.createServer(
+    {
+        key: fs.readFileSync('key.pem'),
+        cert: fs.readFileSync('cert.pem')
+    },
+    server
+).listen(port, () => {
+    logger.info(`Server listening on port ${port}`);
 });

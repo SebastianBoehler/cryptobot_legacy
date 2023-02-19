@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx tsc",
     "watch": "npx tsc -w",
-    "test": "SET NODE_ENV=dev && nodemon src/ftx/test.ts",
+    "test": "SET NODE_ENV=prod && node build/coinbase/database.js",
     "trader": "SET NODE_ENV=dev && nodemon src/ftx/trader.ts",
     "server": "SET NODE_ENV=dev && nodemon src/server.ts",
     "index": "SET NODE_ENV=dev && nodemon src/index.ts",
@@ -42,6 +42,7 @@
     "express": "^4.18.1",
     "fs": "^0.0.1-security",
     "ftx-api": "^1.1.13",
+    "https": "^1.0.0",
     "mongodb": "^4.13.0",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.19",
