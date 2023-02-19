@@ -1,5 +1,6 @@
 import extendedEnv from 'dotenv-extended';
 import dotenvParseVariables from 'dotenv-parse-variables';
+import { logger } from '../utils';
 
 const options = {
     silent: false,
@@ -10,6 +11,9 @@ const options = {
     assignToProcessEnv: true,
     overrideProcessEnv: false
 }
+
+logger.info(`Loading config from ${options.path}`)
+logger.info(`On ${process.env.NODE_ENV} environment`)
 
 const env = extendedEnv.load(options)
 const parsedConfig = dotenvParseVariables(env)
