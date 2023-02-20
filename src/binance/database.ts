@@ -2,7 +2,7 @@ import { MainClient } from 'binance'
 import config from '../config/config'
 import { createChunks, logger, sleep } from '../utils'
 import Mongo from '../mongodb'
-import { subMonths } from 'date-fns';
+import { subMinutes, subMonths } from 'date-fns';
 import { timeKey } from './utils';
 
 const startTime = subMonths(new Date(), 3).getTime();
@@ -76,7 +76,10 @@ async function processSymbol(symbol: string) {
         //ignore: candle[11],
     }))
     
-    const filtered = formatted.filter((candle) => candle.openTime.getTime() > (lastCandle?.openTime.getTime() || 0))
+    const filtered = formatted.filter((candle) => 
+        candle.openTime.getTime() > (lastCandle?.openTime.getTime() || 0) &&
+        candle.openTime.getTime() < subMinutes(new Date(), 1).getTime()
+    )
     logger.info(`Writing ${filtered.length} candles to ${symbol}`)
     if (filtered.length > 0) await mongo.writeMany(symbol, filtered)
 }

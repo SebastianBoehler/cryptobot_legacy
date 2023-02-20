@@ -1,5 +1,5 @@
 import { CandleResolution, DydxClient, Market } from '@dydxprotocol/v3-client'
-import { subMonths } from 'date-fns';
+import { subMinutes, subMonths } from 'date-fns';
 import { createChunks, logger, sleep } from '../utils';
 import config from '../config/config';
 import Mongo from '../mongodb/index';
@@ -66,7 +66,10 @@ async function processSymbol(symbol: string) {
                 start: new Date(candle.startedAt),
             }
         })
-        .filter((candle) => candle.start.getTime() > lastCandleTime.getTime())
+        .filter((candle) => 
+            candle.start.getTime() > lastCandleTime.getTime() &&
+            candle.start.getTime() < subMinutes(new Date(), 1).getTime()
+        )
 
     await mongo.writeMany(symbol, formatted)
 }

@@ -1,6 +1,6 @@
 import { CoinbaseAdvanced, timeKey } from './utils';
 import Mongo from '../mongodb'
-import { addMinutes, getUnixTime, subMonths } from 'date-fns';
+import { addMinutes, getUnixTime, subMinutes, subMonths } from 'date-fns';
 import { createChunks, logger, sleep } from '../utils';
 import config from '../config/config';
 import { DatabaseType } from './types';
@@ -40,7 +40,7 @@ async function processSymbol(symbol: string) {
         close: number
         volume: number
     }
-    
+
     const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
     if (secondsAgo < 70) return
@@ -58,7 +58,10 @@ async function processSymbol(symbol: string) {
     logger.info(`Loaded ${candles.length} candles for ${symbol}`)
 
     const formatted: DatabaseType[] = candles
-        .filter((item) => +item.start > getUnixTime(lastCandle?.start || 0))
+        .filter((item) => 
+            +item.start > getUnixTime(lastCandle?.start || 0) &&
+            +item.start < getUnixTime(subMinutes(new Date(), 1))
+        )
         .map((candle: any) => {
             return {
                 ...candle,
