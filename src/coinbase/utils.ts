@@ -1,20 +1,20 @@
-import crypto from 'crypto'
+import crypto from 'crypto';
 import { ProductsResponse } from './types';
 
 class CoinbaseAdvanced {
-    key: string;
-    baseURL: string = 'https://api.coinbase.com/api/v3';
+    private key: string;
+    private baseURL: string = 'https://api.coinbase.com/api/v3';
 
     constructor(key: string) {
         this.key = key;
     }
 
-    createSignature(data: string) {
+    private createSignature(data: string) {
         const secret = 'WlXvIjcHa6yqenEfJfVRYTsLbmGKdgog'
         return crypto.createHmac('sha256', secret).update(data).digest('hex');
     }
 
-    createHeaders(timestamp: number, method: string, path: string, body: string) {
+    private createHeaders(timestamp: number, method: string, path: string, body: string) {
         return {
             accept: 'application/json',
             'CB-ACCESS-KEY': this.key,
@@ -28,7 +28,8 @@ class CoinbaseAdvanced {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', '/api/v3/brokerage/products', ''),
         });
-        //console.log('status', resp.status)
+        
+        this.handleStatusCode(resp)
         const data: ProductsResponse = await resp.json();
 
         return data.products
@@ -39,7 +40,8 @@ class CoinbaseAdvanced {
             method: 'GET',
             headers: this.createHeaders(Math.floor(Date.now() / 1000), 'GET', `/api/v3/brokerage/products/${symbol}/candles`, ''),
         });
-        //console.log('status', resp.status)
+        
+        this.handleStatusCode(resp)
         const data: {
             candles: {
                 start: string,
@@ -53,10 +55,18 @@ class CoinbaseAdvanced {
 
         return data.candles
     }
+
+    private handleStatusCode (resp: Response) {
+        if (resp.status === 401) {
+            throw new Error(`Unauthorized! Invalid API key: ${this.key}}`)
+        }
+        if (resp.status !== 200) {
+            throw new Error(`Unexpected status code: ${resp.status}`)
+        }
+    }
 }
 
 export {
     CoinbaseAdvanced,
 }
-
 export const timeKey = 'start'

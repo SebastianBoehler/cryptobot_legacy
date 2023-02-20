@@ -41,6 +41,11 @@ async function main() {
 
 async function processSymbol(symbol: string) {
     const lastCandle = await mongo.readLastCandle(symbol, timeKey)
+    
+    const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
+    const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
+    if (secondsAgo < 70) return
+
     const candles = await client.getKlines({
         symbol,
         interval: '1m',
