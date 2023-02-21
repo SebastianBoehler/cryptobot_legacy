@@ -18,7 +18,7 @@ server.use(cors())
 server.use(express.json());
 
 const middleware = (req: Request, res: Response, next: any) => {
-    logger.http(`Received ${req.method} request for ${req.url} from ${req}`);
+    logger.http(`Received ${req.method} request for ${req.url} from ${req.ip || req.connection.remoteAddress}`);
     const cacheInSeconds = 30
     res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
     next();
