@@ -41,7 +41,7 @@ async function processSymbol(symbol: string) {
         volume: number
     }
 
-    const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
+    const lastCandleTime = lastCandle ? lastCandle[timeKey] : new Date(startTime)
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
     if (secondsAgo < 70) return
 

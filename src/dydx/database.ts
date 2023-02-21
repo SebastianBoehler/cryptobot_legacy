@@ -36,7 +36,7 @@ async function main() {
 async function processSymbol(symbol: string) {
     const lastCandle = await mongo.readLastCandle(symbol, timeKey) as unknown as DatabaseType | null
 
-    const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
+    const lastCandleTime = lastCandle ? lastCandle[timeKey] : new Date(startTime)
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
     if (secondsAgo < 70) return
 
