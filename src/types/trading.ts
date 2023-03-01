@@ -1,37 +1,63 @@
-
 export type Rule = {
-    'Long Entry': boolean[][]
-    'Long Exit': boolean[][]
-    'Short Entry': boolean[][]
-    'Short Exit': boolean[][]
-}
+  long_entry: boolean[][];
+  long_exit: boolean[][];
+  short_entry: boolean[][];
+  short_exit: boolean[][];
+};
 
-export type OrderTypes = 'Long Entry' | 'Long Exit' | 'Short Entry' | 'Short Exit'
+export type OrderTypes =
+  | "Long Entry"
+  | "Long Exit"
+  | "Short Entry"
+  | "Short Exit";
+
+export type Exchanges = "binance" | "coinbase" | "dydx";
 
 export type orderObject = {
-    price: number
-    timestamp: number
-    type: string
-    action: string,
-    symbol: string
-    invest: number
-    netInvest: number
-    size: number
-    fee: number
-    platform: 'ftx' | 'binance' | 'coinbase'
-    avgPrice: number
-    status: 'DEMO' | 'live',
-    index: number | undefined
-    orderId: string
-    entryId?: string
-    feeSum?: number
-    netProfit?: number
-    netProfitPercentage?: number
-    priceChange?: number
-    rule?: string
-    holdDuration?: number
-    details?: {[key: string]: number} 
-    entryDetails?: {[key: string]: number}
-    high?: number
-    low?: number
+  price: number;
+  timestamp: Date;
+  type: OrderTypes;
+  platform: Exchanges;
+  invest: number;
+  netInvest: number;
+  priceChangePercent: number;
+  netProfitInPercent: number;
+  netProfit: number;
+  profit: number;
+  fee: number;
+  holdDuration: number;
+};
+
+export interface BacktestingResult {
+  successRate: number;
+  timestamp: Date;
+  strategyName: string;
+  exchange: Exchanges;
+  startCapital: number;
+  symbol: string;
+  trades: orderObject[];
+  netProfit: string;
+  netProfitInPercent: string;
+  start: Date;
+  end: Date;
+  avgHoldDuration: number;
+  leverage: number;
+}
+
+export interface Indicators {
+  ema_8: number;
+  ema_13: number;
+  bollinger_bands: {
+    upper: number;
+    middle: number;
+    lower: number;
+  };
+  MACD: {
+    macd: number;
+    emaFast: number;
+    emaSlow: number;
+    signal: number;
+    histogram: number;
+  };
+  vol: number;
 }

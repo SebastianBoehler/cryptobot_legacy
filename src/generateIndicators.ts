@@ -1,171 +1,116 @@
-import mysql from './mysql';
-import {
-    ADL,
-    ADX,
-    BollingerBands,
-    EMA, MACD, RSI, StochasticRSI
-} from 'technicalindicators';
-import config from './config/config';
+import { EMA, BollingerBands, MACD } from "@debut/indicators";
+import { subMinutes } from "date-fns";
+import mongodb from "./mongodb";
+import { Indicators } from "./types/trading";
 
-const mysqlClient = new mysql(config.EXCHANGE);
+class generateIndicators {
+  //private length: number = 20;
+  public exchange: string;
+  public symbol: string;
+  private mongodb: mongodb;
+  private indicators = {
+    ema_8: new EMA(8),
+    ema_13: new EMA(13),
+    bollinger_bands: new BollingerBands(),
+    MACD: new MACD(),
+  };
+  private granularity: number;
+  public lastValues: Indicators = {
+    ema_8: 0,
+    ema_13: 0,
+    bollinger_bands: {
+      upper: 0,
+      middle: 0,
+      lower: 0,
+    },
+    MACD: {
+      macd: 0,
+      emaFast: 0,
+      emaSlow: 0,
+      signal: 0,
+      histogram: 0,
+    },
+    vol: 0,
+  };
+  public prevValues: Indicators | null = null;
 
-async function generateIndicators(symbol: string, granularity: number, timestamp: number = new Date().getTime()) {
-    const repaintNo = await stopRepainting(timestamp, granularity)
-    const repaintDate = new Date(timestamp)
-    const limit = (55 * granularity) + (granularity) * 35 * 5
-    repaintDate.setMinutes(repaintDate.getMinutes() - repaintNo)
-    repaintDate.setSeconds(0)
-    //console.log(granularity, new Date(timestamp).toLocaleTimeString(), repaintNo, repaintDate.toLocaleTimeString())
+  constructor(exchange: string, symbol: string, granularity: number) {
+    this.exchange = exchange;
+    this.symbol = symbol;
+    this.stopRepainting = this.stopRepainting.bind(this);
+    this.mongodb = new mongodb(exchange);
+    this.granularity = granularity;
+  }
 
-    let history = await mysqlClient.getPriceHistory(symbol, `WHERE time <= ${repaintDate.getTime()}`, limit)
+  async getIndicators(timestamp: number) {
+    let adjustedTimestamp = new Date(timestamp);
+    const stopRepainting = await this.stopRepainting(
+      timestamp,
+      this.granularity
+    );
+    if (stopRepainting < 1) {
+      adjustedTimestamp = subMinutes(
+        adjustedTimestamp.getTime(),
+        stopRepainting
+      );
+      adjustedTimestamp.setSeconds(0);
 
-    if (history.length / granularity < 100) {
-        console.error(`No enough data in db for ${symbol} ${granularity}m [${history.length}] [${limit}]`)
-        return
+      //logger.info(`Repainting ${stopRepainting} minutes`);
+      //logger.info(`Old timestamp: ${new Date(timestamp).toLocaleString()}`);
+      //logger.info(`New timestamp: ${adjustedTimestamp.toLocaleString()}`);
+      const candle = await this.mongodb.generateCandle(
+        this.granularity,
+        timestamp,
+        this.symbol
+      );
+
+      if (!candle) {
+        return this.lastValues;
+      }
+
+      const { close } = candle;
+
+      const obj = {
+        ema_8: this.indicators.ema_8.nextValue(close),
+        ema_13: this.indicators.ema_13.nextValue(close),
+        bollinger_bands: this.indicators.bollinger_bands.nextValue(close),
+        MACD: this.indicators.MACD.nextValue(close),
+        vol: candle.volume,
+      };
+
+      if (!obj.bollinger_bands || !obj.MACD) {
+        return this.lastValues;
+      }
+
+      if (this.lastValues.ema_8 !== 0) {
+        this.prevValues = this.lastValues;
+      }
+
+      this.lastValues = obj;
+      return this.lastValues;
     }
 
-    //console.log('repaint', repaintDate.toLocaleString(), repaintDate.toLocaleTimeString(), granularity)
+    /*logger.debug("Candle:", {
+      ...this.candles[this.candles.length - 1],
+      time: new Date(timestamp).toLocaleString(),
+    });*/
 
-    let pointInTime = repaintDate.getTime()
+    return this.lastValues;
+  }
 
-    const transformedHistory = granularity === 1 ? history : []
-
-    while (pointInTime >= history[0]['time'] && granularity > 1) {
-        const temp = history.filter(item => item['time'] >= pointInTime && item['time'] < (pointInTime + (granularity * 60 * 1000)))
-        //console.log('temp',temp.length, new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
-        if (temp.length < granularity * 0.6) {
-            //console.log('break', new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString())
-            //console.log(pointInTime, pointInTime - (granularity * 60 * 1000))
-            pointInTime -= (granularity * 60 * 1000)
-            continue
-        }
-
-        transformedHistory.push({
-            time: pointInTime,
-            open: temp[0]['open'],
-            high: Math.max(...temp.map(item => item['high'])),
-            low: Math.min(...temp.map(item => item['low'])),
-            close: temp[temp.length - 1]['close'],
-            price: temp[temp.length - 1]['close'],
-            volume: temp.reduce((acc, item) => acc + item['volume'], 0)
-        })
-        //console.log(new Date(pointInTime).toLocaleString(), new Date(pointInTime - (granularity * 60 * 1000)).toLocaleString(), temp.length,)
-        //console.log(new Date(temp[0]['time']).toLocaleString(), new Date(temp[temp.length - 1]['time']).toLocaleString())
-        pointInTime -= (granularity * 60 * 1000)
-    }
-
-    transformedHistory.reverse()
-    //console.log(new Date(transformedHistory[transformedHistory.length - 1]['time']).toLocaleString(), transformedHistory[transformedHistory.length - 1])
-
-    const closes = transformedHistory.map((item) => item['close'])
-    const highs = transformedHistory.map((item) => item['high'])
-    const lows = transformedHistory.map((item) => item['low'])
-    const opens = transformedHistory.map((item) => item['open'])
-    const volumes = transformedHistory.map((item) => item['volume'])
-
-    if (closes.length < 50) throw {
-        message: 'Not enough data to generate indicators',
-        symbol,
-        granularity,
-        limit
-    }
-
-    const EMA_8 = EMA.calculate({
-        values: closes,
-        period: 8
-    })
-
-    const EMA_13 = EMA.calculate({
-        values: closes,
-        period: 13
-    })
-
-    const EMA_21 = EMA.calculate({
-        values: closes,
-        period: 21
-    })
-
-    const EMA_55 = EMA.calculate({
-        values: closes,
-        period: 55
-    })
-
-    const macd = MACD.calculate({
-        values: closes,
-        fastPeriod: 12,
-        slowPeriod: 26,
-        signalPeriod: 9,
-        SimpleMAOscillator: true,
-        SimpleMASignal: true
-    })
-
-    const rsi = RSI.calculate({
-        values: closes,
-        period: 14
-    })
-
-    const stochrsi = StochasticRSI.calculate({
-        values: closes,
-        kPeriod: 3,
-        dPeriod: 3,
-        rsiPeriod: 14,
-        stochasticPeriod: 14,
-    })
-
-    const bollinger = BollingerBands.calculate({
-        values: closes,
-        period: 14,
-        stdDev: 2
-    })
-
-    const adl = ADL.calculate({
-        high: highs,
-        low: lows,
-        close: closes,
-        volume: volumes
-    })
-
-    const adx = ADX.calculate({
-        high: highs,
-        low: lows,
-        close: closes,
-        period: 14
-    })
-
-    return {
-        EMA_8: EMA_8[EMA_8.length - 1],
-        EMA_13: EMA_13[EMA_13.length - 1],
-        EMA_21: EMA_21[EMA_21.length - 1],
-        EMA_55: EMA_55[EMA_55.length - 1],
-        MACD: macd[macd.length - 1],
-        MACD_prev: macd[macd.length - 2],
-        RSI: rsi[rsi.length - 1],
-        STOCH_RSI: stochrsi[stochrsi.length - 1],
-        close: closes[closes.length - 1],
-        open: opens[opens.length - 1],
-        high: highs[highs.length - 1],
-        low: lows[lows.length - 1],
-        volume: volumes[volumes.length - 1],
-        bollingerBands: bollinger[bollinger.length - 1],
-        ADL: adl[adl.length - 1],
-        ADX: adx[adx.length - 1],
-    }
-}
-
-async function stopRepainting(timestamp: number, granularity: number) {
-    let mins = Math.trunc(timestamp / 1000 / 60)
+  async stopRepainting(timestamp: number, granularity: number) {
+    let mins = Math.trunc(timestamp / 1000 / 60);
     if (mins % granularity == 0) {
-        return 0
+      return 0;
     } else {
-        for (var b = 1; b <= granularity; b++) {
-            if ((mins - b) % granularity == 0) {
-                return b
-            }
+      for (var b = 1; b <= granularity; b++) {
+        if ((mins - b) % granularity == 0) {
+          return b;
         }
+      }
     }
-    return 0
+    return 0;
+  }
 }
 
-export {
-    generateIndicators
-}
+export { generateIndicators };
