@@ -3,6 +3,7 @@ export type Rule = {
   long_exit: boolean[][];
   short_entry: boolean[][];
   short_exit: boolean[][];
+  strictVolume?: boolean;
 };
 
 export type OrderTypes =
@@ -47,6 +48,8 @@ export interface BacktestingResult {
 export interface Indicators {
   ema_8: number;
   ema_13: number;
+  ema_21: number;
+  ema_55: number;
   bollinger_bands: {
     upper: number;
     middle: number;
@@ -60,4 +63,6 @@ export interface Indicators {
     histogram: number;
   };
   vol: number;
+  RSI: number;
+  ADX: { adx: number; pdi: number; mdi: number };
 }

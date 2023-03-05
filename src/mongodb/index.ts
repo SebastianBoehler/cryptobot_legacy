@@ -21,8 +21,8 @@ class mongo {
     console.log(`connected to mongodb`);
   }
 
-  async write(data: any, collectionName: string) {
-    const db = client.db(this.db);
+  async write(data: any, collectionName: string, database?: string) {
+    const db = client.db(database || this.db);
     const collection = db.collection(collectionName);
     await collection.insertOne(data);
   }
@@ -38,8 +38,12 @@ class mongo {
     return databases;
   }
 
-  async createUniqueIndex(collectionName: string, key: string) {
-    const db = client.db(this.db);
+  async createUniqueIndex(
+    collectionName: string,
+    key: string,
+    database?: string
+  ) {
+    const db = client.db(database || this.db);
     const collection = db.collection(collectionName);
     await collection.createIndex({ [key]: 1 }, { unique: true });
   }
@@ -224,7 +228,19 @@ class mongo {
     await collection.insertOne(result);
   }
 
-  async average5mVolume(symbol: string, start: Date, end?: Date) {
+  async getBacktests(exchange: string) {
+    const db = client.db("backtests");
+    const collection = db.collection(exchange);
+    const result = await collection.find().project({ trades: 0 }).toArray();
+    return result;
+  }
+
+  async average5mVolume(
+    databse: string,
+    symbol: string,
+    start: Date,
+    end?: Date
+  ) {
     const pipeline = [
       {
         $match: {
@@ -238,35 +254,13 @@ class mongo {
       {
         $group: {
           _id: {
-            $subtract: [
-              { $subtract: ["$" + this.timeKey, new Date(0)] },
-              {
-                $mod: [
-                  { $subtract: ["$" + this.timeKey, new Date(0)] },
-                  300000,
-                ],
-              },
-            ],
-          },
-        },
-      },
-      //get average volume
-      {
-        $group: {
-          _id: null,
-          avgVolume: {
-            $avg: {
-              $convert: {
-                input: "$volume",
-                to: "double",
-              },
-            },
+            hour: { $hour: `$${this.timeKey}` },
           },
         },
       },
     ];
 
-    const db = client.db(this.db);
+    const db = client.db(databse);
     const collection = db.collection(symbol);
     const result = await collection.aggregate<{ avgVolume: number }>(pipeline);
     const data = await result.toArray();
@@ -277,6 +271,17 @@ class mongo {
     }
 
     return data[0].avgVolume;
+  }
+
+  async getLatestEntry(database: string, collection: string, timeKey?: string) {
+    const db = client.db(database);
+    const collectionName = db.collection(collection);
+    const result = await collectionName
+      .find()
+      .sort({ [timeKey || this.timeKey]: -1 })
+      .limit(1)
+      .toArray();
+    return result[0];
   }
 }
 

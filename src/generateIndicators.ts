@@ -1,4 +1,4 @@
-import { EMA, BollingerBands, MACD } from "@debut/indicators";
+import { EMA, BollingerBands, MACD, RSI, ADX } from "@debut/indicators";
 import { subMinutes } from "date-fns";
 import mongodb from "./mongodb";
 import { Indicators } from "./types/trading";
@@ -11,13 +11,19 @@ class generateIndicators {
   private indicators = {
     ema_8: new EMA(8),
     ema_13: new EMA(13),
+    ema_21: new EMA(21),
+    ema_55: new EMA(55),
     bollinger_bands: new BollingerBands(),
     MACD: new MACD(),
+    RSI: new RSI(),
+    ADX: new ADX(),
   };
   private granularity: number;
   public lastValues: Indicators = {
     ema_8: 0,
     ema_13: 0,
+    ema_21: 0,
+    ema_55: 0,
     bollinger_bands: {
       upper: 0,
       middle: 0,
@@ -31,6 +37,8 @@ class generateIndicators {
       histogram: 0,
     },
     vol: 0,
+    RSI: 0,
+    ADX: { adx: 0, pdi: 0, mdi: 0 },
   };
   public prevValues: Indicators | null = null;
 
@@ -68,14 +76,18 @@ class generateIndicators {
         return this.lastValues;
       }
 
-      const { close } = candle;
+      const { close, high, low } = candle;
 
       const obj = {
         ema_8: this.indicators.ema_8.nextValue(close),
         ema_13: this.indicators.ema_13.nextValue(close),
+        ema_21: this.indicators.ema_21.nextValue(close),
+        ema_55: this.indicators.ema_55.nextValue(close),
         bollinger_bands: this.indicators.bollinger_bands.nextValue(close),
         MACD: this.indicators.MACD.nextValue(close),
         vol: candle.volume,
+        RSI: this.indicators.RSI.nextValue(close),
+        ADX: this.indicators.ADX.nextValue(high, low, close),
       };
 
       if (!obj.bollinger_bands || !obj.MACD) {
