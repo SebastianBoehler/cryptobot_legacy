@@ -100,7 +100,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
         netProfitInPercent,
       } = await calculateProfit(exchange, lastTrade, close, leverage);
 
-      if (lastTrade && lastTrade.invest <= 0) continue;
+      if (lastTrade && lastTrade.netInvest <= 0) continue;
 
       const holdDuration = lastTrade
         ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
@@ -379,7 +379,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
 async function main() {
   const { databases } = await mongoClient.listDatabases();
-  const systemDatabases = ["admin", "config", "local", "backtests"];
+  const systemDatabases = ["admin", "config", "local", "backtests", "binance"];
   const exchanges = databases
     .filter((db) => !systemDatabases.includes(db.name))
     .map((db) => db.name) as Exchanges[];

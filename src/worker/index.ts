@@ -8,7 +8,14 @@ const mongoClient = new mongo("worker");
 const startTime = new Date("2022-12-01T00:10:00.000Z");
 
 async function main() {
-  const systemDatabases = ["admin", "config", "local", "backtests"];
+  const systemDatabases = [
+    "admin",
+    "config",
+    "local",
+    "backtests",
+    "binance",
+    "coinbase",
+  ];
   const { databases } = await mongoClient.listDatabases();
 
   const exchanges = databases.filter(
