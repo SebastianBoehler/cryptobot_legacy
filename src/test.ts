@@ -1,34 +1,18 @@
-import { addMinutes, subHours } from "date-fns";
-import { generateIndicators } from "./generateIndicators";
-import mongodb from "./mongodb";
-import { getTimeKey } from "./mongodb/utils";
-import { logger } from "./utils";
-const myMongo = new mongodb("dydx");
+import { getUnixTime } from "date-fns";
+import { CoinbaseAdvanced } from "./coinbase/utils";
+import config from "./config/config";
 
-const exchange = "coinbase";
-const symbol = "BTC-EUR";
+const coinbase = new CoinbaseAdvanced(config.CB_API_KEY);
 
 async function test() {
-  const indicatorGen = new generateIndicators(exchange, symbol, 60);
+  const candles = await coinbase.getKlines({
+    symbol: "BTC-USD",
+    interval: "ONE_MINUTE",
+    startTime: getUnixTime(Date.now() - 1000 * 60 * 299),
+    endTime: getUnixTime(Date.now()),
+  });
 
-  const { end } = await myMongo.getStartAndEndDates(
-    exchange,
-    symbol,
-    getTimeKey(exchange)
-  );
-
-  const start = subHours(end, 24 * 7);
-
-  for (let i = 100; i < Infinity; i++) {
-    const timestamp = addMinutes(start, i);
-    if (timestamp.getTime() > end.getTime()) {
-      logger.info(`End of data reached`);
-      break;
-    }
-    const indicators = await indicatorGen.getIndicators(timestamp.getTime());
-    logger.info(`Time: ${timestamp.toLocaleString()}`);
-    logger.info(indicators);
-  }
+  console.log(candles.length);
 }
 
 test();
