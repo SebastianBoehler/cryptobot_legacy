@@ -11,11 +11,14 @@ const symbol = "BTC-EUR";
 async function test() {
   const indicatorGen = new generateIndicators(exchange, symbol, 60);
 
-  const { end } = await myMongo.getStartAndEndDates(
+  const result = await myMongo.getStartAndEndDates(
     exchange,
     symbol,
     getTimeKey(exchange)
   );
+
+  if (!result) return;
+  const { end } = result;
 
   const start = subHours(end, 24 * 7);
 

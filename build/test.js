@@ -13,7 +13,10 @@ const exchange = "coinbase";
 const symbol = "BTC-EUR";
 async function test() {
     const indicatorGen = new generateIndicators_1.generateIndicators(exchange, symbol, 60);
-    const { end } = await myMongo.getStartAndEndDates(exchange, symbol, (0, utils_1.getTimeKey)(exchange));
+    const result = await myMongo.getStartAndEndDates(exchange, symbol, (0, utils_1.getTimeKey)(exchange));
+    if (!result)
+        return;
+    const { end } = result;
     const start = (0, date_fns_1.subHours)(end, 24 * 7);
     for (let i = 100; i < Infinity; i++) {
         const timestamp = (0, date_fns_1.addMinutes)(start, i);

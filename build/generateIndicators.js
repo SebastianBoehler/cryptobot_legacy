@@ -15,13 +15,19 @@ class generateIndicators {
     indicators = {
         ema_8: new indicators_1.EMA(8),
         ema_13: new indicators_1.EMA(13),
+        ema_21: new indicators_1.EMA(21),
+        ema_55: new indicators_1.EMA(55),
         bollinger_bands: new indicators_1.BollingerBands(),
         MACD: new indicators_1.MACD(),
+        RSI: new indicators_1.RSI(),
+        ADX: new indicators_1.ADX(),
     };
     granularity;
     lastValues = {
         ema_8: 0,
         ema_13: 0,
+        ema_21: 0,
+        ema_55: 0,
         bollinger_bands: {
             upper: 0,
             middle: 0,
@@ -35,6 +41,8 @@ class generateIndicators {
             histogram: 0,
         },
         vol: 0,
+        RSI: 0,
+        ADX: { adx: 0, pdi: 0, mdi: 0 },
     };
     prevValues = null;
     constructor(exchange, symbol, granularity) {
@@ -57,13 +65,17 @@ class generateIndicators {
             if (!candle) {
                 return this.lastValues;
             }
-            const { close } = candle;
+            const { close, high, low } = candle;
             const obj = {
                 ema_8: this.indicators.ema_8.nextValue(close),
                 ema_13: this.indicators.ema_13.nextValue(close),
+                ema_21: this.indicators.ema_21.nextValue(close),
+                ema_55: this.indicators.ema_55.nextValue(close),
                 bollinger_bands: this.indicators.bollinger_bands.nextValue(close),
                 MACD: this.indicators.MACD.nextValue(close),
                 vol: candle.volume,
+                RSI: this.indicators.RSI.nextValue(close),
+                ADX: this.indicators.ADX.nextValue(high, low, close),
             };
             if (!obj.bollinger_bands || !obj.MACD) {
                 return this.lastValues;

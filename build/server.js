@@ -30,6 +30,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv = __importStar(require("dotenv"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
+const crypto_1 = require("crypto");
 dotenv.config({
     path: `${process.env.NODE_ENV?.split(" ").join("")}.env`,
 });
@@ -37,10 +38,24 @@ const server = (0, express_1.default)();
 const port = process.env.PORT || 3001;
 const routes_1 = __importDefault(require("./mongodb/routes"));
 const utils_1 = require("./utils");
+const config_1 = __importDefault(require("./config/config"));
 server.use((0, cors_1.default)());
 server.use(express_1.default.json());
-const middleware = (req, res, next) => {
-    utils_1.logger.http(`Received ${req.method} request for ${req.url} from ${req.ip || req.connection.remoteAddress}`);
+const middleware = async (req, res, next) => {
+    const IP = req.ip || req.connection.remoteAddress;
+    //logger.http(`Received ${req.method} request for ${req.url} from ${IP}`);
+    const whitelist = config_1.default.API_WHITELIST || [];
+    const isWhitelisted = IP
+        ? whitelist.includes(IP?.replace("::ffff:", ""))
+        : false;
+    const secret = config_1.default.API_SECRET || "";
+    const hash = (0, crypto_1.createHmac)("sha256", secret).update(req.path).digest("hex");
+    //server side auth
+    if (req.headers["hb-capital-auth"] !== hash && !isWhitelisted) {
+        utils_1.logger.warn(`Unauthorized request from ${IP}`);
+        res.status(401).send("Unauthorized");
+        return;
+    }
     const cacheInSeconds = 30;
     res.set("Cache-control", `public, max-age=${cacheInSeconds}`);
     next();
@@ -49,7 +64,7 @@ server.use(middleware);
 server.use("/mongodb", routes_1.default);
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 30,
     standardHeaders: true,
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });

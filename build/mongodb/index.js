@@ -20,8 +20,8 @@ class mongo {
         await client.connect();
         console.log(`connected to mongodb`);
     }
-    async write(data, collectionName) {
-        const db = client.db(this.db);
+    async write(data, collectionName, database) {
+        const db = client.db(database || this.db);
         const collection = db.collection(collectionName);
         await collection.insertOne(data);
     }
@@ -34,8 +34,8 @@ class mongo {
         const databases = await client.db().admin().listDatabases();
         return databases;
     }
-    async createUniqueIndex(collectionName, key) {
-        const db = client.db(this.db);
+    async createUniqueIndex(collectionName, key, database) {
+        const db = client.db(database || this.db);
         const collection = db.collection(collectionName);
         await collection.createIndex({ [key]: 1 }, { unique: true });
     }
@@ -75,6 +75,10 @@ class mongo {
                 .limit(1)
                 .toArray(),
         ]);
+        if (!startResult.length || !endResult.length) {
+            utils_1.logger.warn(`No data for ${collectionName} in ${database}`);
+            return;
+        }
         const start = startResult[0][timeKey];
         const end = endResult[0][timeKey];
         return { start, end };
@@ -184,7 +188,23 @@ class mongo {
         const collection = db.collection(result.exchange);
         await collection.insertOne(result);
     }
-    async average5mVolume(symbol, start, end) {
+    async getBacktests(exchange, options) {
+        const db = client.db("backtests");
+        const collection = db.collection(exchange);
+        const query = {};
+        if (options?.minProfit !== undefined)
+            query.netProfitInPercent = { $gte: options.minProfit };
+        if (options?.rule)
+            query.strategyName = options.rule;
+        if (options?.testedAfter)
+            query.timestamp = { $gte: new Date(options.testedAfter) };
+        const result = await collection
+            .find(query)
+            .project({ trades: 0 })
+            .toArray();
+        return result;
+    }
+    async average5mVolume(databse, symbol, start, end) {
         const pipeline = [
             {
                 $match: {
@@ -198,34 +218,12 @@ class mongo {
             {
                 $group: {
                     _id: {
-                        $subtract: [
-                            { $subtract: ["$" + this.timeKey, new Date(0)] },
-                            {
-                                $mod: [
-                                    { $subtract: ["$" + this.timeKey, new Date(0)] },
-                                    300000,
-                                ],
-                            },
-                        ],
-                    },
-                },
-            },
-            //get average volume
-            {
-                $group: {
-                    _id: null,
-                    avgVolume: {
-                        $avg: {
-                            $convert: {
-                                input: "$volume",
-                                to: "double",
-                            },
-                        },
+                        hour: { $hour: `$${this.timeKey}` },
                     },
                 },
             },
         ];
-        const db = client.db(this.db);
+        const db = client.db(databse);
         const collection = db.collection(symbol);
         const result = await collection.aggregate(pipeline);
         const data = await result.toArray();
@@ -234,6 +232,35 @@ class mongo {
             return;
         }
         return data[0].avgVolume;
+    }
+    async getLatestEntry(database, collection, timeKey) {
+        const db = client.db(database);
+        const collectionName = db.collection(collection);
+        const result = await collectionName
+            .find()
+            .sort({ [timeKey || this.timeKey]: -1 })
+            .limit(1)
+            .toArray();
+        return result[0];
+    }
+    async getSetOfRules(exchange, symbol) {
+        const db = client.db("backtests");
+        const collectionName = db.collection(exchange);
+        const cursor = await collectionName.aggregate([
+            {
+                $match: {
+                    symbol,
+                },
+            },
+            {
+                $group: {
+                    _id: "$strategyName",
+                },
+            },
+        ]);
+        const data = await cursor.toArray();
+        const result = data.map((d) => d._id);
+        return result;
     }
 }
 exports.default = mongo;

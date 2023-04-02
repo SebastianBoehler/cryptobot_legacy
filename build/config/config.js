@@ -40,6 +40,9 @@ const config = {
     //NODE defaults
     NODE_ENV: parsedConfig.NODE_ENV,
     LOG_LEVEL: parsedConfig.LOG_LEVEL,
+    //API
+    API_SECRET: parsedConfig.API_SECRET,
+    API_WHITELIST: parsedConfig.API_WHITELIST,
     //deprecated
     SQL_USER: parsedConfig.SQL_USER,
     SQL_PASSWORD: parsedConfig.SQL_PASSWORD,

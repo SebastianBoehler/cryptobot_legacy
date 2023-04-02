@@ -22,20 +22,25 @@ const exchangeConfigs = {
     },
 };
 async function backtester(exchange, symbol) {
-    const strategyNames = ["1", "2", "3", "4"];
+    const strategyNames = ["1", "2", "3", "4", "5", "6"];
     const timeKey = (0, utils_1.getTimeKey)(exchange);
     const exchangeConfig = exchangeConfigs[exchange];
     const leverage = exchangeConfig.derivatesEnabled ? config_1.default.LEVERAGE || 5 : 1;
     const history = await mongoClient.getTimeAndClose(exchange, symbol, timeKey);
-    const { start, end } = await mongoClient.getStartAndEndDates(exchange, symbol, timeKey);
+    const startAndEndDates = await mongoClient.getStartAndEndDates(exchange, symbol, timeKey);
+    if (!startAndEndDates)
+        return;
+    const { start, end } = startAndEndDates;
     const storage = {};
     const startCapital = 1_500;
     const indicators = {
         "25min": new generateIndicators_1.generateIndicators(exchange, symbol, 25),
         "60min": new generateIndicators_1.generateIndicators(exchange, symbol, 60),
+        "2h": new generateIndicators_1.generateIndicators(exchange, symbol, 60 * 2),
     };
     let prevCandle;
-    outerLoop: for (let i = 60 * 12; i < Infinity; i++) {
+    const startOffest = 60 * 12;
+    outerLoop: for (let i = startOffest; i < Infinity; i++) {
         const timestamp = (0, date_fns_1.addMinutes)(start, i);
         if (timestamp.getTime() > end.getTime())
             break;
@@ -47,11 +52,16 @@ async function backtester(exchange, symbol) {
             continue;
         const { close } = candle;
         utils_2.logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
-        const [indicators_25min, indicators_60min] = await Promise.all([
+        const [indicators_25min, indicators_60min, indicators_2h] = await Promise.all([
             indicators["25min"].getIndicators(timestamp.getTime()),
             indicators["60min"].getIndicators(timestamp.getTime()),
+            indicators["2h"].getIndicators(timestamp.getTime()),
         ]);
-        const prev_indicators_25min = await indicators["25min"].prevValues;
+        if (startOffest * 2 > i)
+            continue;
+        const prev_indicators_25min = indicators["25min"].prevValues;
+        const prev_indicators_60min = indicators["60min"].prevValues;
+        const prev_indicators_2h = indicators["2h"].prevValues;
         for (const strategyName of strategyNames) {
             if (!storage[strategyName])
                 storage[strategyName] = {
@@ -67,14 +77,20 @@ async function backtester(exchange, symbol) {
             const lastTrade = trades[trades.length - 1];
             const hasOpenPosition = lastTrade?.type.includes("Entry");
             const { profit, priceChangePercent, fee, netInvest, netProfit, netProfitInPercent, } = await (0, utils_2.calculateProfit)(exchange, lastTrade, close, leverage);
-            if (lastTrade && lastTrade.invest <= 0)
+            if (lastTrade &&
+                lastTrade.type.includes("Exit") &&
+                lastTrade.netInvest <= 0)
                 continue;
             const holdDuration = lastTrade
                 ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
                 : 0;
             const lastNetInvest = lastTrade?.netInvest || 0;
             const entry = indicators_25min.vol / 3 > lastNetInvest;
-            const exit = profit > 0.05 || profit < -0.025 || holdDuration > 60 * 3;
+            const conservativeTrigger = indicators_25min.vol / 6 > lastNetInvest;
+            const exit = netProfitInPercent > 1 * leverage ||
+                netProfitInPercent < -0.5 * leverage; //|| holdDuration > 60 * 3;
+            const exit2 = netProfitInPercent > 5 * leverage ||
+                netProfitInPercent < -2.5 * leverage; //|| holdDuration > 60 * 3;
             if (!entry && holdDuration > 60 * 48) {
                 lastTrade.netInvest = startCapital;
             }
@@ -139,8 +155,60 @@ async function backtester(exchange, symbol) {
                     ],
                     short_exit: [[exit]],
                 },
+                "5": {
+                    long_entry: [
+                        [close < indicators_25min.bollinger_bands.lower],
+                        [
+                            !!prev_indicators_25min &&
+                                close > indicators_25min.bollinger_bands.lower &&
+                                indicators_25min.MACD.histogram >
+                                    prev_indicators_25min.MACD.histogram,
+                        ],
+                    ],
+                    long_exit: [[exit]],
+                    short_entry: [
+                        [exchangeConfig.derivatesEnabled],
+                        [close > indicators_25min.bollinger_bands.upper],
+                        [
+                            !!prev_indicators_25min &&
+                                close < indicators_25min.bollinger_bands.upper &&
+                                indicators_25min.MACD.histogram <
+                                    prev_indicators_25min.MACD.histogram,
+                        ],
+                    ],
+                    short_exit: [[exit]],
+                    strictVolume: true,
+                },
+                "6": {
+                    long_entry: [
+                        [close < indicators_60min.bollinger_bands.lower],
+                        [
+                            !!prev_indicators_60min &&
+                                !!prev_indicators_2h &&
+                                close > indicators_60min.bollinger_bands.lower &&
+                                indicators_2h.MACD.histogram >
+                                    prev_indicators_2h.MACD.histogram,
+                        ],
+                    ],
+                    long_exit: [[exit2]],
+                    short_entry: [
+                        [exchangeConfig.derivatesEnabled],
+                        [close > indicators_25min.bollinger_bands.upper],
+                        [
+                            !!prev_indicators_60min &&
+                                !!prev_indicators_2h &&
+                                close < indicators_60min.bollinger_bands.upper &&
+                                indicators_2h.MACD.histogram <
+                                    prev_indicators_2h.MACD.histogram,
+                        ],
+                    ],
+                    short_exit: [[exit2]],
+                    strictVolume: true,
+                },
             };
             const strategy = strategies[strategyName];
+            if (exchange === "dydx")
+                strategy.strictVolume = true;
             //check all conditions
             const longEntryChecks = strategy.long_entry[storage[strategyName].indexes.long_entry];
             const longExitChecks = strategy.long_exit[storage[strategyName].indexes.long_exit];
@@ -159,13 +227,18 @@ async function backtester(exchange, symbol) {
                 price: close,
                 platform: exchange,
                 invest: (lastTrade?.netInvest || startCapital) * leverage,
-                netInvest,
+                netInvest: lastTrade ? netInvest : startCapital,
                 priceChangePercent,
                 profit,
                 netProfit,
                 netProfitInPercent,
                 fee,
                 holdDuration,
+                details: {
+                    indicators_25min,
+                    indicators_60min,
+                    indicators_2h,
+                },
             };
             if (hasOpenPosition) {
                 const isLong = lastTrade?.type.includes("Long");
@@ -174,6 +247,8 @@ async function backtester(exchange, symbol) {
                     strategy.short_exit.length;
                 utils_2.logger.debug(`Profit: ${profit}`);
                 utils_2.logger.debug(`Price change: ${priceChangePercent}`);
+                if (strategy.strictVolume && !conservativeTrigger)
+                    continue;
                 if (isLong && longExit) {
                     //logger.info(`Long exit [${strategyName}]: ${profit}`);
                     storage[strategyName].trades.push({
@@ -202,6 +277,10 @@ async function backtester(exchange, symbol) {
                 }
             }
             if (!hasOpenPosition && entry) {
+                if (netInvest < 0)
+                    throw new Error("Net invest is negative");
+                if (strategy.strictVolume && !conservativeTrigger)
+                    continue;
                 const longEntry = storage[strategyName].indexes.long_entry >=
                     strategy.long_entry.length;
                 const shortEntry = storage[strategyName].indexes.short_entry >=
@@ -224,14 +303,15 @@ async function backtester(exchange, symbol) {
     }
     //calculate profit for each strategy
     for (const strategyName of strategyNames) {
-        const trades = storage[strategyName].trades || [];
+        const trades = storage[strategyName]?.trades || [];
         const exits = trades.filter((trade) => trade.type.includes("Exit"));
         const holdDurations = exits.map((exit) => exit.holdDuration);
         const avgHoldDuration = holdDurations.reduce((a, b) => a + b, 0) / exits.length;
         const netProfits = exits.map((exit) => exit.netProfit);
         const sumProfit = netProfits.reduce((a, b) => a + b, 0);
-        const netProfitInPercent = (+sumProfit / startCapital).toLocaleString("en-US", { style: "percent", minimumFractionDigits: 2 });
-        utils_2.logger.info(`Profit for ${strategyName}: ${sumProfit} (${netProfitInPercent})`);
+        const netProfitInPercent = +((+sumProfit / startCapital) * 100).toFixed(3);
+        utils_2.logger.info(`Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`);
+        //avg profit per month
         const successRate = exits.filter((exit) => exit.profit > 0).length / exits.length;
         const result = {
             successRate,
@@ -256,7 +336,14 @@ async function backtester(exchange, symbol) {
 }
 async function main() {
     const { databases } = await mongoClient.listDatabases();
-    const systemDatabases = ["admin", "config", "local", "backtests"];
+    const systemDatabases = [
+        "admin",
+        "config",
+        "local",
+        "worker",
+        "backtests",
+        "coinbase",
+    ];
     const exchanges = databases
         .filter((db) => !systemDatabases.includes(db.name))
         .map((db) => db.name);
@@ -266,7 +353,10 @@ async function main() {
     for (const exchange of exchanges) {
         const collections = await mongoClient.existingCollections(exchange);
         const formatted = collections.map((collection) => {
-            return `${exchange}@${collection}`;
+            return {
+                exchange,
+                symbol: collection,
+            };
         });
         pairs.push(...formatted);
     }
@@ -274,7 +364,7 @@ async function main() {
     pairs.sort(() => Math.random() - 0.5);
     //backtest all pairs
     for (const pair of pairs) {
-        const [exchange, symbol] = pair.split("@");
+        const { exchange, symbol } = pair;
         await backtester(exchange, symbol);
     }
 }
