@@ -6,3 +6,9 @@ export interface GeneratedCandle {
   volume: number;
   openTime?: Date;
 }
+
+export interface GetBacktestOptions {
+  testedAfter?: string;
+  rule?: string;
+  minProfit?: number;
+}

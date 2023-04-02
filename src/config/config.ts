@@ -39,6 +39,10 @@ const config = {
   NODE_ENV: parsedConfig.NODE_ENV as "prod" | "dev" | undefined,
   LOG_LEVEL: parsedConfig.LOG_LEVEL as string,
 
+  //API
+  API_SECRET: parsedConfig.API_SECRET as string,
+  API_WHITELIST: parsedConfig.API_WHITELIST as string[],
+
   //deprecated
   SQL_USER: parsedConfig.SQL_USER as string,
   SQL_PASSWORD: parsedConfig.SQL_PASSWORD as string,

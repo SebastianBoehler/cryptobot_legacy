@@ -27,6 +27,7 @@ export type orderObject = {
   profit: number;
   fee: number;
   holdDuration: number;
+  details: Record<string, Indicators>;
 };
 
 export interface BacktestingResult {
@@ -38,7 +39,7 @@ export interface BacktestingResult {
   symbol: string;
   trades: orderObject[];
   netProfit: string;
-  netProfitInPercent: string;
+  netProfitInPercent: number;
   start: Date;
   end: Date;
   avgHoldDuration: number;

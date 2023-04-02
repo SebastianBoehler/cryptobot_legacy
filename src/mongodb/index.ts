@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult } from "../types/trading";
 import { logger } from "../utils";
-import { GeneratedCandle } from "./types";
+import { GeneratedCandle, GetBacktestOptions } from "./types";
 import { getTimeKey, TimeKey } from "./utils";
 const client = new MongoClient(config.MONGO_URL);
 
@@ -91,6 +91,11 @@ class mongo {
         .limit(1)
         .toArray(),
     ]);
+
+    if (!startResult.length || !endResult.length) {
+      logger.warn(`No data for ${collectionName} in ${database}`);
+      return;
+    }
     const start = startResult[0][timeKey];
     const end = endResult[0][timeKey];
     return { start, end } as unknown as { start: Date; end: Date };
@@ -228,10 +233,21 @@ class mongo {
     await collection.insertOne(result);
   }
 
-  async getBacktests(exchange: string) {
+  async getBacktests(exchange: string, options?: GetBacktestOptions) {
     const db = client.db("backtests");
     const collection = db.collection(exchange);
-    const result = await collection.find().project({ trades: 0 }).toArray();
+
+    const query: Record<string, any> = {};
+    if (options?.minProfit !== undefined)
+      query.netProfitInPercent = { $gte: options.minProfit };
+    if (options?.rule) query.strategyName = options.rule;
+    if (options?.testedAfter)
+      query.timestamp = { $gte: new Date(options.testedAfter) };
+    const result = await collection
+      .find(query)
+      .project({ trades: 0 })
+      .toArray();
+
     return result;
   }
 
@@ -282,6 +298,27 @@ class mongo {
       .limit(1)
       .toArray();
     return result[0];
+  }
+
+  async getSetOfRules(exchange: string, symbol: string) {
+    const db = client.db("backtests");
+    const collectionName = db.collection(exchange);
+    const cursor = await collectionName.aggregate<{ _id: string[] }>([
+      {
+        $match: {
+          symbol,
+        },
+      },
+      {
+        $group: {
+          _id: "$strategyName",
+        },
+      },
+    ]);
+
+    const data = await cursor.toArray();
+    const result = data.map((d) => d._id);
+    return result;
   }
 }
 

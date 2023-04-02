@@ -32,11 +32,14 @@ async function backtester(exchange: Exchanges, symbol: string) {
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
   const history = await mongoClient.getTimeAndClose(exchange, symbol, timeKey);
-  const { start, end } = await mongoClient.getStartAndEndDates(
+  const startAndEndDates = await mongoClient.getStartAndEndDates(
     exchange,
     symbol,
     timeKey
   );
+
+  if (!startAndEndDates) return;
+  const { start, end } = startAndEndDates;
 
   const storage: Storage = {};
   const startCapital = 1_500;
@@ -100,7 +103,12 @@ async function backtester(exchange: Exchanges, symbol: string) {
         netProfitInPercent,
       } = await calculateProfit(exchange, lastTrade, close, leverage);
 
-      if (lastTrade && lastTrade.netInvest <= 0) continue;
+      if (
+        lastTrade &&
+        lastTrade.type.includes("Exit") &&
+        lastTrade.netInvest <= 0
+      )
+        continue;
 
       const holdDuration = lastTrade
         ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
@@ -235,6 +243,8 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
       const strategy = strategies[strategyName];
 
+      if (exchange === "dydx") strategy.strictVolume = true;
+
       //check all conditions
       const longEntryChecks =
         strategy.long_entry[storage[strategyName].indexes.long_entry];
@@ -259,13 +269,18 @@ async function backtester(exchange: Exchanges, symbol: string) {
         price: close,
         platform: exchange,
         invest: (lastTrade?.netInvest || startCapital) * leverage,
-        netInvest,
+        netInvest: lastTrade ? netInvest : startCapital,
         priceChangePercent,
         profit,
         netProfit,
         netProfitInPercent,
         fee,
         holdDuration,
+        details: {
+          indicators_25min,
+          indicators_60min,
+          indicators_2h,
+        },
       };
 
       if (hasOpenPosition) {
@@ -308,6 +323,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       }
 
       if (!hasOpenPosition && entry) {
+        if (netInvest < 0) throw new Error("Net invest is negative");
         if (strategy.strictVolume && !conservativeTrigger) continue;
         const longEntry =
           storage[strategyName].indexes.long_entry >=
@@ -341,10 +357,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       holdDurations.reduce((a, b) => a + b, 0) / exits.length;
     const netProfits = exits.map((exit) => exit.netProfit);
     const sumProfit = netProfits.reduce((a, b) => a + b, 0);
-    const netProfitInPercent = (+sumProfit / startCapital).toLocaleString(
-      "en-US",
-      { style: "percent", minimumFractionDigits: 2 }
-    );
+    const netProfitInPercent = +((+sumProfit / startCapital) * 100).toFixed(3);
     logger.info(
       `Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`
     );
@@ -379,19 +392,29 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
 async function main() {
   const { databases } = await mongoClient.listDatabases();
-  const systemDatabases = ["admin", "config", "local", "backtests", "binance"];
+  const systemDatabases = [
+    "admin",
+    "config",
+    "local",
+    "worker",
+    "backtests",
+    "coinbase",
+  ];
   const exchanges = databases
     .filter((db) => !systemDatabases.includes(db.name))
     .map((db) => db.name) as Exchanges[];
   logger.info(exchanges);
 
-  const pairs: string[] = [];
+  const pairs: { exchange: string; symbol: string }[] = [];
 
   //create an array of [exchange]@[symbol] pairs
   for (const exchange of exchanges) {
     const collections = await mongoClient.existingCollections(exchange);
     const formatted = collections.map((collection) => {
-      return `${exchange}@${collection}`;
+      return {
+        exchange,
+        symbol: collection,
+      };
     });
     pairs.push(...formatted);
   }
@@ -401,7 +424,7 @@ async function main() {
 
   //backtest all pairs
   for (const pair of pairs) {
-    const [exchange, symbol] = pair.split("@");
+    const { exchange, symbol } = pair;
     await backtester(exchange as Exchanges, symbol);
   }
 }
