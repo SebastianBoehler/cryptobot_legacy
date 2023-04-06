@@ -1,11 +1,16 @@
 import { subMinutes } from "date-fns";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult } from "../types/trading";
 import { logger } from "../utils";
 import { GeneratedCandle, GetBacktestOptions } from "./types";
 import { getTimeKey, TimeKey } from "./utils";
 const client = new MongoClient(config.MONGO_URL);
+
+process.on("SIGINT", async () => {
+  await client.close();
+  process.exit();
+});
 
 class mongo {
   private db: string;
@@ -14,6 +19,10 @@ class mongo {
   constructor(db: string) {
     this.db = db;
     this.timeKey = getTimeKey(db);
+  }
+
+  getClient() {
+    return client;
   }
 
   async connect() {
@@ -230,10 +239,28 @@ class mongo {
   async saveBacktest(result: BacktestingResult) {
     const db = client.db("backtests");
     const collection = db.collection(result.exchange);
-    await collection.insertOne(result);
+
+    const query = {
+      strategyName: result.strategyName,
+      symbol: result.symbol,
+    };
+
+    const update = {
+      $set: {
+        ...result,
+      },
+    };
+
+    const options = { upsert: true };
+
+    await collection.updateOne(query, update, options);
   }
 
-  async getBacktests(exchange: string, options?: GetBacktestOptions) {
+  async getBacktests(
+    exchange: string,
+    options?: GetBacktestOptions,
+    project: Record<string, any> = { trades: 0 }
+  ) {
     const db = client.db("backtests");
     const collection = db.collection(exchange);
 
@@ -243,10 +270,10 @@ class mongo {
     if (options?.rule) query.strategyName = options.rule;
     if (options?.testedAfter)
       query.timestamp = { $gte: new Date(options.testedAfter) };
-    const result = await collection
-      .find(query)
-      .project({ trades: 0 })
-      .toArray();
+    if (options?._ids)
+      query._id = { $in: options._ids.map((id) => new ObjectId(id)) };
+
+    const result = await collection.find(query).project(project).toArray();
 
     return result;
   }

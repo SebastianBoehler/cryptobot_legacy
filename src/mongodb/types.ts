@@ -8,6 +8,7 @@ export interface GeneratedCandle {
 }
 
 export interface GetBacktestOptions {
+  _ids?: string[];
   testedAfter?: string;
   rule?: string;
   minProfit?: number;

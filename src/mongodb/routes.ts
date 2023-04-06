@@ -62,7 +62,12 @@ router.post("/backtests/:exchange", async (req: Request, res: Response) => {
     res.status(400).send("exchange query parameter is required");
     return;
   }
-  const result = await client.getBacktests(exchange, req.body);
+
+  const result = await client.getBacktests(
+    exchange,
+    req.body.filter,
+    req.body.project
+  );
   res.set("Cache-control", `public, max-age=${cacheInSeconds}`);
   res.json(result);
 });

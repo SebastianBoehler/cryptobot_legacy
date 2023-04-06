@@ -6,7 +6,16 @@ import { getTimeKey } from "./mongodb/utils";
 import { BacktestingResult, Exchanges, Rule } from "./types/trading";
 import { calculateProfit, logger } from "./utils";
 import { Storage } from "./types/backtester";
+import BigNumber from "bignumber.js";
 const mongoClient = new mongo("admin");
+
+BigNumber.config({
+  FORMAT: {
+    groupSeparator: ",",
+    decimalSeparator: ".",
+    groupSize: 3,
+  },
+});
 
 const exchangeConfigs: Record<
   Exchanges,
@@ -26,7 +35,7 @@ const exchangeConfigs: Record<
 };
 
 async function backtester(exchange: Exchanges, symbol: string) {
-  const strategyNames = ["1", "2", "3", "4", "5", "6"] as const;
+  const strategyNames = ["1", "2", "3", "4", "5", "6"]; //as const;
   const timeKey = getTimeKey(exchange);
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
@@ -103,30 +112,24 @@ async function backtester(exchange: Exchanges, symbol: string) {
         netProfitInPercent,
       } = await calculateProfit(exchange, lastTrade, close, leverage);
 
-      if (
-        lastTrade &&
-        lastTrade.type.includes("Exit") &&
-        lastTrade.netInvest <= 0
-      )
-        continue;
-
       const holdDuration = lastTrade
         ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
         : 0;
 
-      const lastNetInvest = lastTrade?.netInvest || 0;
+      const lastNetInvest = lastTrade?.netInvest || startCapital;
       const entry = indicators_25min.vol / 3 > lastNetInvest;
       const conservativeTrigger = indicators_25min.vol / 6 > lastNetInvest;
       const exit =
         netProfitInPercent > 1 * leverage ||
-        netProfitInPercent < -0.5 * leverage; //|| holdDuration > 60 * 3;
+        netProfitInPercent < -0.5 * leverage ||
+        holdDuration > 60 * 24;
       const exit2 =
         netProfitInPercent > 5 * leverage ||
-        netProfitInPercent < -2.5 * leverage; //|| holdDuration > 60 * 3;
+        netProfitInPercent < -2.5 * leverage ||
+        holdDuration > 60 * 24;
 
-      if (!entry && holdDuration > 60 * 48) {
-        lastTrade.netInvest = startCapital;
-      }
+      const isLiquidation =
+        netProfit < 0 && Math.abs(netProfit) >= lastNetInvest;
 
       //currently only support one step strategies
       const strategies: Record<typeof strategyNames[number], Rule> = {
@@ -138,13 +141,13 @@ async function backtester(exchange: Exchanges, symbol: string) {
             ],
           ],
           long_exit: [[exit]],
-          short_entry: [[exchangeConfig.derivatesEnabled]],
+          short_entry: [[false]],
           short_exit: [],
         },
         "2": {
           long_entry: [[close < indicators_25min.bollinger_bands.lower]],
           long_exit: [[exit]],
-          short_entry: [[exchangeConfig.derivatesEnabled]],
+          short_entry: [[false]],
           short_exit: [],
         },
         "3": {
@@ -281,19 +284,25 @@ async function backtester(exchange: Exchanges, symbol: string) {
           indicators_60min,
           indicators_2h,
         },
+        isLiquidation,
       };
+
+      //debug
+      //if (trades.length && trades.length % 2 == 0) debugger;
 
       if (hasOpenPosition) {
         const isLong = lastTrade?.type.includes("Long");
         const longExit =
-          storage[strategyName].indexes.long_exit >= strategy.long_exit.length;
+          storage[strategyName].indexes.long_exit >=
+            strategy.long_exit.length || isLiquidation;
         const shortExit =
           storage[strategyName].indexes.short_exit >=
-          strategy.short_exit.length;
+            strategy.short_exit.length || isLiquidation;
 
         logger.debug(`Profit: ${profit}`);
         logger.debug(`Price change: ${priceChangePercent}`);
-        if (strategy.strictVolume && !conservativeTrigger) continue;
+        if (strategy.strictVolume && !conservativeTrigger && !isLiquidation)
+          continue;
         if (isLong && longExit) {
           //logger.info(`Long exit [${strategyName}]: ${profit}`);
           storage[strategyName].trades.push({
@@ -323,8 +332,8 @@ async function backtester(exchange: Exchanges, symbol: string) {
       }
 
       if (!hasOpenPosition && entry) {
-        if (netInvest < 0) throw new Error("Net invest is negative");
         if (strategy.strictVolume && !conservativeTrigger) continue;
+        if (netInvest < 0) continue;
         const longEntry =
           storage[strategyName].indexes.long_entry >=
           strategy.long_entry.length;
@@ -355,9 +364,12 @@ async function backtester(exchange: Exchanges, symbol: string) {
     const holdDurations = exits.map((exit) => exit.holdDuration);
     const avgHoldDuration =
       holdDurations.reduce((a, b) => a + b, 0) / exits.length;
-    const netProfits = exits.map((exit) => exit.netProfit);
-    const sumProfit = netProfits.reduce((a, b) => a + b, 0);
-    const netProfitInPercent = +((+sumProfit / startCapital) * 100).toFixed(3);
+    const netProfits = exits.map((exit) => new BigNumber(exit.netProfit));
+    const sumProfit = netProfits.reduce((a, b) => a.plus(b), BigNumber(0));
+    const netProfitInPercent = sumProfit
+      .dividedBy(startCapital)
+      .multipliedBy(100)
+      .toNumber();
     logger.info(
       `Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`
     );
@@ -375,10 +387,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       startCapital,
       symbol,
       trades,
-      netProfit: sumProfit.toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      }),
+      netProfit: sumProfit.toFormat(2),
       netProfitInPercent: netProfitInPercent,
       start,
       end,
@@ -426,6 +435,8 @@ async function main() {
   for (const pair of pairs) {
     const { exchange, symbol } = pair;
     await backtester(exchange as Exchanges, symbol);
+
+    await mongoClient.getClient().close();
   }
 }
 

@@ -49,7 +49,7 @@ export async function calculateProfit(
       fee: 0,
       netProfit: 0,
       netProfitInPercent: 0,
-      netInvest: 0,
+      netInvest: lastTrade?.netInvest || 0,
     };
 
   const fees = {
@@ -57,8 +57,6 @@ export async function calculateProfit(
     dydx: 0,
     coinbase: 0.003,
   };
-
-  const { invest } = lastTrade;
 
   const priceChangePercent = (price - lastTrade.price) / lastTrade.price;
   const isLong = lastTrade.type.includes("Long");
@@ -70,9 +68,9 @@ export async function calculateProfit(
   const fee = investSizeBrutto * fees[exchange];
 
   const netProfit = bruttoProfit - (lastTrade.fee + fee);
-  const netProfitInPercent = (netProfit / (invest * leverage)) * 100;
-  const profit = netProfit / invest;
-  const netInvest = lastTrade.invest + netProfit;
+  const netProfitInPercent = (netProfit / (lastTrade.invest * leverage)) * 100;
+  const profit = netProfit / lastTrade.invest;
+  const netInvest = lastTrade.netInvest + netProfit;
 
   return {
     profit,

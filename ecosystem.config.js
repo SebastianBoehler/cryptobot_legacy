@@ -49,16 +49,5 @@ module.exports = {
     watch: false,
     exec_mode: "cluster",
     instances: "max",
-  },
-  {
-    name: "backtester",
-    script: "./build/backtester.js",
-    env_prod: {
-      NODE_ENV: "prod",
-    },
-    env_dev: {
-      NODE_ENV: "dev",
-    },
-    watch: false,
   }],
 }
