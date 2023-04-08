@@ -9,7 +9,9 @@ const client = new MongoClient(config.MONGO_URL);
 
 process.on("SIGINT", async () => {
   await client.close();
-  process.exit();
+});
+process.on("exit", async () => {
+  await client.close();
 });
 
 class mongo {
@@ -173,6 +175,7 @@ class mongo {
       start?: Date;
       openTime?: Date;
       close: number;
+      volume: number;
     }
 
     const values: TimeAndCloseCandle[] = [];
@@ -191,7 +194,7 @@ class mongo {
             $gt: lastTimestamp,
           },
         })
-        .project<TimeAndCloseCandle>({ [timeKey]: 1, close: 1 })
+        .project<TimeAndCloseCandle>({ [timeKey]: 1, close: 1, volume: 1 })
         .sort({ [timeKey]: 1 })
         .limit(limit)
         .toArray();

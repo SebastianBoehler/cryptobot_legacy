@@ -39,18 +39,23 @@ export const logger = {
 export async function calculateProfit(
   exchange: Exchanges,
   lastTrade: orderObject,
-  price: number,
-  leverage: number
+  price: number
 ) {
-  if (!lastTrade || lastTrade.type.includes("Exit"))
+  if (!lastTrade)
     return {
       profit: 0,
       priceChangePercent: 0,
       fee: 0,
       netProfit: 0,
       netProfitInPercent: 0,
-      netInvest: lastTrade?.netInvest || 0,
+      netInvest: 0,
     };
+
+  const isLong = lastTrade.type.includes("Long");
+
+  const investSizeBrutto = isLong
+    ? lastTrade.invest * (price / lastTrade.price)
+    : lastTrade.invest * (2 - price / lastTrade.price);
 
   const fees = {
     binance: 0.00075,
@@ -58,17 +63,28 @@ export async function calculateProfit(
     coinbase: 0.003,
   };
 
-  const priceChangePercent = (price - lastTrade.price) / lastTrade.price;
-  const isLong = lastTrade.type.includes("Long");
+  const calcForEntry = lastTrade.type.includes("Exit");
+  const invest = calcForEntry ? lastTrade.invest : investSizeBrutto;
+  const fee = invest * fees[exchange];
 
-  const investSizeBrutto = isLong
-    ? lastTrade.invest * (price / lastTrade.price)
-    : lastTrade.invest * (2 - price / lastTrade.price);
+  if (calcForEntry) {
+    return {
+      profit: 0,
+      priceChangePercent: 0,
+      fee,
+      netProfit: 0,
+      netProfitInPercent: 0,
+      netInvest: lastTrade.netInvest,
+    };
+  }
+
+  const priceChangePercent =
+    ((price - lastTrade.price) / lastTrade.price) * 100;
+
   const bruttoProfit = investSizeBrutto - lastTrade.invest;
-  const fee = investSizeBrutto * fees[exchange];
 
   const netProfit = bruttoProfit - (lastTrade.fee + fee);
-  const netProfitInPercent = (netProfit / (lastTrade.invest * leverage)) * 100;
+  const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
   const profit = netProfit / lastTrade.invest;
   const netInvest = lastTrade.netInvest + netProfit;
 

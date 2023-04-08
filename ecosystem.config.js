@@ -37,6 +37,19 @@ module.exports = {
     watch: false
   },
   {
+    name: "kraken_database",
+    script: "./build/kraken/database.js",
+    env_prod: {
+      NODE_ENV: "prod",
+    },
+    env_dev: {
+      NODE_ENV: "dev",
+    },
+    //exec_mode: "cluster",
+    //instances: "max",
+    watch: false
+  },
+  {
     name: "server",
     script: "./build/server.js",
     env_prod: {

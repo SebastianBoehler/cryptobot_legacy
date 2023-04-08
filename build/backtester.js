@@ -9,7 +9,15 @@ const generateIndicators_1 = require("./generateIndicators");
 const index_1 = __importDefault(require("./mongodb/index"));
 const utils_1 = require("./mongodb/utils");
 const utils_2 = require("./utils");
+const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const mongoClient = new index_1.default("admin");
+bignumber_js_1.default.config({
+    FORMAT: {
+        groupSeparator: ",",
+        decimalSeparator: ".",
+        groupSize: 3,
+    },
+});
 const exchangeConfigs = {
     binance: {
         derivatesEnabled: false,
@@ -22,7 +30,7 @@ const exchangeConfigs = {
     },
 };
 async function backtester(exchange, symbol) {
-    const strategyNames = ["1", "2", "3", "4", "5", "6"];
+    const strategyNames = ["1", "2", "3", "4", "5", "6"]; //as const;
     const timeKey = (0, utils_1.getTimeKey)(exchange);
     const exchangeConfig = exchangeConfigs[exchange];
     const leverage = exchangeConfig.derivatesEnabled ? config_1.default.LEVERAGE || 5 : 1;
@@ -50,7 +58,7 @@ async function backtester(exchange, symbol) {
             candle = prevCandle;
         if (!candle)
             continue;
-        const { close } = candle;
+        const { close, volume } = candle;
         utils_2.logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
         const [indicators_25min, indicators_60min, indicators_2h] = await Promise.all([
             indicators["25min"].getIndicators(timestamp.getTime()),
@@ -76,41 +84,49 @@ async function backtester(exchange, symbol) {
             const trades = storage[strategyName].trades;
             const lastTrade = trades[trades.length - 1];
             const hasOpenPosition = lastTrade?.type.includes("Entry");
-            const { profit, priceChangePercent, fee, netInvest, netProfit, netProfitInPercent, } = await (0, utils_2.calculateProfit)(exchange, lastTrade, close, leverage);
-            if (lastTrade &&
-                lastTrade.type.includes("Exit") &&
-                lastTrade.netInvest <= 0)
-                continue;
+            const { profit, priceChangePercent, fee, netInvest, netProfit, netProfitInPercent, } = await (0, utils_2.calculateProfit)(exchange, lastTrade, close);
             const holdDuration = lastTrade
                 ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
                 : 0;
-            const lastNetInvest = lastTrade?.netInvest || 0;
-            const entry = indicators_25min.vol / 3 > lastNetInvest;
-            const conservativeTrigger = indicators_25min.vol / 6 > lastNetInvest;
+            const lastNetInvest = lastTrade?.netInvest || startCapital;
+            const canExecuteOrder = volume > lastNetInvest;
+            //const conservativeTrigger = indicators_25min.vol / 6 > lastNetInvest;
             const exit = netProfitInPercent > 1 * leverage ||
-                netProfitInPercent < -0.5 * leverage; //|| holdDuration > 60 * 3;
+                netProfitInPercent < -0.5 * leverage;
             const exit2 = netProfitInPercent > 5 * leverage ||
-                netProfitInPercent < -2.5 * leverage; //|| holdDuration > 60 * 3;
-            if (!entry && holdDuration > 60 * 48) {
-                lastTrade.netInvest = startCapital;
-            }
+                netProfitInPercent < -2.5 * leverage;
+            const isLiquidation = netProfit < 0 && Math.abs(netProfit) >= lastNetInvest;
             //currently only support one step strategies
             const strategies = {
                 "1": {
                     long_entry: [
+                        [close < indicators_60min.bollinger_bands.lower],
                         [
-                            indicators_25min.ema_8 > indicators_25min.ema_13,
-                            indicators_60min.ema_8 > indicators_60min.ema_13,
+                            !!prev_indicators_60min &&
+                                !!prev_indicators_2h &&
+                                close > indicators_60min.bollinger_bands.lower &&
+                                indicators_2h.MACD.histogram >
+                                    prev_indicators_2h.MACD.histogram,
                         ],
                     ],
-                    long_exit: [[exit]],
-                    short_entry: [[exchangeConfig.derivatesEnabled]],
-                    short_exit: [],
+                    long_exit: [[exit2 || holdDuration > 60 * 24 * 2]],
+                    short_entry: [
+                        [exchangeConfig.derivatesEnabled],
+                        [close > indicators_25min.bollinger_bands.upper],
+                        [
+                            !!prev_indicators_60min &&
+                                !!prev_indicators_2h &&
+                                close < indicators_60min.bollinger_bands.upper &&
+                                indicators_2h.MACD.histogram <
+                                    prev_indicators_2h.MACD.histogram,
+                        ],
+                    ],
+                    short_exit: [[exit2 || holdDuration > 60 * 24 * 2]],
                 },
                 "2": {
                     long_entry: [[close < indicators_25min.bollinger_bands.lower]],
                     long_exit: [[exit]],
-                    short_entry: [[exchangeConfig.derivatesEnabled]],
+                    short_entry: [[false]],
                     short_exit: [],
                 },
                 "3": {
@@ -177,7 +193,6 @@ async function backtester(exchange, symbol) {
                         ],
                     ],
                     short_exit: [[exit]],
-                    strictVolume: true,
                 },
                 "6": {
                     long_entry: [
@@ -203,12 +218,9 @@ async function backtester(exchange, symbol) {
                         ],
                     ],
                     short_exit: [[exit2]],
-                    strictVolume: true,
                 },
             };
             const strategy = strategies[strategyName];
-            if (exchange === "dydx")
-                strategy.strictVolume = true;
             //check all conditions
             const longEntryChecks = strategy.long_entry[storage[strategyName].indexes.long_entry];
             const longExitChecks = strategy.long_exit[storage[strategyName].indexes.long_exit];
@@ -238,18 +250,21 @@ async function backtester(exchange, symbol) {
                     indicators_25min,
                     indicators_60min,
                     indicators_2h,
+                    candle,
                 },
+                isLiquidation,
             };
+            //debug
+            //if (trades.length && trades.length % 2 == 0) debugger;
             if (hasOpenPosition) {
                 const isLong = lastTrade?.type.includes("Long");
-                const longExit = storage[strategyName].indexes.long_exit >= strategy.long_exit.length;
+                const longExit = storage[strategyName].indexes.long_exit >=
+                    strategy.long_exit.length || isLiquidation;
                 const shortExit = storage[strategyName].indexes.short_exit >=
-                    strategy.short_exit.length;
-                utils_2.logger.debug(`Profit: ${profit}`);
-                utils_2.logger.debug(`Price change: ${priceChangePercent}`);
-                if (strategy.strictVolume && !conservativeTrigger)
-                    continue;
-                if (isLong && longExit) {
+                    strategy.short_exit.length || isLiquidation;
+                //logger.debug(`Profit: ${profit}`);
+                //logger.debug(`Price change: ${priceChangePercent}`);
+                if (isLong && longExit && canExecuteOrder) {
                     //logger.info(`Long exit [${strategyName}]: ${profit}`);
                     storage[strategyName].trades.push({
                         ...object,
@@ -262,7 +277,7 @@ async function backtester(exchange, symbol) {
                         short_exit: 0,
                     };
                 }
-                if (!isLong && shortExit) {
+                if (!isLong && shortExit && canExecuteOrder) {
                     //logger.info(`Short exit [${strategyName}]: ${profit}`);
                     storage[strategyName].trades.push({
                         ...object,
@@ -276,17 +291,14 @@ async function backtester(exchange, symbol) {
                     };
                 }
             }
-            if (!hasOpenPosition && entry) {
+            if (!hasOpenPosition) {
                 if (netInvest < 0)
-                    throw new Error("Net invest is negative");
-                if (strategy.strictVolume && !conservativeTrigger)
                     continue;
                 const longEntry = storage[strategyName].indexes.long_entry >=
                     strategy.long_entry.length;
                 const shortEntry = storage[strategyName].indexes.short_entry >=
                     strategy.short_entry.length;
-                if (longEntry || shortEntry) {
-                    //logger.info(`Long entry [${strategyName}]`);
+                if ((longEntry || shortEntry) && canExecuteOrder) {
                     storage[strategyName].trades.push({
                         ...object,
                         type: longEntry ? "Long Entry" : "Short Entry",
@@ -307,9 +319,13 @@ async function backtester(exchange, symbol) {
         const exits = trades.filter((trade) => trade.type.includes("Exit"));
         const holdDurations = exits.map((exit) => exit.holdDuration);
         const avgHoldDuration = holdDurations.reduce((a, b) => a + b, 0) / exits.length;
-        const netProfits = exits.map((exit) => exit.netProfit);
-        const sumProfit = netProfits.reduce((a, b) => a + b, 0);
-        const netProfitInPercent = +((+sumProfit / startCapital) * 100).toFixed(3);
+        const netProfits = exits.map((exit) => new bignumber_js_1.default(exit.netProfit));
+        const sumProfit = netProfits.reduce((a, b) => a.plus(b), (0, bignumber_js_1.default)(0));
+        const netProfitInPercent = sumProfit
+            .dividedBy(startCapital)
+            .multipliedBy(100)
+            .toNumber();
+        const hodlProfitInPercent = (history[history.length - 1].close / history[0].close - 1) * 100;
         utils_2.logger.info(`Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`);
         //avg profit per month
         const successRate = exits.filter((exit) => exit.profit > 0).length / exits.length;
@@ -321,15 +337,13 @@ async function backtester(exchange, symbol) {
             startCapital,
             symbol,
             trades,
-            netProfit: sumProfit.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-            }),
+            netProfit: sumProfit.toFormat(2),
             netProfitInPercent: netProfitInPercent,
             start,
             end,
             avgHoldDuration,
             leverage,
+            hodlProfitInPercent,
         };
         await mongoClient.saveBacktest(result);
     }
@@ -343,6 +357,7 @@ async function main() {
         "worker",
         "backtests",
         "coinbase",
+        "dydx",
     ];
     const exchanges = databases
         .filter((db) => !systemDatabases.includes(db.name))
@@ -367,6 +382,7 @@ async function main() {
         const { exchange, symbol } = pair;
         await backtester(exchange, symbol);
     }
+    process.exit(0);
 }
 main();
 //# sourceMappingURL=backtester.js.map

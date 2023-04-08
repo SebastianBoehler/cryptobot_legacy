@@ -3,7 +3,7 @@ export type Rule = {
   long_exit: boolean[][];
   short_entry: boolean[][];
   short_exit: boolean[][];
-  strictVolume?: boolean;
+  noStrictVolume?: boolean;
 };
 
 export type OrderTypes =
@@ -27,7 +27,7 @@ export type orderObject = {
   profit: number;
   fee: number;
   holdDuration: number;
-  details: Record<string, Indicators>;
+  details: Record<string, unknown>;
 };
 
 export interface BacktestingResult {
@@ -44,6 +44,7 @@ export interface BacktestingResult {
   end: Date;
   avgHoldDuration: number;
   leverage: number;
+  hodlProfitInPercent: number;
 }
 
 export interface Indicators {

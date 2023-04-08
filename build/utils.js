@@ -18,8 +18,8 @@ exports.logger = {
     http: (message, ...data) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, message, ...data),
     debug: (message, ...data) => console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, message, ...data),
 };
-async function calculateProfit(exchange, lastTrade, price, leverage) {
-    if (!lastTrade || lastTrade.type.includes("Exit"))
+async function calculateProfit(exchange, lastTrade, price) {
+    if (!lastTrade)
         return {
             profit: 0,
             priceChangePercent: 0,
@@ -28,23 +28,34 @@ async function calculateProfit(exchange, lastTrade, price, leverage) {
             netProfitInPercent: 0,
             netInvest: 0,
         };
+    const isLong = lastTrade.type.includes("Long");
+    const investSizeBrutto = isLong
+        ? lastTrade.invest * (price / lastTrade.price)
+        : lastTrade.invest * (2 - price / lastTrade.price);
     const fees = {
         binance: 0.00075,
         dydx: 0,
         coinbase: 0.003,
     };
-    const { invest } = lastTrade;
-    const priceChangePercent = (price - lastTrade.price) / lastTrade.price;
-    const isLong = lastTrade.type.includes("Long");
-    const investSizeBrutto = isLong
-        ? lastTrade.invest * (price / lastTrade.price)
-        : lastTrade.invest * (2 - price / lastTrade.price);
+    const calcForEntry = lastTrade.type.includes("Exit");
+    const invest = calcForEntry ? lastTrade.invest : investSizeBrutto;
+    const fee = invest * fees[exchange];
+    if (calcForEntry) {
+        return {
+            profit: 0,
+            priceChangePercent: 0,
+            fee,
+            netProfit: 0,
+            netProfitInPercent: 0,
+            netInvest: lastTrade.netInvest,
+        };
+    }
+    const priceChangePercent = ((price - lastTrade.price) / lastTrade.price) * 100;
     const bruttoProfit = investSizeBrutto - lastTrade.invest;
-    const fee = investSizeBrutto * fees[exchange];
     const netProfit = bruttoProfit - (lastTrade.fee + fee);
-    const netProfitInPercent = (netProfit / (invest * leverage)) * 100;
-    const profit = netProfit / invest;
-    const netInvest = lastTrade.invest + netProfit;
+    const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
+    const profit = netProfit / lastTrade.invest;
+    const netInvest = lastTrade.netInvest + netProfit;
     return {
         profit,
         netProfit,

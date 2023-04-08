@@ -9,12 +9,21 @@ const config_1 = __importDefault(require("../config/config"));
 const utils_1 = require("../utils");
 const utils_2 = require("./utils");
 const client = new mongodb_1.MongoClient(config_1.default.MONGO_URL);
+process.on("SIGINT", async () => {
+    await client.close();
+});
+process.on("exit", async () => {
+    await client.close();
+});
 class mongo {
     db;
     timeKey;
     constructor(db) {
         this.db = db;
         this.timeKey = (0, utils_2.getTimeKey)(db);
+    }
+    getClient() {
+        return client;
     }
     async connect() {
         await client.connect();
@@ -148,7 +157,7 @@ class mongo {
                     $gt: lastTimestamp,
                 },
             })
-                .project({ [timeKey]: 1, close: 1 })
+                .project({ [timeKey]: 1, close: 1, volume: 1 })
                 .sort({ [timeKey]: 1 })
                 .limit(limit)
                 .toArray();
@@ -186,9 +195,19 @@ class mongo {
     async saveBacktest(result) {
         const db = client.db("backtests");
         const collection = db.collection(result.exchange);
-        await collection.insertOne(result);
+        const query = {
+            strategyName: result.strategyName,
+            symbol: result.symbol,
+        };
+        const update = {
+            $set: {
+                ...result,
+            },
+        };
+        const options = { upsert: true };
+        await collection.updateOne(query, update, options);
     }
-    async getBacktests(exchange, options) {
+    async getBacktests(exchange, options, project = { trades: 0 }) {
         const db = client.db("backtests");
         const collection = db.collection(exchange);
         const query = {};
@@ -198,10 +217,9 @@ class mongo {
             query.strategyName = options.rule;
         if (options?.testedAfter)
             query.timestamp = { $gte: new Date(options.testedAfter) };
-        const result = await collection
-            .find(query)
-            .project({ trades: 0 })
-            .toArray();
+        if (options?._ids)
+            query._id = { $in: options._ids.map((id) => new mongodb_1.ObjectId(id)) };
+        const result = await collection.find(query).project(project).toArray();
         return result;
     }
     async average5mVolume(databse, symbol, start, end) {
