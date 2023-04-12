@@ -11,45 +11,6 @@ module.exports = {
     watch: false
   },
   {
-    name: "coinbase_database",
-    script: "./build/coinbase/database.js",
-    env_prod: {
-      NODE_ENV: "prod",
-    },
-    env_dev: {
-      NODE_ENV: "dev",
-    },
-    //exec_mode: "cluster",
-    //instances: "max",
-    watch: false
-  },
-  {
-    name: "binance_database",
-    script: "./build/binance/database.js",
-    env_prod: {
-      NODE_ENV: "prod",
-    },
-    env_dev: {
-      NODE_ENV: "dev",
-    },
-    //exec_mode: "cluster",
-    //instances: "max",
-    watch: false
-  },
-  {
-    name: "kraken_database",
-    script: "./build/kraken/database.js",
-    env_prod: {
-      NODE_ENV: "prod",
-    },
-    env_dev: {
-      NODE_ENV: "dev",
-    },
-    //exec_mode: "cluster",
-    //instances: "max",
-    watch: false
-  },
-  {
     name: "server",
     script: "./build/server.js",
     env_prod: {

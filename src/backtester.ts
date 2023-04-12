@@ -416,6 +416,7 @@ async function main() {
     "worker",
     "backtests",
     "coinbase",
+    "kraken",
     "dydx",
   ];
   const exchanges = databases
