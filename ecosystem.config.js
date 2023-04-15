@@ -11,6 +11,17 @@ module.exports = {
     watch: false
   },
   {
+    name: "okx_database",
+    script: "./build/okx/database.js",
+    env_prod: {
+      NODE_ENV: "prod"
+    },
+    env_dev: {
+      NODE_ENV: "dev"
+    },
+    watch: false
+  },
+  {
     name: "server",
     script: "./build/server.js",
     env_prod: {
