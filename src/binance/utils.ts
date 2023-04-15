@@ -1,5 +1,3 @@
-import { TimeKey } from "../mongodb/utils";
-
 class Binance {
   baseURL: string = "https://api.binance.com/api/v3";
   apiKey: string;
@@ -25,5 +23,3 @@ class Binance {
 }
 
 export default Binance;
-
-export const timeKey: TimeKey = "openTime";

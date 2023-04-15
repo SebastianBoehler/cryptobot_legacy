@@ -6,29 +6,35 @@ export type Rule = {
   noStrictVolume?: boolean;
 };
 
-export type OrderTypes =
-  | "Long Entry"
-  | "Long Exit"
-  | "Short Entry"
-  | "Short Exit";
+export type Exchanges = "binance" | "coinbase" | "dydx" | "kraken" | "okx";
 
-export type Exchanges = "binance" | "coinbase" | "dydx";
+type EntryOrderTypes = "Long Entry" | "Short Entry";
+type ExitOrderTypes = "Long Exit" | "Short Exit";
+export type OrderTypes = EntryOrderTypes | ExitOrderTypes;
 
-export type orderObject = {
+export interface EntryOrderObject {
   price: number;
   timestamp: Date;
-  type: OrderTypes;
+  type: EntryOrderTypes;
   platform: Exchanges;
   invest: number;
   netInvest: number;
+  fee: number;
+  holdDuration: number;
+  details: Record<string, unknown>;
+}
+
+export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
+  type: ExitOrderTypes;
   priceChangePercent: number;
   netProfitInPercent: number;
   netProfit: number;
   profit: number;
-  fee: number;
-  holdDuration: number;
-  details: Record<string, unknown>;
-};
+  highestPrice: number;
+  lowestPrice: number;
+}
+
+export type OrderObject = EntryOrderObject | ExitOrderObject;
 
 export interface BacktestingResult {
   successRate: number;
@@ -37,7 +43,7 @@ export interface BacktestingResult {
   exchange: Exchanges;
   startCapital: number;
   symbol: string;
-  trades: orderObject[];
+  trades: OrderObject[];
   netProfit: string;
   netProfitInPercent: number;
   start: Date;
@@ -45,6 +51,12 @@ export interface BacktestingResult {
   avgHoldDuration: number;
   leverage: number;
   hodlProfitInPercent: number;
+  profitInMonth: {
+    profit: number;
+    netProfit: number;
+    netProfitInPercent: number;
+    key: string | number;
+  }[];
 }
 
 export interface Indicators {

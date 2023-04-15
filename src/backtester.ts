@@ -2,9 +2,18 @@ import { addMinutes } from "date-fns";
 import config from "./config/config";
 import { generateIndicators } from "./generateIndicators";
 import mongo from "./mongodb/index";
-import { getTimeKey } from "./mongodb/utils";
-import { BacktestingResult, Exchanges, Rule } from "./types/trading";
-import { calculateProfit, logger } from "./utils";
+import {
+  BacktestingResult,
+  Exchanges,
+  ExitOrderObject,
+  Rule,
+} from "./types/trading";
+import {
+  calculateProfit,
+  calculateProfitForTrades,
+  isExitOrder,
+  logger,
+} from "./utils";
 import { Storage } from "./types/backtester";
 import BigNumber from "bignumber.js";
 const mongoClient = new mongo("admin");
@@ -32,19 +41,23 @@ const exchangeConfigs: Record<
   coinbase: {
     derivatesEnabled: false,
   },
+  kraken: {
+    derivatesEnabled: true,
+  },
+  okx: {
+    derivatesEnabled: true,
+  },
 };
 
 async function backtester(exchange: Exchanges, symbol: string) {
   const strategyNames = ["1", "2", "3", "4", "5", "6"]; //as const;
-  const timeKey = getTimeKey(exchange);
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
-  const history = await mongoClient.getTimeAndClose(exchange, symbol, timeKey);
+  const history = await mongoClient.getTimeAndClose(exchange, symbol);
   const startAndEndDates = await mongoClient.getStartAndEndDates(
     exchange,
-    symbol,
-    timeKey
+    symbol
   );
 
   if (!startAndEndDates) return;
@@ -68,7 +81,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
     //get candle form history and if not available get time<timestamp candle from db
     let candle = history.find(
-      (candle) => candle[timeKey]?.getTime() === timestamp.getTime()
+      ({ start }) => start?.getTime() === timestamp.getTime()
     );
     if (!candle) candle = prevCandle;
     if (!candle) continue;
@@ -280,10 +293,6 @@ async function backtester(exchange: Exchanges, symbol: string) {
         platform: exchange,
         invest: (lastTrade?.netInvest || startCapital) * leverage,
         netInvest: lastTrade ? netInvest : startCapital,
-        priceChangePercent,
-        profit,
-        netProfit,
-        netProfitInPercent,
         fee,
         holdDuration,
         details: {
@@ -292,7 +301,6 @@ async function backtester(exchange: Exchanges, symbol: string) {
           indicators_2h,
           candle,
         },
-        isLiquidation,
       };
 
       //debug
@@ -309,25 +317,29 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
         //logger.debug(`Profit: ${profit}`);
         //logger.debug(`Price change: ${priceChangePercent}`);
-        if (isLong && longExit && canExecuteOrder) {
-          //logger.info(`Long exit [${strategyName}]: ${profit}`);
-          storage[strategyName].trades.push({
+        if ((longExit || shortExit) && canExecuteOrder) {
+          const pricesSinceEntry = history
+            .filter(
+              ({ start }) => start! > lastTrade.timestamp && start! < timestamp
+            )
+            .map((candle) => candle.close);
+
+          //logger.debug(`Prices since entry: ${pricesSinceEntry.length}`);
+          const highestPrice = Math.max(...pricesSinceEntry);
+          const lowestPrice = Math.min(...pricesSinceEntry);
+
+          const exitObject: ExitOrderObject = {
             ...object,
-            type: "Long Exit",
-          });
-          storage[strategyName].indexes = {
-            long_entry: 0,
-            long_exit: 0,
-            short_entry: 0,
-            short_exit: 0,
+            type: isLong ? "Long Exit" : "Short Exit",
+            highestPrice,
+            lowestPrice,
+            profit,
+            priceChangePercent,
+            netProfit,
+            netProfitInPercent,
           };
-        }
-        if (!isLong && shortExit && canExecuteOrder) {
-          //logger.info(`Short exit [${strategyName}]: ${profit}`);
-          storage[strategyName].trades.push({
-            ...object,
-            type: "Short Exit",
-          });
+
+          storage[strategyName].trades.push(exitObject);
           storage[strategyName].indexes = {
             long_entry: 0,
             long_exit: 0,
@@ -364,7 +376,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
   //calculate profit for each strategy
   for (const strategyName of strategyNames) {
     const trades = storage[strategyName]?.trades || [];
-    const exits = trades.filter((trade) => trade.type.includes("Exit"));
+    const exits = trades.filter(isExitOrder);
     const holdDurations = exits.map((exit) => exit.holdDuration);
     const avgHoldDuration =
       holdDurations.reduce((a, b) => a + b, 0) / exits.length;
@@ -380,6 +392,24 @@ async function backtester(exchange: Exchanges, symbol: string) {
     logger.info(
       `Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`
     );
+
+    const months = [
+      ...new Set(
+        exits.map(({ timestamp }) =>
+          timestamp.toLocaleString("default", { month: "long" })
+        )
+      ),
+    ];
+    const profitInMonth = months.map((month) => {
+      return {
+        ...calculateProfitForTrades(
+          exits,
+          ({ timestamp }) =>
+            timestamp.toLocaleString("default", { month: "long" }) === month
+        ),
+        key: month,
+      };
+    });
 
     //avg profit per month
 
@@ -401,6 +431,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       avgHoldDuration,
       leverage,
       hodlProfitInPercent,
+      profitInMonth,
     };
 
     await mongoClient.saveBacktest(result);
@@ -409,16 +440,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
 async function main() {
   const { databases } = await mongoClient.listDatabases();
-  const systemDatabases = [
-    "admin",
-    "config",
-    "local",
-    "worker",
-    "backtests",
-    "coinbase",
-    "kraken",
-    "dydx",
-  ];
+  const systemDatabases = ["admin", "config", "local", "worker", "backtests"];
   const exchanges = databases
     .filter((db) => !systemDatabases.includes(db.name))
     .map((db) => db.name) as Exchanges[];
@@ -440,6 +462,7 @@ async function main() {
 
   //shuffle pairs
   pairs.sort(() => Math.random() - 0.5);
+  logger.info(`Backtesting ${pairs.length} pairs...`);
 
   //backtest all pairs
   for (const pair of pairs) {

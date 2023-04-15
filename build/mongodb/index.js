@@ -7,7 +7,6 @@ const date_fns_1 = require("date-fns");
 const mongodb_1 = require("mongodb");
 const config_1 = __importDefault(require("../config/config"));
 const utils_1 = require("../utils");
-const utils_2 = require("./utils");
 const client = new mongodb_1.MongoClient(config_1.default.MONGO_URL);
 process.on("SIGINT", async () => {
     await client.close();
@@ -15,19 +14,29 @@ process.on("SIGINT", async () => {
 process.on("exit", async () => {
     await client.close();
 });
+client.on("close", () => {
+    utils_1.logger.info("MongoDB connection will close");
+});
+client.on("connectionClosed", () => {
+    utils_1.logger.info("MongoDB connection closed");
+});
+client.on("disconnected", () => {
+    utils_1.logger.info("MongoDB disconnected");
+});
+client.on("error", (err) => {
+    utils_1.logger.error("MongoDB error", err);
+});
 class mongo {
     db;
-    timeKey;
     constructor(db) {
         this.db = db;
-        this.timeKey = (0, utils_2.getTimeKey)(db);
     }
     getClient() {
         return client;
     }
     async connect() {
         await client.connect();
-        console.log(`connected to mongodb`);
+        utils_1.logger.info("Connected to MongoDB");
     }
     async write(data, collectionName, database) {
         const db = client.db(database || this.db);
@@ -59,37 +68,29 @@ class mongo {
         const result = await collection.findOne({ [key]: value });
         return result;
     }
-    async readLastCandle(collectionName, timeKey) {
+    async readLastCandle(collectionName) {
         const db = client.db(this.db);
         const collection = db.collection(collectionName);
         const result = await collection
-            .find()
-            .sort({ [timeKey]: -1 })
+            .find({})
+            .sort({ start: -1 })
             .limit(1)
             .toArray();
-        return result[0];
+        return result[0] || null;
     }
-    async getStartAndEndDates(database, collectionName, timeKey) {
+    async getStartAndEndDates(database, collectionName) {
         const db = client.db(database);
         const collection = db.collection(collectionName);
         const [startResult, endResult] = await Promise.all([
-            collection
-                .find()
-                .sort({ [timeKey]: 1 })
-                .limit(1)
-                .toArray(),
-            collection
-                .find()
-                .sort({ [timeKey]: -1 })
-                .limit(1)
-                .toArray(),
+            collection.find().sort({ start: 1 }).limit(1).toArray(),
+            collection.find().sort({ start: -1 }).limit(1).toArray(),
         ]);
         if (!startResult.length || !endResult.length) {
             utils_1.logger.warn(`No data for ${collectionName} in ${database}`);
             return;
         }
-        const start = startResult[0][timeKey];
-        const end = endResult[0][timeKey];
+        const start = startResult[0].start;
+        const end = endResult[0].start;
         return { start, end };
     }
     async getCount(collectionName, database) {
@@ -102,7 +103,7 @@ class mongo {
         const pipeline = [
             {
                 $match: {
-                    [this.timeKey]: {
+                    start: {
                         $gte: (0, date_fns_1.subMinutes)(timestamp, granularity),
                         $lt: new Date(timestamp),
                     },
@@ -142,23 +143,23 @@ class mongo {
             volume: +data[0].volume,
         };
     }
-    async getTimeAndClose(database, symbol, timeKey) {
+    async getTimeAndClose(database, symbol) {
         const values = [];
         const limit = 1000;
         const db = client.db(database);
         const collection = db.collection(symbol);
         while (true) {
             const lastTimestamp = values[values.length - 1]
-                ? values[values.length - 1][timeKey]
+                ? values[values.length - 1]["start"]
                 : new Date(0);
             const result = await collection
                 .find({
-                [timeKey]: {
+                start: {
                     $gt: lastTimestamp,
                 },
             })
-                .project({ [timeKey]: 1, close: 1, volume: 1 })
-                .sort({ [timeKey]: 1 })
+                .project({ start: 1, close: 1, volume: 1 })
+                .sort({ start: 1 })
                 .limit(limit)
                 .toArray();
             if (result.length < limit)
@@ -226,7 +227,7 @@ class mongo {
         const pipeline = [
             {
                 $match: {
-                    [this.timeKey]: {
+                    start: {
                         $gte: start,
                         $lt: end || new Date(),
                     },
@@ -236,7 +237,7 @@ class mongo {
             {
                 $group: {
                     _id: {
-                        hour: { $hour: `$${this.timeKey}` },
+                        hour: { $hour: `$start` },
                     },
                 },
             },
@@ -251,12 +252,12 @@ class mongo {
         }
         return data[0].avgVolume;
     }
-    async getLatestEntry(database, collection, timeKey) {
+    async getLatestEntry(database, collection, key = "start") {
         const db = client.db(database);
         const collectionName = db.collection(collection);
         const result = await collectionName
             .find()
-            .sort({ [timeKey || this.timeKey]: -1 })
+            .sort({ [key]: -1 })
             .limit(1)
             .toArray();
         return result[0];

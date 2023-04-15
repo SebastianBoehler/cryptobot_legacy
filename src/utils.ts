@@ -1,4 +1,4 @@
-import { Exchanges, orderObject } from "./types/trading";
+import { Exchanges, ExitOrderObject, OrderObject } from "./types/trading";
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,7 +38,7 @@ export const logger = {
 
 export async function calculateProfit(
   exchange: Exchanges,
-  lastTrade: orderObject,
+  lastTrade: OrderObject,
   price: number
 ) {
   if (!lastTrade)
@@ -61,6 +61,8 @@ export async function calculateProfit(
     binance: 0.00075,
     dydx: 0,
     coinbase: 0.003,
+    kraken: 0.0026,
+    okx: 0.0005,
   };
 
   const calcForEntry = lastTrade.type.includes("Exit");
@@ -95,5 +97,30 @@ export async function calculateProfit(
     priceChangePercent,
     fee,
     netInvest,
+  };
+}
+
+export function isExitOrder(order: OrderObject): order is ExitOrderObject {
+  return order.type.includes("Exit");
+}
+
+export function calculateProfitForTrades(
+  exits: ExitOrderObject[],
+  filterFn: (exit: ExitOrderObject) => boolean = () => true
+) {
+  const filteredExits = exits.filter(filterFn);
+  const profit = filteredExits.reduce((acc, exit) => acc + exit.profit, 0);
+  const netProfit = filteredExits.reduce(
+    (acc, exit) => acc + exit.netProfit,
+    0
+  );
+  const netProfitInPercent = filteredExits.reduce(
+    (acc, exit) => acc + exit.netProfitInPercent,
+    0
+  );
+  return {
+    profit,
+    netProfit,
+    netProfitInPercent,
   };
 }

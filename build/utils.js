@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
+exports.calculateProfitForTrades = exports.isExitOrder = exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 exports.sleep = sleep;
 const createChunks = (array, chunkSize) => {
@@ -36,6 +36,8 @@ async function calculateProfit(exchange, lastTrade, price) {
         binance: 0.00075,
         dydx: 0,
         coinbase: 0.003,
+        kraken: 0.0026,
+        okx: 0.0005,
     };
     const calcForEntry = lastTrade.type.includes("Exit");
     const invest = calcForEntry ? lastTrade.invest : investSizeBrutto;
@@ -66,4 +68,20 @@ async function calculateProfit(exchange, lastTrade, price) {
     };
 }
 exports.calculateProfit = calculateProfit;
+function isExitOrder(order) {
+    return order.type.includes("Exit");
+}
+exports.isExitOrder = isExitOrder;
+function calculateProfitForTrades(exits, filterFn = () => true) {
+    const filteredExits = exits.filter(filterFn);
+    const profit = filteredExits.reduce((acc, exit) => acc + exit.profit, 0);
+    const netProfit = filteredExits.reduce((acc, exit) => acc + exit.netProfit, 0);
+    const netProfitInPercent = filteredExits.reduce((acc, exit) => acc + exit.netProfitInPercent, 0);
+    return {
+        profit,
+        netProfit,
+        netProfitInPercent,
+    };
+}
+exports.calculateProfitForTrades = calculateProfitForTrades;
 //# sourceMappingURL=utils.js.map

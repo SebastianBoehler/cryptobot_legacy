@@ -33,10 +33,8 @@ async function main() {
     }
 }
 async function processSymbol(symbol) {
-    const lastCandle = (await mongo.readLastCandle(symbol, utils_1.timeKey));
-    const lastCandleTime = lastCandle
-        ? lastCandle[utils_1.timeKey]
-        : new Date(startTime);
+    const lastCandle = await mongo.readLastCandle(symbol);
+    const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
     if (secondsAgo < 70)
         return;

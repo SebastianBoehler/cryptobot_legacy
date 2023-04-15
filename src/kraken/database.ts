@@ -2,17 +2,14 @@ import { createChunks, logger, sleep } from "../utils";
 import Kraken from "./utils";
 import Mongo from "../mongodb/index";
 import { subMinutes, subMonths } from "date-fns";
-import { DatabaseType } from "./types";
+import { DatabaseType } from "../mongodb/types";
 
 const client = new Kraken();
 const mongo = new Mongo("kraken");
 const startTime = subMonths(new Date(), 3).getTime();
 
 async function processSymbol(symbol: string) {
-  const lastCandle = (await mongo.readLastCandle(
-    symbol,
-    "start"
-  )) as unknown as DatabaseType;
+  const lastCandle = await mongo.readLastCandle(symbol);
   const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
   const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
   if (secondsAgo < 70) return;

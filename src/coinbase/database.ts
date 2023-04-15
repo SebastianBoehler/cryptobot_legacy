@@ -1,9 +1,9 @@
-import { CoinbaseAdvanced, timeKey } from "./utils";
+import { CoinbaseAdvanced } from "./utils";
 import Mongo from "../mongodb";
 import { addMinutes, getUnixTime, subMinutes, subMonths } from "date-fns";
 import { createChunks, logger, sleep } from "../utils";
 import config from "../config/config";
-import { DatabaseType } from "./types";
+import { DatabaseType } from "../mongodb/types";
 
 const startTime = subMonths(new Date(), 3).getTime();
 const client = new CoinbaseAdvanced(config.CB_API_KEY);
@@ -37,21 +37,9 @@ async function main() {
 }
 
 async function processSymbol(symbol: string) {
-  const lastCandle = (await mongo.readLastCandle(
-    symbol,
-    timeKey
-  )) as unknown as {
-    start: Date;
-    low: number;
-    high: number;
-    open: number;
-    close: number;
-    volume: number;
-  };
+  const lastCandle = await mongo.readLastCandle(symbol);
 
-  const lastCandleTime = lastCandle
-    ? lastCandle[timeKey as "start"]
-    : new Date(startTime);
+  const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
   const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
   if (secondsAgo < 70) return;
 

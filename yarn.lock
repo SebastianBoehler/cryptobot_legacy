@@ -4011,6 +4011,15 @@ oboe@2.1.5:
   dependencies:
     http-https "^1.0.0"
 
+okx-api@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/okx-api/-/okx-api-1.0.4.tgz#c487e2bae8505e9f9996575fe117e89b2e55a6fc"
+  integrity sha512-RMpBRNoPLwcI51Zf/aRHI5WCkrzNccbzRaTakmNx59xJEN5CE3qmMTqcjfN0ktOZ/+kksWUJ3Q4vJr9qwVgDxg==
+  dependencies:
+    axios "^0.21.0"
+    isomorphic-ws "^4.0.1"
+    ws "^7.4.0"
+
 on-finished@2.4.1:
   version "2.4.1"
   resolved "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz"

@@ -8,7 +8,6 @@ const date_fns_1 = require("date-fns");
 const utils_1 = require("../utils");
 const config_1 = __importDefault(require("../config/config"));
 const index_1 = __importDefault(require("../mongodb/index"));
-const utils_2 = require("./utils");
 const client = new v3_client_1.DydxClient("https://api.dydx.exchange");
 const startTime = (0, date_fns_1.subMonths)(new Date(), 3).getTime();
 const mongo = new index_1.default("dydx");
@@ -18,7 +17,7 @@ async function main() {
     if (config_1.default.DYDX_ENABLED_PAIRS.length > 0)
         marketArray = marketArray.filter((item) => config_1.default.DYDX_ENABLED_PAIRS.includes(item));
     const chunks = (0, utils_1.createChunks)(marketArray, 5);
-    while (true) {
+    async function runChunks() {
         for (const chunk of chunks) {
             try {
                 const result = await Promise.allSettled(chunk.map(processSymbol));
@@ -32,13 +31,13 @@ async function main() {
             }
         }
         await (0, utils_1.sleep)(1000 * 45);
+        runChunks();
     }
+    runChunks();
 }
 async function processSymbol(symbol) {
-    const lastCandle = (await mongo.readLastCandle(symbol, utils_2.timeKey));
-    const lastCandleTime = lastCandle
-        ? lastCandle[utils_2.timeKey]
-        : new Date(startTime);
+    const lastCandle = await mongo.readLastCandle(symbol);
+    const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
     if (secondsAgo < 70)
         return;

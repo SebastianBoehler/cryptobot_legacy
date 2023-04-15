@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 const index_1 = __importDefault(require("./index"));
-const utils_1 = require("./utils");
 const client = new index_1.default("admin");
 const cacheInSeconds = 60 * 5;
 router.get("/databases", async (req, res) => {
@@ -39,8 +38,7 @@ router.get("/timeframe/:database/:collection", async (req, res) => {
         res.status(400).send("database query parameter is required");
         return;
     }
-    let _timeKey = (0, utils_1.getTimeKey)(database);
-    const result = await client.getStartAndEndDates(database, collection, _timeKey);
+    const result = await client.getStartAndEndDates(database, collection);
     res.set("Cache-control", `public, max-age=${cacheInSeconds}`);
     res.json(result);
 });

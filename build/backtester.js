@@ -7,8 +7,7 @@ const date_fns_1 = require("date-fns");
 const config_1 = __importDefault(require("./config/config"));
 const generateIndicators_1 = require("./generateIndicators");
 const index_1 = __importDefault(require("./mongodb/index"));
-const utils_1 = require("./mongodb/utils");
-const utils_2 = require("./utils");
+const utils_1 = require("./utils");
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const mongoClient = new index_1.default("admin");
 bignumber_js_1.default.config({
@@ -28,14 +27,19 @@ const exchangeConfigs = {
     coinbase: {
         derivatesEnabled: false,
     },
+    kraken: {
+        derivatesEnabled: true,
+    },
+    okx: {
+        derivatesEnabled: true,
+    },
 };
 async function backtester(exchange, symbol) {
     const strategyNames = ["1", "2", "3", "4", "5", "6"]; //as const;
-    const timeKey = (0, utils_1.getTimeKey)(exchange);
     const exchangeConfig = exchangeConfigs[exchange];
     const leverage = exchangeConfig.derivatesEnabled ? config_1.default.LEVERAGE || 5 : 1;
-    const history = await mongoClient.getTimeAndClose(exchange, symbol, timeKey);
-    const startAndEndDates = await mongoClient.getStartAndEndDates(exchange, symbol, timeKey);
+    const history = await mongoClient.getTimeAndClose(exchange, symbol);
+    const startAndEndDates = await mongoClient.getStartAndEndDates(exchange, symbol);
     if (!startAndEndDates)
         return;
     const { start, end } = startAndEndDates;
@@ -53,13 +57,13 @@ async function backtester(exchange, symbol) {
         if (timestamp.getTime() > end.getTime())
             break;
         //get candle form history and if not available get time<timestamp candle from db
-        let candle = history.find((candle) => candle[timeKey]?.getTime() === timestamp.getTime());
+        let candle = history.find(({ start }) => start?.getTime() === timestamp.getTime());
         if (!candle)
             candle = prevCandle;
         if (!candle)
             continue;
         const { close, volume } = candle;
-        utils_2.logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
+        utils_1.logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
         const [indicators_25min, indicators_60min, indicators_2h] = await Promise.all([
             indicators["25min"].getIndicators(timestamp.getTime()),
             indicators["60min"].getIndicators(timestamp.getTime()),
@@ -84,7 +88,7 @@ async function backtester(exchange, symbol) {
             const trades = storage[strategyName].trades;
             const lastTrade = trades[trades.length - 1];
             const hasOpenPosition = lastTrade?.type.includes("Entry");
-            const { profit, priceChangePercent, fee, netInvest, netProfit, netProfitInPercent, } = await (0, utils_2.calculateProfit)(exchange, lastTrade, close);
+            const { profit, priceChangePercent, fee, netInvest, netProfit, netProfitInPercent, } = await (0, utils_1.calculateProfit)(exchange, lastTrade, close);
             const holdDuration = lastTrade
                 ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
                 : 0;
@@ -240,10 +244,6 @@ async function backtester(exchange, symbol) {
                 platform: exchange,
                 invest: (lastTrade?.netInvest || startCapital) * leverage,
                 netInvest: lastTrade ? netInvest : startCapital,
-                priceChangePercent,
-                profit,
-                netProfit,
-                netProfitInPercent,
                 fee,
                 holdDuration,
                 details: {
@@ -252,7 +252,6 @@ async function backtester(exchange, symbol) {
                     indicators_2h,
                     candle,
                 },
-                isLiquidation,
             };
             //debug
             //if (trades.length && trades.length % 2 == 0) debugger;
@@ -264,25 +263,24 @@ async function backtester(exchange, symbol) {
                     strategy.short_exit.length || isLiquidation;
                 //logger.debug(`Profit: ${profit}`);
                 //logger.debug(`Price change: ${priceChangePercent}`);
-                if (isLong && longExit && canExecuteOrder) {
-                    //logger.info(`Long exit [${strategyName}]: ${profit}`);
-                    storage[strategyName].trades.push({
+                if ((longExit || shortExit) && canExecuteOrder) {
+                    const pricesSinceEntry = history
+                        .filter(({ start }) => start > lastTrade.timestamp && start < timestamp)
+                        .map((candle) => candle.close);
+                    //logger.debug(`Prices since entry: ${pricesSinceEntry.length}`);
+                    const highestPrice = Math.max(...pricesSinceEntry);
+                    const lowestPrice = Math.min(...pricesSinceEntry);
+                    const exitObject = {
                         ...object,
-                        type: "Long Exit",
-                    });
-                    storage[strategyName].indexes = {
-                        long_entry: 0,
-                        long_exit: 0,
-                        short_entry: 0,
-                        short_exit: 0,
+                        type: isLong ? "Long Exit" : "Short Exit",
+                        highestPrice,
+                        lowestPrice,
+                        profit,
+                        priceChangePercent,
+                        netProfit,
+                        netProfitInPercent,
                     };
-                }
-                if (!isLong && shortExit && canExecuteOrder) {
-                    //logger.info(`Short exit [${strategyName}]: ${profit}`);
-                    storage[strategyName].trades.push({
-                        ...object,
-                        type: "Short Exit",
-                    });
+                    storage[strategyName].trades.push(exitObject);
                     storage[strategyName].indexes = {
                         long_entry: 0,
                         long_exit: 0,
@@ -316,7 +314,7 @@ async function backtester(exchange, symbol) {
     //calculate profit for each strategy
     for (const strategyName of strategyNames) {
         const trades = storage[strategyName]?.trades || [];
-        const exits = trades.filter((trade) => trade.type.includes("Exit"));
+        const exits = trades.filter(utils_1.isExitOrder);
         const holdDurations = exits.map((exit) => exit.holdDuration);
         const avgHoldDuration = holdDurations.reduce((a, b) => a + b, 0) / exits.length;
         const netProfits = exits.map((exit) => new bignumber_js_1.default(exit.netProfit));
@@ -326,7 +324,16 @@ async function backtester(exchange, symbol) {
             .multipliedBy(100)
             .toNumber();
         const hodlProfitInPercent = (history[history.length - 1].close / history[0].close - 1) * 100;
-        utils_2.logger.info(`Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`);
+        utils_1.logger.info(`Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`);
+        const months = [
+            ...new Set(exits.map(({ timestamp }) => timestamp.toLocaleString("default", { month: "long" }))),
+        ];
+        const profitInMonth = months.map((month) => {
+            return {
+                ...(0, utils_1.calculateProfitForTrades)(exits, ({ timestamp }) => timestamp.toLocaleString("default", { month: "long" }) === month),
+                key: month,
+            };
+        });
         //avg profit per month
         const successRate = exits.filter((exit) => exit.profit > 0).length / exits.length;
         const result = {
@@ -344,26 +351,18 @@ async function backtester(exchange, symbol) {
             avgHoldDuration,
             leverage,
             hodlProfitInPercent,
+            profitInMonth,
         };
         await mongoClient.saveBacktest(result);
     }
 }
 async function main() {
     const { databases } = await mongoClient.listDatabases();
-    const systemDatabases = [
-        "admin",
-        "config",
-        "local",
-        "worker",
-        "backtests",
-        "coinbase",
-        "kraken",
-        "dydx",
-    ];
+    const systemDatabases = ["admin", "config", "local", "worker", "backtests"];
     const exchanges = databases
         .filter((db) => !systemDatabases.includes(db.name))
         .map((db) => db.name);
-    utils_2.logger.info(exchanges);
+    utils_1.logger.info(exchanges);
     const pairs = [];
     //create an array of [exchange]@[symbol] pairs
     for (const exchange of exchanges) {
@@ -378,6 +377,7 @@ async function main() {
     }
     //shuffle pairs
     pairs.sort(() => Math.random() - 0.5);
+    utils_1.logger.info(`Backtesting ${pairs.length} pairs...`);
     //backtest all pairs
     for (const pair of pairs) {
         const { exchange, symbol } = pair;

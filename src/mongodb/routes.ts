@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 const router = express.Router();
 import mongo from "./index";
-import { getTimeKey } from "./utils";
 const client = new mongo("admin");
 
 const cacheInSeconds = 60 * 5;
@@ -44,13 +43,7 @@ router.get(
       return;
     }
 
-    let _timeKey = getTimeKey(database);
-
-    const result = await client.getStartAndEndDates(
-      database,
-      collection,
-      _timeKey
-    );
+    const result = await client.getStartAndEndDates(database, collection);
     res.set("Cache-control", `public, max-age=${cacheInSeconds}`);
     res.json(result);
   }

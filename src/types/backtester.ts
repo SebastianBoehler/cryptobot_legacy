@@ -1,7 +1,7 @@
-import { orderObject } from "./trading";
+import { EntryOrderObject, ExitOrderObject } from "./trading";
 
 interface StorageItem {
-  trades: orderObject[];
+  trades: (EntryOrderObject | ExitOrderObject)[];
   indexes: {
     long_entry: 0;
     long_exit: 0;

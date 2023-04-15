@@ -1,53 +1,53 @@
-import { orderObject } from "./trading"
+import { EntryOrderObject, ExitOrderObject } from "./trading";
 
 export type RowDataPacketPrice = {
-    id: number
-    price: string
-    volume: string
-    time: string
-    bid: string
-    ask: string
-    open: string
-    close: string
-    high: string
-    low: string
-}
+  id: number;
+  price: string;
+  volume: string;
+  time: string;
+  bid: string;
+  ask: string;
+  open: string;
+  close: string;
+  high: string;
+  low: string;
+};
 
 export type RowDataPacketPriceParsed = {
-    id?: number
-    price?: number
-    volume: number
-    time: number
-    bid?: number
-    ask?: number
-    open: number
-    close: number
-    high: number
-    low: number
-}
+  id?: number;
+  price?: number;
+  volume: number;
+  time: number;
+  bid?: number;
+  ask?: number;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+};
 
 export type RowDataPacketTableRaw = {
-    TABLE_NAME: string
-}
+  TABLE_NAME: string;
+};
 
 export type RowDataPacketTransactionRaw = {
-    id?: number
-    rule: string
-    symbol: string
-    orderId: string
-    time: number
-    side: string
-    profit: number
-    data: string
-}
+  id?: number;
+  rule: string;
+  symbol: string;
+  orderId: string;
+  time: number;
+  side: string;
+  profit: number;
+  data: string;
+};
 
 export type RowDataPacketTransactionParsed = {
-    id?: number
-    rule: string
-    symbol: string
-    orderId: string
-    time: number
-    side: string
-    profit: number
-    data: orderObject
-}
+  id?: number;
+  rule: string;
+  symbol: string;
+  orderId: string;
+  time: number;
+  side: string;
+  profit: number;
+  data: EntryOrderObject | ExitOrderObject;
+};

@@ -3,8 +3,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult } from "../types/trading";
 import { logger } from "../utils";
-import { GeneratedCandle, GetBacktestOptions } from "./types";
-import { getTimeKey, TimeKey } from "./utils";
+import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
 const client = new MongoClient(config.MONGO_URL);
 
 process.on("SIGINT", async () => {
@@ -14,13 +13,23 @@ process.on("exit", async () => {
   await client.close();
 });
 
+client.on("close", () => {
+  logger.info("MongoDB connection will close");
+});
+client.on("connectionClosed", () => {
+  logger.info("MongoDB connection closed");
+});
+client.on("disconnected", () => {
+  logger.info("MongoDB disconnected");
+});
+client.on("error", (err) => {
+  logger.error("MongoDB error", err);
+});
+
 class mongo {
   private db: string;
-  private timeKey: string;
-
   constructor(db: string) {
     this.db = db;
-    this.timeKey = getTimeKey(db);
   }
 
   getClient() {
@@ -29,7 +38,7 @@ class mongo {
 
   async connect() {
     await client.connect();
-    console.log(`connected to mongodb`);
+    logger.info("Connected to MongoDB");
   }
 
   async write(data: any, collectionName: string, database?: string) {
@@ -72,43 +81,31 @@ class mongo {
     return result;
   }
 
-  async readLastCandle(collectionName: string, timeKey: TimeKey) {
+  async readLastCandle(collectionName: string) {
     const db = client.db(this.db);
     const collection = db.collection(collectionName);
     const result = await collection
-      .find()
-      .sort({ [timeKey]: -1 })
+      .find<DatabaseType>({})
+      .sort({ start: -1 })
       .limit(1)
       .toArray();
-    return result[0];
+    return result[0] || null;
   }
 
-  async getStartAndEndDates(
-    database: string,
-    collectionName: string,
-    timeKey: string
-  ) {
+  async getStartAndEndDates(database: string, collectionName: string) {
     const db = client.db(database);
     const collection = db.collection(collectionName);
     const [startResult, endResult] = await Promise.all([
-      collection
-        .find()
-        .sort({ [timeKey]: 1 })
-        .limit(1)
-        .toArray(),
-      collection
-        .find()
-        .sort({ [timeKey]: -1 })
-        .limit(1)
-        .toArray(),
+      collection.find().sort({ start: 1 }).limit(1).toArray(),
+      collection.find().sort({ start: -1 }).limit(1).toArray(),
     ]);
 
     if (!startResult.length || !endResult.length) {
       logger.warn(`No data for ${collectionName} in ${database}`);
       return;
     }
-    const start = startResult[0][timeKey];
-    const end = endResult[0][timeKey];
+    const start = startResult[0].start;
+    const end = endResult[0].start;
     return { start, end } as unknown as { start: Date; end: Date };
   }
 
@@ -127,7 +124,7 @@ class mongo {
     const pipeline = [
       {
         $match: {
-          [this.timeKey]: {
+          start: {
             $gte: subMinutes(timestamp, granularity),
             $lt: new Date(timestamp),
           },
@@ -170,7 +167,7 @@ class mongo {
     };
   }
 
-  async getTimeAndClose(database: string, symbol: string, timeKey: TimeKey) {
+  async getTimeAndClose(database: string, symbol: string) {
     interface TimeAndCloseCandle {
       start?: Date;
       openTime?: Date;
@@ -186,16 +183,16 @@ class mongo {
 
     while (true) {
       const lastTimestamp = values[values.length - 1]
-        ? values[values.length - 1][timeKey]
+        ? values[values.length - 1]["start"]
         : new Date(0);
       const result = await collection
         .find({
-          [timeKey]: {
+          start: {
             $gt: lastTimestamp,
           },
         })
-        .project<TimeAndCloseCandle>({ [timeKey]: 1, close: 1, volume: 1 })
-        .sort({ [timeKey]: 1 })
+        .project<TimeAndCloseCandle>({ start: 1, close: 1, volume: 1 })
+        .sort({ start: 1 })
         .limit(limit)
         .toArray();
       if (result.length < limit) break;
@@ -290,7 +287,7 @@ class mongo {
     const pipeline = [
       {
         $match: {
-          [this.timeKey]: {
+          start: {
             $gte: start,
             $lt: end || new Date(),
           },
@@ -300,7 +297,7 @@ class mongo {
       {
         $group: {
           _id: {
-            hour: { $hour: `$${this.timeKey}` },
+            hour: { $hour: `$start` },
           },
         },
       },
@@ -319,12 +316,16 @@ class mongo {
     return data[0].avgVolume;
   }
 
-  async getLatestEntry(database: string, collection: string, timeKey?: string) {
+  async getLatestEntry(
+    database: string,
+    collection: string,
+    key: string = "start"
+  ) {
     const db = client.db(database);
     const collectionName = db.collection(collection);
     const result = await collectionName
       .find()
-      .sort({ [timeKey || this.timeKey]: -1 })
+      .sort({ [key]: -1 })
       .limit(1)
       .toArray();
     return result[0];

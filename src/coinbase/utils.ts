@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { TimeKey } from "../mongodb/utils";
 import { ProductsResponse } from "./types";
 
 class CoinbaseAdvanced {
@@ -96,4 +95,3 @@ class CoinbaseAdvanced {
 }
 
 export { CoinbaseAdvanced };
-export const timeKey: TimeKey = "start";

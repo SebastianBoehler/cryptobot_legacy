@@ -3,8 +3,7 @@ import { subMinutes, subMonths } from "date-fns";
 import { createChunks, logger, sleep } from "../utils";
 import config from "../config/config";
 import Mongo from "../mongodb/index";
-import { DatabaseType } from "./types";
-import { timeKey } from "./utils";
+import { DatabaseType } from "../mongodb/types";
 
 const client = new DydxClient("https://api.dydx.exchange");
 const startTime = subMonths(new Date(), 3).getTime();
@@ -21,7 +20,7 @@ async function main() {
 
   const chunks = createChunks(marketArray, 5);
 
-  while (true) {
+  async function runChunks() {
     for (const chunk of chunks) {
       try {
         const result = await Promise.allSettled(chunk.map(processSymbol));
@@ -37,18 +36,16 @@ async function main() {
       }
     }
     await sleep(1000 * 45);
+    runChunks();
   }
+
+  runChunks();
 }
 
 async function processSymbol(symbol: string) {
-  const lastCandle = (await mongo.readLastCandle(
-    symbol,
-    timeKey
-  )) as unknown as DatabaseType | null;
+  const lastCandle = await mongo.readLastCandle(symbol);
 
-  const lastCandleTime = lastCandle
-    ? lastCandle[timeKey as "start"]
-    : new Date(startTime);
+  const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
   const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
   if (secondsAgo < 70) return;
 

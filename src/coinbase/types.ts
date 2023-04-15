@@ -30,12 +30,3 @@ export interface ProductsResponse {
   }[];
   num_products: number;
 }
-
-export interface DatabaseType {
-  start: Date;
-  open: string;
-  high: string;
-  low: string;
-  close: string;
-  volume: string;
-}

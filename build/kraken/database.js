@@ -11,7 +11,7 @@ const client = new utils_2.default();
 const mongo = new index_1.default("kraken");
 const startTime = (0, date_fns_1.subMonths)(new Date(), 3).getTime();
 async function processSymbol(symbol) {
-    const lastCandle = (await mongo.readLastCandle(symbol, "start"));
+    const lastCandle = await mongo.readLastCandle(symbol);
     const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime);
     const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000;
     if (secondsAgo < 70)
