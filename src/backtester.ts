@@ -1,4 +1,4 @@
-import { addMinutes } from "date-fns";
+import { addMinutes, differenceInMinutes } from "date-fns";
 import config from "./config/config";
 import { generateIndicators } from "./generateIndicators";
 import mongo from "./mongodb/index";
@@ -50,19 +50,7 @@ const exchangeConfigs: Record<
 };
 
 async function backtester(exchange: Exchanges, symbol: string) {
-  const strategyNames = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-  ]; //as const;
+  const strategyNames = ["11"]; //as const;
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
@@ -84,19 +72,19 @@ async function backtester(exchange: Exchanges, symbol: string) {
     "2h": new generateIndicators(exchange, symbol, 60 * 2),
   };
 
-  let prevCandle;
-
   const startOffest = 60 * 12;
   outerLoop: for (let i = startOffest; i < Infinity; i++) {
     const timestamp = addMinutes(start, i);
-    if (timestamp.getTime() > end.getTime()) break;
+    if (timestamp.getTime() >= end.getTime()) break;
 
     //get candle form history and if not available get time<timestamp candle from db
     let candle = history.find(
       ({ start }) => start?.getTime() === timestamp.getTime()
     );
-    if (!candle) candle = prevCandle;
-    if (!candle) continue;
+
+    if (!candle) {
+      throw new Error("Candle not found");
+    }
     const { close, volume } = candle;
 
     logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
@@ -138,7 +126,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       } = await calculateProfit(exchange, lastTrade, close);
 
       const holdDuration = lastTrade
-        ? (timestamp.getTime() - lastTrade.timestamp.getTime()) / 1000 / 60
+        ? differenceInMinutes(timestamp, lastTrade.timestamp)
         : 0;
 
       const lastNetInvest = lastTrade?.netInvest || startCapital;
@@ -174,7 +162,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
           long_exit: [[exit2 || holdDuration > 60 * 24 * 2]],
           short_entry: [
             [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
+            [close > indicators_60min.bollinger_bands.upper],
             [
               !!prev_indicators_60min &&
                 !!prev_indicators_2h &&
@@ -194,7 +182,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
                   prev_indicators_25min.MACD.histogram,
             ],
           ],
-          long_exit: [[exit]],
+          long_exit: [[exit3]],
           short_entry: [[false]],
           short_exit: [],
         },
@@ -278,7 +266,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
           long_exit: [[exit2]],
           short_entry: [
             [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
+            [close > indicators_60min.bollinger_bands.upper],
             [
               !!prev_indicators_60min &&
                 !!prev_indicators_2h &&
@@ -304,7 +292,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
           long_exit: [[exit2 || holdDuration > 60 * 24]],
           short_entry: [
             [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
+            [close > indicators_60min.bollinger_bands.upper],
             [
               !!prev_indicators_60min &&
                 !!prev_indicators_2h &&
@@ -350,8 +338,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
                 close > indicators_25min.bollinger_bands.lower &&
                 indicators_60min.MACD.histogram >
                   prev_indicators_60min.MACD.histogram &&
-                indicators_60min.ADX.pdi > indicators_60min.ADX.mdi &&
-                indicators_60min.ADX.adx > 20,
+                indicators_60min.ADX.pdi > indicators_60min.ADX.mdi,
             ],
           ],
           long_exit: [[exit || holdDuration > 60 * 12]],
@@ -364,8 +351,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
                 close < indicators_25min.bollinger_bands.upper &&
                 indicators_60min.MACD.histogram <
                   prev_indicators_60min.MACD.histogram &&
-                indicators_60min.ADX.pdi < indicators_60min.ADX.mdi &&
-                indicators_60min.ADX.adx > 20,
+                indicators_60min.ADX.pdi < indicators_60min.ADX.mdi,
             ],
           ],
           short_exit: [[exit || holdDuration > 60 * 12]],
@@ -409,7 +395,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
                 indicators_25min.RSI < 60,
             ],
           ],
-          long_exit: [[exit || holdDuration > 60 * 12]],
+          long_exit: [[exit3 || holdDuration > 60 * 12]],
           short_entry: [
             [exchangeConfig.derivatesEnabled],
             [close > indicators_25min.bollinger_bands.upper],
@@ -422,7 +408,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
                 indicators_25min.RSI > 40,
             ],
           ],
-          short_exit: [[exit || holdDuration > 60 * 12]],
+          short_exit: [[exit3 || holdDuration > 60 * 12]],
         },
       };
 
@@ -461,12 +447,15 @@ async function backtester(exchange: Exchanges, symbol: string) {
           indicators_2h,
           candle,
         },
+        canExecuteOrder,
       };
 
       //debug
       //if (trades.length && trades.length % 2 == 0) debugger;
 
       if (hasOpenPosition) {
+        //may happen with canExeq enabled for pushing trades
+        //if (holdDuration > 60 * 12 + 1)
         const isLong = lastTrade?.type.includes("Long");
         const longExit =
           storage[strategyName].indexes.long_exit >=
@@ -477,7 +466,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
         //logger.debug(`Profit: ${profit}`);
         //logger.debug(`Price change: ${priceChangePercent}`);
-        if ((longExit || shortExit) && canExecuteOrder) {
+        if (longExit || shortExit) {
           const pricesSinceEntry = history
             .filter(
               ({ start }) => start! > lastTrade.timestamp && start! < timestamp
@@ -518,7 +507,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
         const shortEntry =
           storage[strategyName].indexes.short_entry >=
           strategy.short_entry.length;
-        if ((longEntry || shortEntry) && canExecuteOrder) {
+        if (longEntry || shortEntry) {
           storage[strategyName].trades.push({
             ...object,
             type: longEntry ? "Long Entry" : "Short Entry",
@@ -554,6 +543,15 @@ async function backtester(exchange: Exchanges, symbol: string) {
       `Profit for ${strategyName} on ${symbol}: ${sumProfit} (${netProfitInPercent})`
     );
     const gotLiquidated = exits.some((trade) => trade.isLiquidated);
+
+    const executedOrders =
+      trades.filter((trade) => trade.canExecuteOrder).length / trades.length;
+
+    const shorts = exits.filter((exit) => exit.type === "Short Exit");
+    const longs = exits.filter((exit) => exit.type === "Long Exit");
+    const shortLongRatio = `${(shorts.length / exits.length).toFixed(0)}/${(
+      longs.length / exits.length
+    ).toFixed(0)}`;
 
     //calculate profit in timeframes
     //per month
@@ -595,6 +593,8 @@ async function backtester(exchange: Exchanges, symbol: string) {
       hodlProfitInPercent,
       profitInMonth,
       gotLiquidated,
+      shortLongRatio,
+      executedOrders,
     };
 
     await mongoClient.saveBacktest(result);
@@ -635,8 +635,10 @@ async function main() {
   logger.info(`Backtesting ${pairs.length} pairs...`);
 
   //backtest all pairs
-  for (const pair of pairs) {
+  for (const pair of [{ exchange: "okx", symbol: "IOST-USDT-SWAP" }]) {
     const { exchange, symbol } = pair;
+    //skip USD pairs
+    if (symbol.includes("USD") && !symbol.includes("USDT")) continue;
     await backtester(exchange as Exchanges, symbol);
   }
 

@@ -8,23 +8,26 @@ export type Rule = {
 
 export type Exchanges = "binance" | "coinbase" | "dydx" | "kraken" | "okx";
 
-type EntryOrderTypes = "Long Entry" | "Short Entry";
+export type EntryOrderTypes = "Long Entry" | "Short Entry";
 type ExitOrderTypes = "Long Exit" | "Short Exit";
 export type OrderTypes = EntryOrderTypes | ExitOrderTypes;
 
-export interface EntryOrderObject {
-  price: number;
+export interface BaseOrderObject {
   timestamp: Date;
-  type: EntryOrderTypes;
   platform: Exchanges;
   invest: number;
   netInvest: number;
+  clOrdId?: string;
+  details: Record<string, unknown>;
+  spread?: number;
+  canExecuteOrder?: boolean;
+}
+
+export interface EntryOrderObject extends BaseOrderObject {
+  price: number;
+  type: EntryOrderTypes;
   fee: number;
   holdDuration: number;
-  details: Record<string, unknown>;
-  //live trading
-  clOrderId?: string;
-  spread?: number;
 }
 
 export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
@@ -59,9 +62,12 @@ export interface BacktestingResult {
     profit: number;
     netProfit: number;
     netProfitInPercent: number;
+    executedOrders: number;
     key: string | number;
   }[];
   gotLiquidated: boolean;
+  shortLongRatio: string;
+  executedOrders: number;
 }
 
 export interface Indicators {

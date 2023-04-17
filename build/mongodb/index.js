@@ -8,9 +8,6 @@ const mongodb_1 = require("mongodb");
 const config_1 = __importDefault(require("../config/config"));
 const utils_1 = require("../utils");
 const client = new mongodb_1.MongoClient(config_1.default.MONGO_URL);
-process.on("SIGINT", async () => {
-    await client.close();
-});
 process.on("exit", async () => {
     await client.close();
 });
@@ -280,6 +277,21 @@ class mongo {
         const data = await cursor.toArray();
         const result = data.map((d) => d._id);
         return result;
+    }
+    async getLatestTransaction(symbol, exchange) {
+        const db = client.db("trader");
+        const collectionName = db.collection(`${exchange}_${symbol}`);
+        const result = await collectionName
+            .find({})
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .toArray();
+        return result[0];
+    }
+    async writeTransaction(symbol, exchange, data) {
+        const db = client.db("trader");
+        const collectionName = db.collection(`${exchange}_${symbol}`);
+        await collectionName.insertOne(data);
     }
 }
 exports.default = mongo;

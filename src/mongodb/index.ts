@@ -6,9 +6,6 @@ import { logger } from "../utils";
 import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
 const client = new MongoClient(config.MONGO_URL);
 
-process.on("SIGINT", async () => {
-  await client.close();
-});
 process.on("exit", async () => {
   await client.close();
 });
@@ -169,8 +166,7 @@ class mongo {
 
   async getTimeAndClose(database: string, symbol: string) {
     interface TimeAndCloseCandle {
-      start?: Date;
-      openTime?: Date;
+      start: Date;
       close: number;
       volume: number;
     }

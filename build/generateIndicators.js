@@ -45,6 +45,7 @@ class generateIndicators {
         ADX: { adx: 0, pdi: 0, mdi: 0 },
     };
     prevValues = null;
+    lastTimestamp = null;
     constructor(exchange, symbol, granularity) {
         this.exchange = exchange;
         this.symbol = symbol;
@@ -55,9 +56,12 @@ class generateIndicators {
     async getIndicators(timestamp) {
         let adjustedTimestamp = new Date(timestamp);
         const stopRepainting = await this.stopRepainting(timestamp, this.granularity);
-        if (stopRepainting < 1) {
+        if (stopRepainting < 1 &&
+            this.lastTimestamp !== (0, date_fns_1.format)(timestamp, "yyyy-MM-dd HH:mm")) {
+            this.lastTimestamp = (0, date_fns_1.format)(timestamp, "yyyy-MM-dd HH:mm");
             adjustedTimestamp = (0, date_fns_1.subMinutes)(adjustedTimestamp.getTime(), stopRepainting);
             adjustedTimestamp.setSeconds(0);
+            //logger.debug("[indicators] loading new candle");
             //logger.info(`Repainting ${stopRepainting} minutes`);
             //logger.info(`Old timestamp: ${new Date(timestamp).toLocaleString()}`);
             //logger.info(`New timestamp: ${adjustedTimestamp.toLocaleString()}`);

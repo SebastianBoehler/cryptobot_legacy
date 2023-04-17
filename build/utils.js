@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateProfitForTrades = exports.isExitOrder = exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
+exports.toDecimals = exports.createUniqueId = exports.calculateProfitForTrades = exports.isExitOrder = exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 exports.sleep = sleep;
 const createChunks = (array, chunkSize) => {
@@ -12,11 +12,11 @@ const createChunks = (array, chunkSize) => {
 };
 exports.createChunks = createChunks;
 exports.logger = {
-    info: (message, ...data) => console.log(`[INFO](${new Date().toLocaleTimeString()})`, message, ...data),
-    error: (message, ...data) => console.error(`[ERROR](${new Date().toLocaleTimeString()})`, message, ...data),
-    warn: (message, ...data) => console.warn(`[WARN](${new Date().toLocaleTimeString()})`, message, ...data),
-    http: (message, ...data) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, message, ...data),
-    debug: (message, ...data) => console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, message, ...data),
+    info: (...params) => console.log(`[INFO](${new Date().toLocaleTimeString()})`, ...params),
+    error: (...params) => console.error(`[ERROR](${new Date().toLocaleTimeString()})`, ...params),
+    warn: (...params) => console.warn(`[WARN](${new Date().toLocaleTimeString()})`, ...params),
+    http: (...params) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, ...params),
+    debug: (...params) => console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, ...params),
 };
 async function calculateProfit(exchange, lastTrade, price) {
     if (!lastTrade)
@@ -54,7 +54,8 @@ async function calculateProfit(exchange, lastTrade, price) {
     }
     const priceChangePercent = ((price - lastTrade.price) / lastTrade.price) * 100;
     const bruttoProfit = investSizeBrutto - lastTrade.invest;
-    const netProfit = bruttoProfit - (lastTrade.fee + fee);
+    const feeSum = Math.abs(lastTrade.fee) + Math.abs(fee);
+    const netProfit = bruttoProfit - feeSum;
     const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
     const profit = netProfit / lastTrade.invest;
     const netInvest = lastTrade.netInvest + netProfit;
@@ -65,6 +66,7 @@ async function calculateProfit(exchange, lastTrade, price) {
         priceChangePercent,
         fee,
         netInvest,
+        feeSum,
     };
 }
 exports.calculateProfit = calculateProfit;
@@ -74,14 +76,35 @@ function isExitOrder(order) {
 exports.isExitOrder = isExitOrder;
 function calculateProfitForTrades(exits, filterFn = () => true) {
     const filteredExits = exits.filter(filterFn);
-    const profit = filteredExits.reduce((acc, exit) => acc + exit.profit, 0);
+    //sum up all profits
     const netProfit = filteredExits.reduce((acc, exit) => acc + exit.netProfit, 0);
-    const netProfitInPercent = filteredExits.reduce((acc, exit) => acc + exit.netProfitInPercent, 0);
+    //multiply all profits
+    const profit = filteredExits.reduce((acc, exit) => acc * (exit.profit + 1), 1);
+    //multiply all net profits in percent
+    const netProfitInPercent = filteredExits.reduce((acc, exit) => acc * (exit.netProfitInPercent / 100 + 1), 1);
+    const executedOrders = (filteredExits.filter((exit) => exit.canExecuteOrder).length * 2) /
+        filteredExits.length;
     return {
         profit,
         netProfit,
-        netProfitInPercent,
+        netProfitInPercent: (netProfitInPercent - 1) * 100,
+        executedOrders,
     };
 }
 exports.calculateProfitForTrades = calculateProfitForTrades;
+function createUniqueId(length) {
+    const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let result = "";
+    for (let i = length; i > 0; --i)
+        result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+}
+exports.createUniqueId = createUniqueId;
+function toDecimals(value, decimals) {
+    const arr = Number(value)
+        .toString()
+        .match(new RegExp("^-?\\d+(?:.\\d{0," + decimals + "})?"));
+    return +arr[0];
+}
+exports.toDecimals = toDecimals;
 //# sourceMappingURL=utils.js.map

@@ -1,26 +1,34 @@
 import { differenceInMinutes, subMinutes } from "date-fns";
 import { generateIndicators } from "../generateIndicators";
-import { calculateProfit, createUniqueId, logger, sleep } from "../utils";
+import {
+  calculateProfit,
+  createUniqueId,
+  logger,
+  sleep,
+  toDecimals,
+} from "../utils";
 import { OkxClient } from "./utils";
 import config from "../config/config";
 import Mongo from "../mongodb";
-import { Exchanges, Rule } from "../types/trading";
+import {
+  BaseOrderObject,
+  EntryOrderTypes,
+  Exchanges,
+  Rule,
+} from "../types/trading";
 
 process.on("unhandledRejection", (reason, p) => {
   logger.error("Unhandled Rejection at: Promise", p, "reason:", reason);
 });
 
-//TODO: support shorts
-//TODO: check if netProfitInPercent * leverage is the correct trigger
-//TODO: create functions for long/short entry/exit
+//TODO: verify if netProfitInPercent * leverage is the correct trigger
 
-//TODO: wait for okx-npm merge
 //TODO: credentials into env
 
 const mongo = new Mongo("trader");
 const okxClient = new OkxClient();
 const exchange: Exchanges = "okx";
-const symbol = "GMT-USDT-SWAP";
+const symbol = "BAND-USDT-SWAP";
 const startCapital = 50;
 const leverage = config.LEVERAGE;
 let minSize: number = 1;
@@ -50,12 +58,62 @@ const resetStorage = () => {
   storage.short_exit = 0;
 };
 
+async function placeEntry(
+  netInvest: number,
+  price: number,
+  object: BaseOrderObject,
+  type: EntryOrderTypes
+) {
+  const priceDecimalPlaces = tickSize.split(".")[1].length;
+  const amount = (netInvest * leverage) / price;
+  if (amount < minSize) throw new Error("Order size too small");
+  logger.debug(amount, netInvest * leverage, price, amount.toFixed(3));
+
+  const side = type.includes("Long") ? "buy" : "sell";
+
+  const tpChange = 0.06; //6%
+  const slChange = 0.03; //3%
+  const tpFactor = type.includes("Long") ? 1 + tpChange : 1 - tpChange; //5% price change profit
+  const slFactor = type.includes("Long") ? 1 - slChange : 1 + slChange; //2.5% price change loss
+
+  const size = toDecimals(amount, lotSize);
+
+  await okxClient.placeMarketOrder(
+    symbol,
+    side,
+    size,
+    object.clOrdId,
+    //places tp, sp a few percent above/below rule execution price to be safe
+    {
+      tpTriggerPx: String(toDecimals(price * tpFactor, priceDecimalPlaces)), // to be safe
+      tpOrdPx: "-1", //market order
+    },
+    {
+      slTriggerPx: String(toDecimals(price * slFactor, priceDecimalPlaces)), // to be safe
+      slOrdPx: "-1", //market order
+    }
+  );
+
+  await sleep(200);
+  const details = await okxClient.getOrderDetails(object.clOrdId!, symbol);
+
+  await mongo.writeTransaction(symbol, exchange, {
+    ...object,
+    price: +details.avgPx,
+    invest: +details.avgPx * +details.accFillSz,
+    netInvest: (+details.avgPx * +details.accFillSz) / leverage,
+    holdDuration: 0,
+    fee: Math.abs(+details.fee),
+    type,
+  });
+  resetStorage();
+}
+
 async function trader() {
   if (!okxClient.lastTicker) {
     logger.debug("No ticker data");
     return;
   }
-  const priceDecimalPlaces = tickSize.split(".")[1].length;
   const lastTrade = await mongo.getLatestTransaction(symbol, exchange);
   const hasOpenPosition = lastTrade ? lastTrade.type.includes("Entry") : false;
   const holdDuration = lastTrade
@@ -82,10 +140,18 @@ async function trader() {
     netProfitInPercent > 5 * leverage || netProfitInPercent < -2.5 * leverage;
 
   const strategy: Rule = {
-    long_entry: [[true]],
-    long_exit: [[exit]],
+    long_entry: [
+      [false],
+      [
+        !!prev_indicators_60min &&
+          !!prev_indicators_2h &&
+          price > indicators_60min.bollinger_bands.lower &&
+          indicators_2h.MACD.histogram > prev_indicators_2h.MACD.histogram,
+      ],
+    ],
+    long_exit: [[exit || holdDuration > 60 * 24]],
     short_entry: [
-      [price > indicators_25min.bollinger_bands.upper],
+      [false],
       [
         !!prev_indicators_60min &&
           !!prev_indicators_2h &&
@@ -93,7 +159,7 @@ async function trader() {
           indicators_2h.MACD.histogram < prev_indicators_2h.MACD.histogram,
       ],
     ],
-    short_exit: [[exit]],
+    short_exit: [[exit || holdDuration > 60 * 24]],
   };
 
   //check trigger conditions
@@ -123,56 +189,26 @@ async function trader() {
 
   if (!hasOpenPosition) {
     const longEntry = storage.long_entry >= strategy.long_entry.length;
-    //const shortEntry = storage.short_entry >= strategy.short_entry.length;
+    const shortEntry = storage.short_entry >= strategy.short_entry.length;
+    logger.info(
+      `Waiting for entry trigger: ${storage.long_entry} ${storage.short_entry}`
+    );
 
-    if (longEntry) {
-      const amount = (netInvest * leverage) / price;
-      if (amount < minSize) throw new Error("Order size too small");
-      logger.debug(amount, netInvest * leverage, price, amount.toFixed(3));
-      await okxClient.placeMarketOrder(
-        symbol,
-        "buy",
-        //TODO: get notional value from config
-        amount.toFixed(lotSize),
-        object.clOrdId,
-        //places tp, sp a few percent above/below rule execution price to be safe
-        //TODO: config should include decimal places
-        {
-          tpTriggerPx: (price * (1 + 0.052)).toFixed(priceDecimalPlaces), // to be safe
-          tpOrdPx: "-1", //market order
-        },
-        {
-          slTriggerPx: (price * (1 - 0.027)).toFixed(priceDecimalPlaces),
-          slOrdPx: "-1", //market order
-        }
-      );
-
-      await sleep(200);
-      const details = await okxClient.getOrderDetails(object.clOrdId, symbol);
-
-      await mongo.writeTransaction(symbol, exchange, {
-        ...object,
-        type: "Long Entry",
-        price: +details.avgPx,
-        invest: +details.avgPx * +details.accFillSz,
-        netInvest: (+details.avgPx * +details.accFillSz) / leverage,
-        holdDuration: 0,
-        fee: Math.abs(+details.fee),
-      });
-      resetStorage();
-    }
+    if (longEntry) placeEntry(netInvest, price, object, "Long Entry");
+    if (shortEntry) placeEntry(netInvest, price, object, "Short Entry");
   }
 
   if (hasOpenPosition) {
     logger.info({
       netProfitInPercent,
       holdDuration,
+      priceChangePercent: (lastTrade!.price / price - 1) * 100,
     });
     //matches, even more accurate by a few decimal places and includes fees
     //const calculated = await calculateProfit(exchange, lastTrade!, price);
     const longExit = storage.long_exit >= strategy.long_exit.length;
-    //const shortExit = storage.short_exit >= strategy.short_exit.length;
-    if (longExit) {
+    const shortExit = storage.short_exit >= strategy.short_exit.length;
+    if (longExit || shortExit) {
       await okxClient.closePosition(symbol, object.clOrdId);
       await sleep(200);
 
@@ -183,10 +219,11 @@ async function trader() {
       const netProfit = profit - fee / lastTrade!.invest;
 
       const calcProfit = await calculateProfit("okx", lastTrade!, price);
+      const type = longExit ? "Long Exit" : "Short Exit";
 
       await mongo.writeTransaction(symbol, exchange, {
         ...object,
-        type: "Long Exit",
+        type,
         price: +details.avgPx,
         invest: +details.avgPx * +details.accFillSz,
         netInvest: (+details.avgPx * +details.accFillSz) / leverage,
@@ -208,9 +245,9 @@ async function trader() {
 
 async function main() {
   logger.info(`Starting trader for ${symbol} on ${exchange}`);
-  for (let i = 0; i < 8_000; i++) {
-    const timestamp = subMinutes(new Date(), 8_000 - i);
-    logger.debug(`Time: ${timestamp.toLocaleString()}`);
+  for (let i = 0; i < 9_000; i++) {
+    const timestamp = subMinutes(new Date(), 9_000 - i);
+    //logger.debug(`Time: ${timestamp.toLocaleString()}`);
     for (const [_key, indicator] of Object.entries(indicators)) {
       await indicator.getIndicators(timestamp.getTime());
     }

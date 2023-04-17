@@ -123,10 +123,15 @@ export function calculateProfitForTrades(
     1
   );
 
+  const executedOrders =
+    (filteredExits.filter((exit) => exit.canExecuteOrder).length * 2) /
+    filteredExits.length;
+
   return {
     profit,
     netProfit,
     netProfitInPercent: (netProfitInPercent - 1) * 100,
+    executedOrders,
   };
 }
 
@@ -137,4 +142,11 @@ export function createUniqueId(length: number) {
   for (let i = length; i > 0; --i)
     result += chars[Math.floor(Math.random() * chars.length)];
   return result;
+}
+
+export function toDecimals(value: number, decimals: number) {
+  const arr = Number(value)
+    .toString()
+    .match(new RegExp("^-?\\d+(?:.\\d{0," + decimals + "})?"))!;
+  return +arr[0];
 }

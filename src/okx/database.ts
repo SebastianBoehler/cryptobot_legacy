@@ -10,7 +10,7 @@ const okxClient = new RestClient({
   apiSecret: "1B4A1C25855CD1754828CD72776D0357",
   apiPass: "Okx+27102001",
 });
-const startTime = subMonths(new Date(), 3).getTime();
+const startTime = subMonths(new Date(), 5).getTime();
 
 async function processSymbol(symbol: string) {
   const lastCandle = await mongo.readLastCandle(symbol);
@@ -41,7 +41,9 @@ async function processSymbol(symbol: string) {
         low: candle[3],
         open: candle[1],
         close: candle[4],
-        volume: candle[5],
+        //! FIX WITH TYPES UPDATE
+        //@ts-ignore
+        volume: candle[7]!,
         start: new Date(+candle[0]),
       };
     })
