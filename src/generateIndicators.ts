@@ -1,5 +1,5 @@
 import { EMA, BollingerBands, MACD, RSI, ADX } from "@debut/indicators";
-import { subMinutes } from "date-fns";
+import { format, subMinutes } from "date-fns";
 import mongodb from "./mongodb";
 import { Indicators } from "./types/trading";
 
@@ -41,6 +41,7 @@ class generateIndicators {
     ADX: { adx: 0, pdi: 0, mdi: 0 },
   };
   public prevValues: Indicators | null = null;
+  private lastTimestamp: string | null = null;
 
   constructor(exchange: string, symbol: string, granularity: number) {
     this.exchange = exchange;
@@ -56,13 +57,18 @@ class generateIndicators {
       timestamp,
       this.granularity
     );
-    if (stopRepainting < 1) {
+    if (
+      stopRepainting < 1 &&
+      this.lastTimestamp !== format(timestamp, "yyyy-MM-dd HH:mm")
+    ) {
+      this.lastTimestamp = format(timestamp, "yyyy-MM-dd HH:mm");
       adjustedTimestamp = subMinutes(
         adjustedTimestamp.getTime(),
         stopRepainting
       );
       adjustedTimestamp.setSeconds(0);
 
+      //logger.debug("[indicators] loading new candle");
       //logger.info(`Repainting ${stopRepainting} minutes`);
       //logger.info(`Old timestamp: ${new Date(timestamp).toLocaleString()}`);
       //logger.info(`New timestamp: ${adjustedTimestamp.toLocaleString()}`);

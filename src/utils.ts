@@ -12,33 +12,29 @@ export const createChunks = <T>(array: T[], chunkSize: number): T[][] => {
 };
 
 export const logger = {
-  info: (message: any, ...data: any) =>
-    console.log(`[INFO](${new Date().toLocaleTimeString()})`, message, ...data),
-  error: (message: any, ...data: any) =>
-    console.error(
-      `[ERROR](${new Date().toLocaleTimeString()})`,
-      message,
-      ...data
-    ),
-  warn: (message: any, ...data: any) =>
-    console.warn(
-      `[WARN](${new Date().toLocaleTimeString()})`,
-      message,
-      ...data
-    ),
-  http: (message: any, ...data: any) =>
-    console.log(`[HTTP](${new Date().toLocaleTimeString()})`, message, ...data),
-  debug: (message: any, ...data: any) =>
-    console.log(
-      `[DEBUG](${new Date().toLocaleTimeString()})`,
-      message,
-      ...data
-    ),
+  info: (...params: any) =>
+    console.log(`[INFO](${new Date().toLocaleTimeString()})`, ...params),
+  error: (...params: any) =>
+    console.error(`[ERROR](${new Date().toLocaleTimeString()})`, ...params),
+  warn: (...params: any) =>
+    console.warn(`[WARN](${new Date().toLocaleTimeString()})`, ...params),
+  http: (...params: any) =>
+    console.log(`[HTTP](${new Date().toLocaleTimeString()})`, ...params),
+  debug: (...params: any) =>
+    console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, ...params),
 };
 
-export async function calculateProfit(
+interface BaseTrade {
+  type: string;
+  price: number;
+  invest: number;
+  netInvest: number;
+  fee: number;
+}
+
+export async function calculateProfit<T extends BaseTrade>(
   exchange: Exchanges,
-  lastTrade: OrderObject,
+  lastTrade: T,
   price: number
 ) {
   if (!lastTrade)
@@ -85,7 +81,8 @@ export async function calculateProfit(
 
   const bruttoProfit = investSizeBrutto - lastTrade.invest;
 
-  const netProfit = bruttoProfit - (lastTrade.fee + fee);
+  const feeSum = Math.abs(lastTrade.fee) + Math.abs(fee);
+  const netProfit = bruttoProfit - feeSum;
   const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
   const profit = netProfit / lastTrade.invest;
   const netInvest = lastTrade.netInvest + netProfit;
@@ -97,6 +94,7 @@ export async function calculateProfit(
     priceChangePercent,
     fee,
     netInvest,
+    feeSum,
   };
 }
 
@@ -109,18 +107,34 @@ export function calculateProfitForTrades(
   filterFn: (exit: ExitOrderObject) => boolean = () => true
 ) {
   const filteredExits = exits.filter(filterFn);
-  const profit = filteredExits.reduce((acc, exit) => acc + exit.profit, 0);
+  //sum up all profits
   const netProfit = filteredExits.reduce(
     (acc, exit) => acc + exit.netProfit,
     0
   );
-  const netProfitInPercent = filteredExits.reduce(
-    (acc, exit) => acc + exit.netProfitInPercent,
-    0
+  //multiply all profits
+  const profit = filteredExits.reduce(
+    (acc, exit) => acc * (exit.profit + 1),
+    1
   );
+  //multiply all net profits in percent
+  const netProfitInPercent = filteredExits.reduce(
+    (acc, exit) => acc * (exit.netProfitInPercent / 100 + 1),
+    1
+  );
+
   return {
     profit,
     netProfit,
-    netProfitInPercent,
+    netProfitInPercent: (netProfitInPercent - 1) * 100,
   };
+}
+
+export function createUniqueId(length: number) {
+  const chars =
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let result = "";
+  for (let i = length; i > 0; --i)
+    result += chars[Math.floor(Math.random() * chars.length)];
+  return result;
 }

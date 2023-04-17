@@ -22,6 +22,9 @@ export interface EntryOrderObject {
   fee: number;
   holdDuration: number;
   details: Record<string, unknown>;
+  //live trading
+  clOrderId?: string;
+  spread?: number;
 }
 
 export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
@@ -30,8 +33,9 @@ export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
   netProfitInPercent: number;
   netProfit: number;
   profit: number;
-  highestPrice: number;
-  lowestPrice: number;
+  highestPrice?: number;
+  lowestPrice?: number;
+  isLiquidated: boolean;
 }
 
 export type OrderObject = EntryOrderObject | ExitOrderObject;
@@ -57,6 +61,7 @@ export interface BacktestingResult {
     netProfitInPercent: number;
     key: string | number;
   }[];
+  gotLiquidated: boolean;
 }
 
 export interface Indicators {

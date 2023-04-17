@@ -1,7 +1,7 @@
 import { subMinutes } from "date-fns";
 import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
-import { BacktestingResult } from "../types/trading";
+import { BacktestingResult, OrderObject } from "../types/trading";
 import { logger } from "../utils";
 import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
 const client = new MongoClient(config.MONGO_URL);
@@ -350,6 +350,26 @@ class mongo {
     const data = await cursor.toArray();
     const result = data.map((d) => d._id);
     return result;
+  }
+
+  async getLatestTransaction(
+    symbol: string,
+    exchange: string
+  ): Promise<OrderObject | null> {
+    const db = client.db("trader");
+    const collectionName = db.collection(`${exchange}_${symbol}`);
+    const result = await collectionName
+      .find<OrderObject>({})
+      .sort({ timestamp: -1 })
+      .limit(1)
+      .toArray();
+    return result[0];
+  }
+
+  async writeTransaction(symbol: string, exchange: string, data: OrderObject) {
+    const db = client.db("trader");
+    const collectionName = db.collection(`${exchange}_${symbol}`);
+    await collectionName.insertOne(data);
   }
 }
 
