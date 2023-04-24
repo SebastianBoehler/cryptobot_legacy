@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toDecimals = exports.createUniqueId = exports.calculateProfitForTrades = exports.isExitOrder = exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
+exports.checkHasOpenPosition = exports.calculateLineOfBestFit = exports.toDecimals = exports.createUniqueId = exports.calculateProfitForTrades = exports.isExitOrder = exports.calculateProfit = exports.logger = exports.createChunks = exports.sleep = void 0;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 exports.sleep = sleep;
 const createChunks = (array, chunkSize) => {
@@ -82,7 +82,7 @@ function calculateProfitForTrades(exits, filterFn = () => true) {
     const profit = filteredExits.reduce((acc, exit) => acc * (exit.profit + 1), 1);
     //multiply all net profits in percent
     const netProfitInPercent = filteredExits.reduce((acc, exit) => acc * (exit.netProfitInPercent / 100 + 1), 1);
-    const executedOrders = (filteredExits.filter((exit) => exit.canExecuteOrder).length * 2) /
+    const executedOrders = filteredExits.filter((exit) => exit.canExecuteOrder).length /
         filteredExits.length;
     return {
         profit,
@@ -107,4 +107,22 @@ function toDecimals(value, decimals) {
     return +arr[0];
 }
 exports.toDecimals = toDecimals;
+function calculateLineOfBestFit(array) {
+    const x = array.map((_, i) => i);
+    const y = array;
+    const xSum = x.reduce((acc, val) => acc + val, 0);
+    const ySum = y.reduce((acc, val) => acc + val, 0);
+    const xSquaredSum = x.reduce((acc, val) => acc + val * val, 0);
+    const xySum = x.reduce((acc, val, i) => acc + val * y[i], 0);
+    const m = (array.length * xySum - xSum * ySum) /
+        (array.length * xSquaredSum - xSum * xSum);
+    const b = (ySum - m * xSum) / array.length;
+    const lineOfBestFit = x.map((xVal) => m * xVal + b);
+    return lineOfBestFit;
+}
+exports.calculateLineOfBestFit = calculateLineOfBestFit;
+const checkHasOpenPosition = (lastTrade) => {
+    return lastTrade ? lastTrade.type.includes("Entry") : false;
+};
+exports.checkHasOpenPosition = checkHasOpenPosition;
 //# sourceMappingURL=utils.js.map

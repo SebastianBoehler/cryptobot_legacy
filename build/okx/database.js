@@ -41,6 +41,7 @@ async function processSymbol(symbol) {
             low: candle[3],
             open: candle[1],
             close: candle[4],
+            //! FIX WITH TYPES UPDATE
             //@ts-ignore
             volume: candle[7],
             start: new Date(+candle[0]),

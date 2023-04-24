@@ -159,9 +159,9 @@ class mongo {
                 .sort({ start: 1 })
                 .limit(limit)
                 .toArray();
+            values.push(...result);
             if (result.length < limit)
                 break;
-            values.push(...result);
         }
         return values;
     }
@@ -196,6 +196,7 @@ class mongo {
         const query = {
             strategyName: result.strategyName,
             symbol: result.symbol,
+            start: result.start,
         };
         const update = {
             $set: {

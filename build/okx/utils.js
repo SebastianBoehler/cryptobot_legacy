@@ -4,6 +4,7 @@ exports.OkxClient = void 0;
 const okx_api_1 = require("okx-api");
 const utils_1 = require("../utils");
 const types_1 = require("./types");
+const date_fns_1 = require("date-fns");
 const credentials = {
     apiKey: "42975a9f-9662-48fa-be91-4bd552244c84",
     apiSecret: "1B4A1C25855CD1754828CD72776D0357",
@@ -15,6 +16,7 @@ class OkxClient {
     lastTicker = null;
     subscriptions = [];
     pnl = null;
+    candel1m = [];
     constructor() {
         this.restClient = new okx_api_1.RestClient(credentials);
         this.wsClient = new okx_api_1.WebsocketClient({
@@ -32,8 +34,32 @@ class OkxClient {
     async onUpdate(event) {
         if ((0, types_1.isTickerUpdateEvent)(event)) {
             this.lastTicker = event.data[0];
+            const lastCandle = this.candel1m[this.candel1m.length - 1];
+            if (!lastCandle) {
+                const start = (0, date_fns_1.subMinutes)(new Date(), 1);
+                start.setSeconds(0, 0);
+                this.candel1m.push({
+                    close: this.lastTicker.last,
+                    start,
+                });
+            }
+            if (lastCandle) {
+                const start = (0, date_fns_1.subMinutes)(new Date(), 1);
+                start.setSeconds(0, 0);
+                const diff = (0, date_fns_1.differenceInMinutes)(start, lastCandle.start);
+                if (diff < 1)
+                    return;
+                this.candel1m.push({
+                    close: this.lastTicker.last,
+                    start,
+                });
+                //keep max 10 candles
+                if (this.candel1m.length > 10)
+                    this.candel1m.shift();
+            }
         }
         else if ((0, types_1.isPositionUpdateEvent)(event)) {
+            //TODO: check if emitted when pos manually updated
             if (event.data.length > 0) {
                 this.pnl = {
                     usd: event.data[0].upl,
@@ -45,11 +71,6 @@ class OkxClient {
             // order placed / filled / cancelled
             const data = event.data[0];
             utils_1.logger.debug("[OKX] order update", data.state, data.clOrdId, data.ordId);
-        }
-        else if ((0, types_1.isPositionUpdateEvent)(event)) {
-            // position opened / closed / updated
-            //! doesnt trigger on position open / close / update
-            utils_1.logger.debug("[OKX] position update", event);
         }
         else {
             utils_1.logger.info("[OKX] unhandled event", event);
@@ -79,7 +100,6 @@ class OkxClient {
             instId: symbol,
         });
     }
-    //! doesnt work
     async subscribeToPositionData(symbol, instType = "SWAP") {
         this.wsClient.subscribe({
             channel: "positions",
@@ -103,6 +123,28 @@ class OkxClient {
             clOrdId,
             instId: symbol,
             ordType: "market",
+            side,
+            sz: String(size),
+            tdMode: "isolated",
+            ...takeProfit,
+            ...stopLoss,
+        });
+        return {
+            ...resp[0],
+            clOrdId,
+        };
+    }
+    /**
+     * Immediate or cancel order, takes the best price available
+     */
+    async placeIOCOrder(symbol, side, size, clOrdId = (0, utils_1.createUniqueId)(32), price, takeProfit, stopLoss) {
+        if (!price)
+            throw new Error("No price data available");
+        const resp = await this.restClient.submitOrder({
+            clOrdId,
+            instId: symbol,
+            px: price,
+            ordType: "ioc",
             side,
             sz: String(size),
             tdMode: "isolated",

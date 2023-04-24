@@ -3,18 +3,47 @@ import { OkxClient } from "./utils";
 
 const okxClient = new OkxClient();
 
-const symbol = "LTC-USDT-SWAP";
-//okxClient.subscribeToPriceData(symbol);
+const symbol = "COMP-USDT-SWAP";
+okxClient.subscribeToPriceData(symbol);
 okxClient.subscribeToPositionData(symbol);
 okxClient.subsribeToOderData(symbol);
 
 async function test() {
-  await sleep(1000 * 5);
+  await sleep(1000 * 10);
   const startBalance = await okxClient.getAccountBalance();
   const totalEqStart = startBalance[0].totalEq;
   logger.info("Start Balance: ", totalEqStart);
-  logger.info(await okxClient.getTickers());
+  //logger.info(await okxClient.getTickers());
+
+  const instruments = await okxClient.getInstruments();
+  const instrument = instruments.find((i) => i.instId === symbol);
+  logger.info(instrument);
   if (+totalEqStart < 10_000) return;
+
+  const id = createUniqueId(32);
+  await okxClient
+    .placeIOCOrder(
+      symbol,
+      "buy",
+      3,
+      id,
+      "1990",
+      {
+        tpTriggerPx: "2050", // to be safe
+        tpOrdPx: "-1", //market order
+      },
+      {
+        slTriggerPx: "1780.23", // to be safe
+        slOrdPx: "-1", //market order
+      }
+    )
+    .catch((err) => {
+      logger.error(err);
+    });
+
+  await sleep(1000 * 5);
+  const details = await okxClient.getOrderDetails(id, symbol);
+  logger.debug(JSON.stringify(details, null, 2));
 
   const entryId = createUniqueId(32);
 

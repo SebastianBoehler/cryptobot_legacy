@@ -22,6 +22,8 @@ export const logger = {
     console.log(`[HTTP](${new Date().toLocaleTimeString()})`, ...params),
   debug: (...params: any) =>
     console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, ...params),
+  //silly: (...params: any) =>
+  //console.log(`[SILLY](${new Date().toLocaleTimeString()})`, ...params),
 };
 
 interface BaseTrade {
@@ -124,7 +126,7 @@ export function calculateProfitForTrades(
   );
 
   const executedOrders =
-    (filteredExits.filter((exit) => exit.canExecuteOrder).length * 2) /
+    filteredExits.filter((exit) => exit.canExecuteOrder).length /
     filteredExits.length;
 
   return {
@@ -150,3 +152,29 @@ export function toDecimals(value: number, decimals: number) {
     .match(new RegExp("^-?\\d+(?:.\\d{0," + decimals + "})?"))!;
   return +arr[0];
 }
+
+export function calculateLineOfBestFit(array: number[]) {
+  const x = array.map((_, i) => i);
+  const y = array;
+
+  const xSum = x.reduce((acc, val) => acc + val, 0);
+  const ySum = y.reduce((acc, val) => acc + val, 0);
+
+  const xSquaredSum = x.reduce((acc, val) => acc + val * val, 0);
+  const xySum = x.reduce((acc, val, i) => acc + val * y[i], 0);
+
+  const m =
+    (array.length * xySum - xSum * ySum) /
+    (array.length * xSquaredSum - xSum * xSum);
+  const b = (ySum - m * xSum) / array.length;
+
+  const lineOfBestFit = x.map((xVal) => m * xVal + b);
+
+  return lineOfBestFit;
+}
+
+export const checkHasOpenPosition = (
+  lastTrade?: OrderObject
+): lastTrade is OrderObject => {
+  return lastTrade ? lastTrade.type.includes("Entry") : false;
+};

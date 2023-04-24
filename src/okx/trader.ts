@@ -2,6 +2,7 @@ import { differenceInMinutes, subMinutes } from "date-fns";
 import { generateIndicators } from "../generateIndicators";
 import {
   calculateProfit,
+  checkHasOpenPosition,
   createUniqueId,
   logger,
   sleep,
@@ -21,19 +22,18 @@ process.on("unhandledRejection", (reason, p) => {
   logger.error("Unhandled Rejection at: Promise", p, "reason:", reason);
 });
 
-//TODO: verify if netProfitInPercent * leverage is the correct trigger
-
 //TODO: credentials into env
 
 const mongo = new Mongo("trader");
 const okxClient = new OkxClient();
 const exchange: Exchanges = "okx";
-const symbol = "BAND-USDT-SWAP";
+const symbol = "COMP-USDT-SWAP";
 const startCapital = 50;
 const leverage = config.LEVERAGE;
 let minSize: number = 1;
-let lotSize: number = 1;
+let lotSize: string = "0.001"; //decimals of amount
 let tickSize: string = "0.001"; //decimals of price
+let ctVal: string = "0.1"; //contract value
 
 const indicators = {
   "25min": new generateIndicators(exchange, symbol, 25),
@@ -64,26 +64,31 @@ async function placeEntry(
   object: BaseOrderObject,
   type: EntryOrderTypes
 ) {
-  const priceDecimalPlaces = tickSize.split(".")[1].length;
-  const amount = (netInvest * leverage) / price;
+  const priceDecimalPlaces = tickSize.split(".")[1]?.length || 0;
+  const sizeDecimalPlaces = lotSize.split(".")[1]?.length || 0;
+
+  //calculate multiplier: if ctVal has 1 decimals = 10, if ctVal has 2 decimals = 100
+  const multiplier = 10 ** ctVal.split(".")[1].length;
+  const amount = (netInvest * leverage * multiplier) / price;
   if (amount < minSize) throw new Error("Order size too small");
   logger.debug(amount, netInvest * leverage, price, amount.toFixed(3));
 
   const side = type.includes("Long") ? "buy" : "sell";
 
-  const tpChange = 0.06; //6%
-  const slChange = 0.03; //3%
+  const tpChange = 0.04; //4%
+  const slChange = 0.02; //2%
   const tpFactor = type.includes("Long") ? 1 + tpChange : 1 - tpChange; //5% price change profit
   const slFactor = type.includes("Long") ? 1 - slChange : 1 + slChange; //2.5% price change loss
 
-  const size = toDecimals(amount, lotSize);
+  const size = toDecimals(amount, sizeDecimalPlaces);
+  const maxSlippagePrice = side === "buy" ? price * 1.01 : price * 0.99; //1% slippage
 
-  await okxClient.placeMarketOrder(
+  await okxClient.placeIOCOrder(
     symbol,
     side,
     size,
     object.clOrdId,
-    //places tp, sp a few percent above/below rule execution price to be safe
+    String(maxSlippagePrice),
     {
       tpTriggerPx: String(toDecimals(price * tpFactor, priceDecimalPlaces)), // to be safe
       tpOrdPx: "-1", //market order
@@ -97,25 +102,42 @@ async function placeEntry(
   await sleep(200);
   const details = await okxClient.getOrderDetails(object.clOrdId!, symbol);
 
+  const positionSize = (+details.sz / multiplier) * +details.avgPx;
   await mongo.writeTransaction(symbol, exchange, {
     ...object,
     price: +details.avgPx,
-    invest: +details.avgPx * +details.accFillSz,
-    netInvest: (+details.avgPx * +details.accFillSz) / leverage,
+    positionSize,
+    netPositionSize: positionSize / leverage,
     holdDuration: 0,
     fee: Math.abs(+details.fee),
     type,
+    leverage: +details.lever,
   });
   resetStorage();
 }
 
 async function trader() {
+  const lastTickerDiff = differenceInMinutes(
+    new Date(),
+    new Date(+(okxClient.lastTicker?.ts ?? `0`))
+  );
+  if (lastTickerDiff > 5) {
+    okxClient.lastTicker = null;
+  }
   if (!okxClient.lastTicker) {
     logger.debug("No ticker data");
+    const channels = okxClient.subscriptions;
+    const isSubscribed = channels.find(
+      ({ channel, instId }) => channel === "tickers" && instId === symbol
+    );
+    if (!isSubscribed) {
+      logger.debug("Subscribing to ticker data inside trader");
+      await okxClient.subscribeToPriceData(symbol);
+    }
     return;
   }
   const lastTrade = await mongo.getLatestTransaction(symbol, exchange);
-  const hasOpenPosition = lastTrade ? lastTrade.type.includes("Entry") : false;
+  const hasOpenPosition = checkHasOpenPosition(lastTrade);
   const holdDuration = lastTrade
     ? differenceInMinutes(new Date(), lastTrade.timestamp)
     : 0;
@@ -128,38 +150,42 @@ async function trader() {
     ]
   );
 
+  logger.debug("candle", okxClient.candel1m.slice(-1));
+
   const prev_indicators_60min = indicators["60min"].prevValues;
-  const prev_indicators_2h = indicators["2h"].prevValues;
-  const price = +okxClient.lastTicker.last;
+  const prev_indicators_25min = indicators["25min"].prevValues;
+  const price = +okxClient.candel1m.slice(-1)[0].close;
   const spread = +okxClient.lastTicker.askPx / +okxClient.lastTicker.bidPx - 1; // always >0
 
   //fee not included here
   const netProfitInPercent = +(okxClient.pnl?.profit || 0) * 100;
 
   const exit =
-    netProfitInPercent > 5 * leverage || netProfitInPercent < -2.5 * leverage;
+    netProfitInPercent > 3 * leverage || netProfitInPercent < -1.5 * leverage;
 
   const strategy: Rule = {
     long_entry: [
-      [false],
+      [price < indicators_25min.bollinger_bands.lower],
       [
-        !!prev_indicators_60min &&
-          !!prev_indicators_2h &&
-          price > indicators_60min.bollinger_bands.lower &&
-          indicators_2h.MACD.histogram > prev_indicators_2h.MACD.histogram,
+        !!prev_indicators_25min &&
+          !!prev_indicators_60min &&
+          price > indicators_25min.bollinger_bands.lower &&
+          indicators_60min.MACD.histogram >
+            prev_indicators_60min.MACD.histogram,
       ],
     ],
-    long_exit: [[exit || holdDuration > 60 * 24]],
+    long_exit: [[exit || holdDuration >= 60 * 12]],
     short_entry: [
-      [false],
+      [price > indicators_25min.bollinger_bands.upper],
       [
-        !!prev_indicators_60min &&
-          !!prev_indicators_2h &&
-          price < indicators_60min.bollinger_bands.upper &&
-          indicators_2h.MACD.histogram < prev_indicators_2h.MACD.histogram,
+        !!prev_indicators_25min &&
+          !!prev_indicators_60min &&
+          price < indicators_25min.bollinger_bands.upper &&
+          indicators_60min.MACD.histogram <
+            prev_indicators_60min.MACD.histogram,
       ],
     ],
-    short_exit: [[exit || holdDuration > 60 * 24]],
+    short_exit: [[exit || holdDuration > 60 * 12]],
   };
 
   //check trigger conditions
@@ -183,6 +209,9 @@ async function trader() {
       indicators_25min,
       indicators_60min,
       indicators_2h,
+      candle: okxClient.candel1m.slice(-1)[0],
+      strategy,
+      storage,
     },
     spread,
   };
@@ -200,9 +229,9 @@ async function trader() {
 
   if (hasOpenPosition) {
     logger.info({
-      netProfitInPercent,
+      netProfitInPercent: netProfitInPercent.toFixed(2),
       holdDuration,
-      priceChangePercent: (lastTrade!.price / price - 1) * 100,
+      priceChangePercent: ((price / lastTrade!.price - 1) * 100).toFixed(2),
     });
     //matches, even more accurate by a few decimal places and includes fees
     //const calculated = await calculateProfit(exchange, lastTrade!, price);
@@ -211,22 +240,33 @@ async function trader() {
     if (longExit || shortExit) {
       await okxClient.closePosition(symbol, object.clOrdId);
       await sleep(200);
+      const multiplier = 10 ** ctVal.split(".")[1].length;
 
       const details = await okxClient.getOrderDetails(object.clOrdId, symbol);
-      const pnl = +details.avgPx * +details.accFillSz - lastTrade!.invest;
-      const profit = pnl / lastTrade!.invest;
       const fee = Math.abs(+details.fee);
-      const netProfit = profit - fee / lastTrade!.invest;
+      const pnl = +details.pnl; //absolute profit in usd
 
-      const calcProfit = await calculateProfit("okx", lastTrade!, price);
+      const netProfit = pnl - (fee + lastTrade!.fee);
+      const profit = pnl / lastTrade!.invest;
+
+      const calcProfit = await calculateProfit(
+        "okx",
+        lastTrade!,
+        +details.avgPx
+      );
       const type = longExit ? "Long Exit" : "Short Exit";
+      const positionSize = (+details.avgPx * +details.accFillSz) / multiplier;
+      //fee included here
+      const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
 
       await mongo.writeTransaction(symbol, exchange, {
         ...object,
         type,
         price: +details.avgPx,
-        invest: +details.avgPx * +details.accFillSz,
-        netInvest: (+details.avgPx * +details.accFillSz) / leverage,
+        invest: lastTrade.invest + netProfit,
+        netInvest: lastTrade.netInvest + netProfit,
+        positionSize,
+        netPositionSize: positionSize / leverage,
         holdDuration,
         profit,
         priceChangePercent: calcProfit.priceChangePercent,
@@ -238,7 +278,9 @@ async function trader() {
           ...object.details,
           calcProfit,
         },
+        leverage: +details.lever,
       });
+      resetStorage();
     }
   }
 }
@@ -262,14 +304,21 @@ async function main() {
     throw new Error("Not enough USDT Balance, pls reduce startCapital");
 
   //check if position is open
+  const lastTrade = await mongo.getLatestTransaction(symbol, exchange);
   const positions = await okxClient.getPositions(symbol);
   const openPositions = positions.filter((position) => position.upl !== "");
-  if (openPositions.length > 0) {
-    throw new Error(`There is already a position open`);
+  if (
+    openPositions.length > 0 &&
+    lastTrade &&
+    lastTrade.type.includes("Exit")
+  ) {
+    throw new Error(`There is a unknown position open`);
   }
 
-  //set leverage
-  await okxClient.setLeverage(symbol, leverage);
+  //set leverage | only works if no position is open
+  await okxClient.setLeverage(symbol, leverage).catch((err) => {
+    logger.warn(`Failed to set leverage: ${err.message}`);
+  });
 
   okxClient.subscribeToPriceData(symbol);
   okxClient.subscribeToPositionData(symbol);
@@ -278,9 +327,11 @@ async function main() {
   const instrument = instruments.find((i) => i.instId === symbol);
   if (!instrument) throw new Error("No instrument found");
   minSize = +instrument.minSz;
-  lotSize = +instrument.lotSz;
+  lotSize = instrument.lotSz;
   tickSize = instrument.tickSz;
+  ctVal = instrument.ctVal;
 
+  await sleep(1000 * 2);
   while (true) {
     trader();
     await sleep(1000 * 10);

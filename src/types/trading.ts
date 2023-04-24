@@ -18,6 +18,7 @@ export interface BaseOrderObject {
   invest: number;
   netInvest: number;
   clOrdId?: string;
+  leverage?: number;
   details: Record<string, unknown>;
   spread?: number;
   canExecuteOrder?: boolean;
@@ -28,6 +29,9 @@ export interface EntryOrderObject extends BaseOrderObject {
   type: EntryOrderTypes;
   fee: number;
   holdDuration: number;
+  //trading
+  positionSize?: number;
+  netPositionSize?: number;
 }
 
 export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
@@ -68,6 +72,7 @@ export interface BacktestingResult {
   gotLiquidated: boolean;
   shortLongRatio: string;
   executedOrders: number;
+  lineOfBestFit: number[];
 }
 
 export interface Indicators {

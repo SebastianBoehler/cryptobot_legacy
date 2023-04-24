@@ -7,12 +7,13 @@
     "build": "npx tsc",
     "watch": "npx tsc -w",
     "test": "SET NODE_ENV=dev && nodemon src/okx/test.ts",
-    "trader": "SET NODE_ENV=dev && nodemon src/okx/trader.ts",
-    "server": "SET NODE_ENV=dev && nodemon src/server.ts",
-    "index": "SET NODE_ENV=dev && nodemon src/index.ts",
+    "trader": "SET NODE_ENV=dev && ts-node src/okx/trader.ts",
+    "backtester": "SET NODE_ENV=dev && ts-node src/backtester.ts",
     "nodemon": "SET NODE_ENV=dev && nodemon src/backtester.ts",
-    "worker": "SET NODE_ENV=dev && nodemon src/worker/index.ts",
+    "nodemon:worker": "SET NODE_ENV=dev && nodemon src/worker/index.ts",
     "nodemon:database": "SET NODE_ENV=dev && nodemon src/okx/database.ts",
+    "nodemon:trader": "SET NODE_ENV=dev && nodemon src/okx/trader.ts",
+    "nodemon:server": "SET NODE_ENV=dev && nodemon src/server.ts",
     "pm2:start": "pm2 start ecosystem.config.js --env prod",
     "pm2:stop": "pm2 stop ecosystem.config.js",
     "pm2:restart": "pm2 restart ecosystem.config.js --env prod"
@@ -52,5 +53,8 @@
     "pm2": "^5.2.0",
     "technicalindicators": "^3.1.0",
     "winston": "^3.8.2"
+  },
+  "resolutions": {
+    "okx-api": "portal:/C:/Users/Basti/Documents/GitHub/okx-api"
   }
 }

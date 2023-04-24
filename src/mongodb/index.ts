@@ -191,9 +191,9 @@ class mongo {
         .sort({ start: 1 })
         .limit(limit)
         .toArray();
-      if (result.length < limit) break;
 
       values.push(...result);
+      if (result.length < limit) break;
     }
 
     return values;
@@ -239,6 +239,7 @@ class mongo {
     const query = {
       strategyName: result.strategyName,
       symbol: result.symbol,
+      start: result.start,
     };
 
     const update = {
@@ -351,7 +352,7 @@ class mongo {
   async getLatestTransaction(
     symbol: string,
     exchange: string
-  ): Promise<OrderObject | null> {
+  ): Promise<OrderObject | undefined> {
     const db = client.db("trader");
     const collectionName = db.collection(`${exchange}_${symbol}`);
     const result = await collectionName
