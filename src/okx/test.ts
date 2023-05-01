@@ -1,4 +1,10 @@
-import { calculateProfit, createUniqueId, logger, sleep } from "../utils";
+import {
+  calculateProfit,
+  createUniqueId,
+  logger,
+  sleep,
+  toDecimals,
+} from "../utils";
 import { OkxClient } from "./utils";
 
 const okxClient = new OkxClient();
@@ -15,25 +21,24 @@ async function test() {
   logger.info("Start Balance: ", totalEqStart);
   //logger.info(await okxClient.getTickers());
 
-  const instruments = await okxClient.getInstruments();
-  const instrument = instruments.find((i) => i.instId === symbol);
-  logger.info(instrument);
-  if (+totalEqStart < 10_000) return;
+  //const instruments = await okxClient.getInstruments();
+  //const instrument = instruments.find((i) => i.instId === symbol);
+  //logger.info(instrument);
 
   const id = createUniqueId(32);
   await okxClient
     .placeIOCOrder(
       symbol,
       "buy",
-      3,
+      toDecimals((50 * 5) / +okxClient.lastTicker!.last, 0), //COMP
       id,
-      "1990",
+      "42",
       {
-        tpTriggerPx: "2050", // to be safe
+        tpTriggerPx: "44", // to be safe
         tpOrdPx: "-1", //market order
       },
       {
-        slTriggerPx: "1780.23", // to be safe
+        slTriggerPx: "39", // to be safe
         slOrdPx: "-1", //market order
       }
     )
@@ -45,6 +50,7 @@ async function test() {
   const details = await okxClient.getOrderDetails(id, symbol);
   logger.debug(JSON.stringify(details, null, 2));
 
+  if (+totalEqStart < 10_000) return;
   const entryId = createUniqueId(32);
 
   //entry order

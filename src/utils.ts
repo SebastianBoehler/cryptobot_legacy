@@ -1,4 +1,10 @@
-import { Exchanges, ExitOrderObject, OrderObject } from "./types/trading";
+import BigNumber from "bignumber.js";
+import {
+  BaseBacktestOptions,
+  Exchanges,
+  ExitOrderObject,
+  OrderObject,
+} from "./types/trading";
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -177,4 +183,74 @@ export const checkHasOpenPosition = (
   lastTrade?: OrderObject
 ): lastTrade is OrderObject => {
   return lastTrade ? lastTrade.type.includes("Entry") : false;
+};
+
+export const calculateBacktestResult = (
+  trades: OrderObject[],
+  startCapital: number
+) => {
+  const exits = trades.filter(isExitOrder);
+  const holdDurations = exits.map((exit) => exit.holdDuration);
+  const avgHoldDuration =
+    holdDurations.reduce((a, b) => a + b, 0) / exits.length;
+  const netProfits = exits.map((exit) => new BigNumber(exit.netProfit));
+  const sumProfit = netProfits.reduce((a, b) => a.plus(b), BigNumber(0));
+  const netProfitInPercent = sumProfit
+    .dividedBy(startCapital)
+    .multipliedBy(100)
+    .toNumber();
+  const gotLiquidated = exits.some((trade) => trade.isLiquidated);
+
+  const executedOrders =
+    trades.filter((trade) => trade.canExecuteOrder).length / trades.length;
+
+  const shorts = exits.filter((exit) => exit.type === "Short Exit");
+  const longs = exits.filter((exit) => exit.type === "Long Exit");
+  const shortLongRatio = `${((shorts.length / exits.length) * 100).toFixed(
+    0
+  )}/${((longs.length / exits.length) * 100).toFixed(0)}`;
+
+  //calculate profit in timeframes
+  //per month
+  const months = [
+    ...new Set(
+      exits.map(({ timestamp }) =>
+        timestamp.toLocaleString("default", { month: "long" })
+      )
+    ),
+  ];
+  const profitInMonth = months.map((month) => {
+    return {
+      ...calculateProfitForTrades(
+        exits,
+        ({ timestamp }) =>
+          timestamp.toLocaleString("default", { month: "long" }) === month
+      ),
+      key: month,
+    };
+  });
+
+  const successRate =
+    exits.filter((exit) => exit.profit > 0).length / exits.length;
+
+  const lineOfBestFit = calculateLineOfBestFit(
+    exits.map((exit) => exit.netInvest)
+  );
+
+  const result: BaseBacktestOptions = {
+    successRate,
+    timestamp: new Date("2021-01-01"),
+    startCapital,
+    trades,
+    netProfit: sumProfit.toFormat(2),
+    netProfitInPercent: netProfitInPercent,
+    avgHoldDuration,
+    profitInMonth,
+    gotLiquidated,
+    shortLongRatio,
+    executedOrders,
+    lineOfBestFit,
+  };
+
+  return result;
 };

@@ -2,6 +2,8 @@ import { EntryOrderObject, ExitOrderObject } from "./trading";
 
 interface StorageItem {
   trades: (EntryOrderObject | ExitOrderObject)[];
+  highestPrice?: number;
+  lowestPrice?: number;
   indexes: {
     long_entry: 0;
     long_exit: 0;

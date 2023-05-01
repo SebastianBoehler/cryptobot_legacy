@@ -12,6 +12,15 @@ export interface GetBacktestOptions {
   testedAfter?: string;
   rule?: string;
   minProfit?: number;
+  start?: {
+    $gt: string;
+  };
+}
+
+export interface TimeAndCloseCandle {
+  start: Date;
+  close: number;
+  volume: number;
 }
 
 export interface DatabaseType {

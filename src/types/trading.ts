@@ -47,21 +47,14 @@ export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
 
 export type OrderObject = EntryOrderObject | ExitOrderObject;
 
-export interface BacktestingResult {
+export interface BaseBacktestOptions {
   successRate: number;
   timestamp: Date;
-  strategyName: string;
-  exchange: Exchanges;
   startCapital: number;
-  symbol: string;
   trades: OrderObject[];
   netProfit: string;
   netProfitInPercent: number;
-  start: Date;
-  end: Date;
   avgHoldDuration: number;
-  leverage: number;
-  hodlProfitInPercent: number;
   profitInMonth: {
     profit: number;
     netProfit: number;
@@ -73,6 +66,16 @@ export interface BacktestingResult {
   shortLongRatio: string;
   executedOrders: number;
   lineOfBestFit: number[];
+}
+
+export interface BacktestingResult extends BaseBacktestOptions {
+  strategyName: string;
+  exchange: Exchanges;
+  symbol: string;
+  start: Date;
+  end: Date;
+  leverage: number;
+  hodlProfitInPercent: number;
 }
 
 export interface Indicators {

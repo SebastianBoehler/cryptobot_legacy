@@ -27,7 +27,12 @@ class OkxClient {
   private restClient: RestClient;
   public lastTicker: TickerUpdateData | null = null;
   public subscriptions: { channel: string; instId: string }[] = [];
-  public pnl: { usd: string; profit: string } | null = null;
+  public pnl: {
+    usd: string;
+    profit: string;
+    tradeId: string;
+    liqPrice: number;
+  } | null = null;
   public candel1m: { close: string; start: Date }[] = [];
 
   constructor() {
@@ -79,12 +84,16 @@ class OkxClient {
       }
     } else if (isPositionUpdateEvent(event)) {
       //TODO: check if emitted when pos manually updated
+      //no extra event, values just set to ""
       if (event.data.length > 0) {
         this.pnl = {
           usd: event.data[0].upl,
           profit: event.data[0].uplRatio,
+          tradeId: event.data[0].tradeId,
+          liqPrice: +event.data[0].liqPx,
         };
       }
+      //logger.debug(JSON.stringify(event, null, 2));
     } else if (isOrderUpdateEvent(event)) {
       // order placed / filled / cancelled
       const data = event.data[0];

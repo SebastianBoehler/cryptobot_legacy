@@ -3,7 +3,12 @@ import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult, OrderObject } from "../types/trading";
 import { logger } from "../utils";
-import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
+import {
+  DatabaseType,
+  GeneratedCandle,
+  GetBacktestOptions,
+  TimeAndCloseCandle,
+} from "./types";
 const client = new MongoClient(config.MONGO_URL);
 
 process.on("exit", async () => {
@@ -165,12 +170,6 @@ class mongo {
   }
 
   async getTimeAndClose(database: string, symbol: string) {
-    interface TimeAndCloseCandle {
-      start: Date;
-      close: number;
-      volume: number;
-    }
-
     const values: TimeAndCloseCandle[] = [];
     const limit = 1000;
 
@@ -269,10 +268,28 @@ class mongo {
       query.timestamp = { $gte: new Date(options.testedAfter) };
     if (options?._ids)
       query._id = { $in: options._ids.map((id) => new ObjectId(id)) };
+    if (options?.start)
+      query.start = {
+        $gt: new Date(options.start.$gt),
+      };
+
+    logger.debug(query);
 
     const result = await collection.find(query).project(project).toArray();
 
     return result;
+  }
+
+  async getTradesOfBacktest(exchange: string, query: Record<string, any>) {
+    const db = client.db("backtests");
+    const collection = db.collection(exchange);
+
+    const result = await collection
+      .find(query)
+      .project<{ trades: OrderObject[] }>({ trades: 1 })
+      .toArray();
+
+    return result[0] || { trades: [] };
   }
 
   async average5mVolume(
@@ -316,13 +333,30 @@ class mongo {
   async getLatestEntry(
     database: string,
     collection: string,
-    key: string = "start"
+    key: string = "start",
+    query: Record<string, any> = {}
   ) {
     const db = client.db(database);
     const collectionName = db.collection(collection);
     const result = await collectionName
-      .find()
+      .find(query)
       .sort({ [key]: -1 })
+      .limit(1)
+      .toArray();
+    return result[0];
+  }
+
+  async getFirstEntry(
+    database: string,
+    collection: string,
+    key: string = "start",
+    query: Record<string, any> = {}
+  ) {
+    const db = client.db(database);
+    const collectionName = db.collection(collection);
+    const result = await collectionName
+      .find(query)
+      .sort({ [key]: 1 })
       .limit(1)
       .toArray();
     return result[0];
@@ -367,6 +401,26 @@ class mongo {
     const db = client.db("trader");
     const collectionName = db.collection(`${exchange}_${symbol}`);
     await collectionName.insertOne(data);
+  }
+
+  async getSetOfField(
+    database: string,
+    collection: string,
+    field: string | number
+  ) {
+    const db = client.db(database);
+    const collectionName = db.collection(collection);
+    const cursor = await collectionName.aggregate<{ _id: string }>([
+      {
+        $group: {
+          _id: `$${field}`,
+        },
+      },
+    ]);
+
+    const data = await cursor.toArray();
+    const result = data.map((d) => d._id);
+    return result;
   }
 }
 
