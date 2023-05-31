@@ -1,9 +1,12 @@
+import { GeneratedCandle } from "../mongodb/types";
+
 export type Rule = {
   long_entry: boolean[][];
   long_exit: boolean[][];
   short_entry: boolean[][];
   short_exit: boolean[][];
   noStrictVolume?: boolean;
+  saveProfits?: boolean;
 };
 
 export type Exchanges = "binance" | "coinbase" | "dydx" | "kraken" | "okx";
@@ -17,6 +20,7 @@ export interface BaseOrderObject {
   platform: Exchanges;
   invest: number;
   netInvest: number;
+  portfolio: number;
   clOrdId?: string;
   leverage?: number;
   details: Record<string, unknown>;
@@ -98,4 +102,7 @@ export interface Indicators {
   vol: number;
   RSI: number;
   ADX: { adx: number; pdi: number; mdi: number };
+  ATR: number;
+  candle: GeneratedCandle | null;
+  stochRSI: { k: number; d: number };
 }

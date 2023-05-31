@@ -239,7 +239,7 @@ export const calculateBacktestResult = (
 
   const result: BaseBacktestOptions = {
     successRate,
-    timestamp: new Date("2021-01-01"),
+    timestamp: new Date(),
     startCapital,
     trades,
     netProfit: sumProfit.toFormat(2),

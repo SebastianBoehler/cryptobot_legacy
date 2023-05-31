@@ -1,4 +1,4 @@
-import { addMinutes, differenceInMinutes, subDays } from "date-fns";
+import { addMinutes, differenceInMinutes } from "date-fns";
 import config from "./config/config";
 import { generateIndicators } from "./generateIndicators";
 import mongo from "./mongodb/index";
@@ -6,6 +6,7 @@ import {
   BacktestingResult,
   Exchanges,
   ExitOrderObject,
+  Indicators,
   Rule,
 } from "./types/trading";
 import { calculateBacktestResult, calculateProfit, logger } from "./utils";
@@ -14,7 +15,7 @@ import BigNumber from "bignumber.js";
 import { subMinutes } from "date-fns";
 const mongoClient = new mongo("admin");
 
-const startTime: Date | null = subDays(new Date(), 30 * 4);
+const startTime: Date | null = new Date("2022-11-17T19:07:00.000+00:00");
 
 BigNumber.config({
   FORMAT: {
@@ -66,11 +67,18 @@ async function backtester(exchange: Exchanges, symbol: string) {
     "15",
     "16",
     "17",
+    "18",
+    "19",
+    "20",
   ]; //as const;
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
-  const history = await mongoClient.getTimeAndClose(exchange, symbol);
+  const history = await mongoClient.getHistory(exchange, symbol, {
+    start: 1,
+    close: 1,
+    volume: 1,
+  });
   const startAndEndDates = await mongoClient.getStartAndEndDates(
     exchange,
     symbol
@@ -93,11 +101,12 @@ async function backtester(exchange: Exchanges, symbol: string) {
   outerLoop: for (let i = startOffest; i < Infinity; i++) {
     const timestamp = addMinutes(start, i);
     if (timestamp.getTime() >= end.getTime()) break;
-    if (startTime && timestamp < subMinutes(startTime, startOffest)) continue;
+    if (startTime && timestamp < subMinutes(startTime, startOffest * 2))
+      continue;
 
     //get candle form history and if not available get time<timestamp candle from db
     let candle = history.find(
-      ({ start }) => start?.getTime() === timestamp.getTime()
+      ({ start }) => start.getTime() === subMinutes(timestamp, 1).getTime()
     );
 
     if (!candle)
@@ -118,7 +127,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       indicators["60min"].getIndicators(timestamp.getTime()),
       indicators["2h"].getIndicators(timestamp.getTime()),
     ]);
-    if (startOffest * 2 > i) continue;
+    if (startOffest * 4 > i || indicators_2h.ema_55 === 0) continue;
     if (startTime && startTime > timestamp) continue;
 
     const prev_indicators_15min = indicators["15min"].prevValues;
@@ -190,7 +199,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
         netProfit < 0 && Math.abs(netProfit) >= lastNetInvest;
 
       //currently only support one step strategies
-      const strategies: Record<typeof strategyNames[number], Rule> = {
+      const strategies: Record<(typeof strategyNames)[number], Rule> = {
         "1": {
           long_entry: [
             [close < indicators_25min.bollinger_bands.lower],
@@ -633,9 +642,69 @@ async function backtester(exchange: Exchanges, symbol: string) {
           ],
           short_exit: [[holdDuration > 60 * 6 || trailingExit]],
         },
+        //really basic for indicator analysis
+        "18": {
+          long_entry: [[holdDuration > 60 * 6 || !lastTrade]],
+          long_exit: [[exit3]],
+          short_entry: [[holdDuration > 60 * 6 || !lastTrade]],
+          short_exit: [[exit3]],
+        },
+        //copy of 4 with saveProfits
+        "19": {
+          saveProfits: true,
+          long_entry: [
+            [close < indicators_60min.bollinger_bands.lower],
+            [
+              !!prev_indicators_60min &&
+                !!prev_indicators_2h &&
+                close > indicators_60min.bollinger_bands.lower &&
+                indicators_2h.MACD.histogram >
+                  prev_indicators_2h.MACD.histogram,
+            ],
+          ],
+          long_exit: [[exit2 || holdDuration > 60 * 24]],
+          short_entry: [
+            [exchangeConfig.derivatesEnabled],
+            [close > indicators_60min.bollinger_bands.upper],
+            [
+              !!prev_indicators_60min &&
+                !!prev_indicators_2h &&
+                close < indicators_60min.bollinger_bands.upper &&
+                indicators_2h.MACD.histogram <
+                  prev_indicators_2h.MACD.histogram,
+            ],
+          ],
+          short_exit: [[exit2 || holdDuration > 60 * 24]],
+        },
+        //16 with saveProfits
+        "20": {
+          saveProfits: true,
+          long_entry: [
+            [close < indicators_15min.bollinger_bands.lower],
+            [
+              !!prev_indicators_15min &&
+                close > indicators_15min.bollinger_bands.lower &&
+                indicators_15min.MACD.histogram >
+                  prev_indicators_15min.MACD.histogram,
+            ],
+          ],
+          long_exit: [[exit3 || holdDuration > 60 * 6 || trailingExit]],
+          short_entry: [
+            [exchangeConfig.derivatesEnabled],
+            [close > indicators_15min.bollinger_bands.upper],
+            [
+              !!prev_indicators_15min &&
+                close < indicators_15min.bollinger_bands.upper &&
+                indicators_15min.MACD.histogram <
+                  prev_indicators_15min.MACD.histogram,
+            ],
+          ],
+          short_exit: [[exit3 || holdDuration > 60 * 6 || trailingExit]],
+        },
       };
 
       const strategy = strategies[strategyName];
+      strategy.saveProfits = true;
 
       //check all conditions
       const longEntryChecks =
@@ -656,18 +725,41 @@ async function backtester(exchange: Exchanges, symbol: string) {
       if (shortExitChecks && shortExitChecks.every((condition) => condition))
         storage[strategyName].indexes.short_exit++;
 
+      const extendIndicators = (item: Indicators) => {
+        return {
+          ...item,
+          ADX: {
+            ...item.ADX,
+            diff: item.ADX.pdi / item.ADX.mdi,
+            strong: +(item.ADX.adx > 25 && item.ADX.adx < 50),
+            veryStrong: +(item.ADX.adx > 50 && item.ADX.adx < 75),
+            extremelyStrong: +(item.ADX.adx > 75),
+          },
+          bollinger_bands: {
+            ...item.bollinger_bands,
+            diff: item.bollinger_bands.upper / item.bollinger_bands.lower,
+          },
+          stochRSI: {
+            ...item.stochRSI,
+            diff: item.stochRSI.k / item.stochRSI.d,
+          },
+          holdDuration,
+        };
+      };
+
       const object = {
         timestamp,
         price: close,
         platform: exchange,
         invest: (lastTrade?.netInvest || startCapital) * leverage,
         netInvest: lastTrade ? netInvest : startCapital,
+        portfolio: lastTrade ? lastTrade.portfolio + netProfit : startCapital,
         fee,
         holdDuration,
         details: {
-          indicators_25min,
-          indicators_60min,
-          indicators_2h,
+          indicators_25min: extendIndicators(indicators_25min),
+          indicators_60min: extendIndicators(indicators_60min),
+          indicators_2h: extendIndicators(indicators_2h),
           candle,
           highestPrice,
           lowestPrice,
@@ -700,6 +792,11 @@ async function backtester(exchange: Exchanges, symbol: string) {
           //logger.debug(`Prices since entry: ${pricesSinceEntry.length}`);
           const highestPrice = Math.max(...pricesSinceEntry);
           const lowestPrice = Math.min(...pricesSinceEntry);
+
+          if (netProfit > 10 && strategy.saveProfits) {
+            object.netInvest =
+              (lastTrade.netInvest ?? startCapital) + netProfit * 0.5;
+          }
 
           const exitObject: ExitOrderObject = {
             ...object,

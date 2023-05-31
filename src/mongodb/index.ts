@@ -3,12 +3,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult, OrderObject } from "../types/trading";
 import { logger } from "../utils";
-import {
-  DatabaseType,
-  GeneratedCandle,
-  GetBacktestOptions,
-  TimeAndCloseCandle,
-} from "./types";
+import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
 const client = new MongoClient(config.MONGO_URL);
 
 process.on("exit", async () => {
@@ -169,12 +164,27 @@ class mongo {
     };
   }
 
-  async getTimeAndClose(database: string, symbol: string) {
-    const values: TimeAndCloseCandle[] = [];
+  async getHistory(
+    database: string,
+    symbol: string,
+    projection: Record<string, 1 | 0>
+  ) {
+    return await this.loadAllEntries(database, symbol, projection, {
+      start: 1,
+    });
+  }
+
+  private async loadAllEntries(
+    database: string,
+    collectionName: string,
+    projection: Record<string, 1 | 0>,
+    sort: { [key: string]: 1 | -1 }
+  ) {
+    const values: any[] = [];
     const limit = 1000;
 
     const db = client.db(database);
-    const collection = db.collection(symbol);
+    const collection = db.collection(collectionName);
 
     while (true) {
       const lastTimestamp = values[values.length - 1]
@@ -186,8 +196,8 @@ class mongo {
             $gt: lastTimestamp,
           },
         })
-        .project<TimeAndCloseCandle>({ start: 1, close: 1, volume: 1 })
-        .sort({ start: 1 })
+        .project(projection)
+        .sort(sort)
         .limit(limit)
         .toArray();
 

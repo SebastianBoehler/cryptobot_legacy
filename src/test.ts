@@ -1,4 +1,4 @@
-import { addDays } from "date-fns";
+import { addDays, subDays } from "date-fns";
 import Mongo from "./mongodb/index";
 import { Exchanges } from "./types/trading";
 import { calculateBacktestResult } from "./utils";
@@ -18,7 +18,7 @@ async function main() {
     "symbol"
   );
   const start = new Date("2022-12-31T07:16:42.198+00:00");
-  const overallResult = [];
+  const allTrades = [];
 
   ruleLoop: for (const rule of setOfRules) {
     const allTradesPromise = setOfSymbols.map(async (symbol) => {
@@ -31,73 +31,90 @@ async function main() {
       const result = calculateBacktestResult(trades, trades[0]?.netInvest || 0);
       return { symbol, rule, trades, result };
     });
-    const allTrades = await Promise.all(allTradesPromise);
-
-    //create an array of dates in weekly intervals from start to now
-    const dates = [start];
-    while (dates[dates.length - 1] < new Date()) {
-      dates.push(addDays(dates[dates.length - 1], 21));
-    }
-
+    const trades = await Promise.all(allTradesPromise);
+    allTrades.push(...trades);
     //console.log(allTrades);
-
-    const profits = [];
-    let prevResults = null;
-    for (const [i, date] of dates.entries()) {
-      if (i === 0) continue;
-      //calculate backtest result for each symbol in the current timeframe
-      const tempResults = allTrades.map((trade) => {
-        const { trades } = trade;
-        const filteredTrades = trades.filter(
-          (trade) => trade.timestamp <= date && trade.timestamp >= dates[i - 1]
-        );
-        const tempResult = calculateBacktestResult(
-          filteredTrades,
-          filteredTrades[0]?.netInvest || 0
-        );
-        return { ...trade, trades: filteredTrades, result: tempResult };
-      });
-
-      const tempResultsSorted = tempResults.sort(
-        (a, b) => b.result.netProfitInPercent - a.result.netProfitInPercent
-      );
-      if (prevResults) {
-        const bestPrev = prevResults[0];
-        //trade the symbol that was best last time
-        const current = tempResultsSorted.find(
-          (trade) => trade.symbol === bestPrev.symbol
-        );
-        if (current) {
-          profits.push(
-            new BigNumber(current.result.netProfitInPercent / 100 + 1)
-          );
-          console.log(
-            `Prev best ${bestPrev.result.netProfitInPercent} Current best ${current.result.netProfitInPercent}`
-          );
-          if (current.result.netProfitInPercent < -100) {
-            debugger;
-          }
-        }
-      }
-      prevResults = tempResultsSorted;
-      //if (i >= 3) break;
-    }
-
-    //calc total profit prev profit * current profit
-    const totalProfit = profits.reduce(
-      (acc, curr) => acc.times(curr),
-      BigNumber(1)
-    );
-    console.log({ rule, totalProfit: totalProfit.toNumber() });
-
-    overallResult.push({
-      rule,
-      totalProfit: totalProfit.toFixed(2),
-      profitInPercent: (totalProfit.toNumber() - 1) * 100,
-    });
   }
 
-  console.log(JSON.stringify(overallResult, null, 2));
+  //create an array of dates in intervals from start to now
+  //how often to get backtets result and decide if it is worth to invest
+  const dates = [start];
+  while (dates[dates.length - 1] < new Date()) {
+    dates.push(addDays(dates[dates.length - 1], 2));
+  }
+
+  const profits = [];
+  let prevResults = null;
+  const listOfDates = dates.entries();
+  for (const [i, date] of listOfDates) {
+    if (i <= 6) continue;
+
+    const tempResults = allTrades.map((trade) => {
+      const { trades } = trade;
+      const filteredTrades = trades.filter(
+        ({ timestamp }) => timestamp <= date && timestamp > subDays(date, 7) //10 = 1.76
+      );
+      const tempResult = calculateBacktestResult(
+        filteredTrades,
+        filteredTrades[0]?.netInvest || 0
+      );
+      return { ...trade, result: tempResult, trades: filteredTrades };
+    });
+
+    //sort by netProfitInPercent and if NaN then put to the end
+    const tempResultsSorted = tempResults
+      .filter((item) => !isNaN(item.result.netProfitInPercent))
+      .sort(
+        (a, b) => b.result.netProfitInPercent - a.result.netProfitInPercent
+      );
+
+    console.log(`Day ${i - 6} ${date.toISOString()}`);
+
+    if (prevResults) {
+      //TODO: use best 10 and get the best where all criteria are met
+      const bestPrev = prevResults[0];
+      if (!bestPrev) continue;
+      const { result } = bestPrev;
+      if (
+        bestPrev &&
+        result.netProfitInPercent > 30 &&
+        result.successRate > 0.4
+        //result.avgHoldDuration < 400
+      ) {
+        //calculate profit for last best on this day
+        const result = allTrades.find(
+          (item) =>
+            item.symbol === bestPrev.symbol && item.rule === bestPrev.rule
+        )!;
+        const trades = result.trades.filter(
+          (trade) =>
+            trade.timestamp <= date && trade.timestamp > subDays(date, 1)
+        );
+
+        const current = calculateBacktestResult(
+          trades,
+          trades[0]?.netInvest || 0
+        );
+
+        if (!isNaN(current.netProfitInPercent))
+          profits.push(new BigNumber(current.netProfitInPercent / 100 + 1));
+        console.log(
+          `Prev best ${bestPrev.result.netProfitInPercent} Current best ${current.netProfitInPercent}`
+        );
+      } else {
+        console.log("skip day ingored profit");
+      }
+    }
+    prevResults = tempResultsSorted;
+    //if (i >= 3) break;
+  }
+
+  //calc total profit prev profit * current profit
+  const totalProfit = profits.reduce(
+    (acc, curr) => acc.times(curr),
+    BigNumber(1)
+  );
+  console.log({ totalProfit: totalProfit.toNumber() });
 }
 
 main();

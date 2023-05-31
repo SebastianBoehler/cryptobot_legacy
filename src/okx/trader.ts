@@ -89,8 +89,8 @@ async function placeEntry(
 
   const tpChange = 0.04; //4%
   const slChange = 0.02; //2%
-  const tpFactor = type.includes("Long") ? 1 + tpChange : 1 - tpChange; //5% price change profit
-  const slFactor = type.includes("Long") ? 1 - slChange : 1 + slChange; //2.5% price change loss
+  const tpFactor = type.includes("Long") ? 1 + tpChange : 1 - tpChange; //4% price change profit
+  const slFactor = type.includes("Long") ? 1 - slChange : 1 + slChange; //2% price change loss
 
   const size = toDecimals(amount, sizeDecimalPlaces);
   const maxSlippagePrice = side === "buy" ? price * 1.01 : price * 0.99; //1% slippage
@@ -130,6 +130,7 @@ async function placeEntry(
       ...object.details,
       ordDetails: details,
       lastTicker: okxClient.lastTicker,
+      slippage: Math.abs(price / +details.avgPx - 1),
     },
   });
   resetStorage();
@@ -191,9 +192,10 @@ async function trader() {
       price > storage.lowestPrice * 1.015 &&
       !isLong);
 
+  //!! trading disabled
   const strategy: Rule = {
     long_entry: [
-      [price < indicators_25min.bollinger_bands.lower],
+      [false],
       [
         !!prev_indicators_25min &&
           !!prev_indicators_60min &&
@@ -205,7 +207,7 @@ async function trader() {
     ],
     long_exit: [[exit || holdDuration > 60 * 12 || trailingExit]],
     short_entry: [
-      [price > indicators_25min.bollinger_bands.upper],
+      [false],
       [
         !!prev_indicators_25min &&
           !!prev_indicators_60min &&
@@ -296,7 +298,7 @@ async function trader() {
         },
         +details.avgPx
       );
-      const type = longExit ? "Long Exit" : "Short Exit";
+      const type = isLong ? "Long Exit" : "Short Exit";
       const positionSize = (+details.avgPx * +details.accFillSz) / multiplier;
       //fee included here
       const netProfitInPercent = (netProfit / lastTrade.netInvest) * 100;
@@ -320,6 +322,7 @@ async function trader() {
           ...object.details,
           calcProfit,
           ordDetails: details,
+          slippage: Math.abs(price / +details.avgPx - 1),
         },
         leverage: +details.lever,
       });
@@ -377,7 +380,7 @@ async function main() {
   await sleep(1000 * 2);
   while (true) {
     trader();
-    await sleep(1000 * 10);
+    await sleep(1000 * 4);
   }
 }
 

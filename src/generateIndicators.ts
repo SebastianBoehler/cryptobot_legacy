@@ -1,4 +1,12 @@
-import { EMA, BollingerBands, MACD, RSI, ADX } from "@debut/indicators";
+import {
+  EMA,
+  BollingerBands,
+  MACD,
+  RSI,
+  ADX,
+  ATR,
+  Stochastic,
+} from "@debut/indicators";
 import { format, subMinutes } from "date-fns";
 import mongodb from "./mongodb";
 import { Indicators } from "./types/trading";
@@ -13,10 +21,12 @@ class generateIndicators {
     ema_13: new EMA(13),
     ema_21: new EMA(21),
     ema_55: new EMA(55),
-    bollinger_bands: new BollingerBands(),
+    bollinger_bands: new BollingerBands(15, 2),
     MACD: new MACD(),
-    RSI: new RSI(),
+    RSI: new RSI(14),
+    stochRSI: new Stochastic(14, 14),
     ADX: new ADX(),
+    ATR: new ATR(14, "EMA"),
   };
   private granularity: number;
   public lastValues: Indicators = {
@@ -39,6 +49,9 @@ class generateIndicators {
     vol: 0,
     RSI: 0,
     ADX: { adx: 0, pdi: 0, mdi: 0 },
+    ATR: 0,
+    stochRSI: { k: 0, d: 0 },
+    candle: null,
   };
   public prevValues: Indicators | null = null;
   private lastTimestamp: string | null = null;
@@ -94,6 +107,9 @@ class generateIndicators {
         vol: candle.volume,
         RSI: this.indicators.RSI.nextValue(close),
         ADX: this.indicators.ADX.nextValue(high, low, close),
+        ATR: this.indicators.ATR.nextValue(high, low, close),
+        stochRSI: this.indicators.stochRSI.nextValue(high, low, close),
+        candle,
       };
 
       if (!obj.bollinger_bands || !obj.MACD) {
