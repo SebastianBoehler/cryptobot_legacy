@@ -237,6 +237,13 @@ export const calculateBacktestResult = (
     exits.map((exit) => exit.netInvest)
   );
 
+  //avg timeInLoss
+  const avgTimeInLoss =
+    exits.reduce((acc, exit) => acc + exit.timeInLoss, 0) / exits.length;
+  const avgTimeInLossInPercent =
+    exits.reduce((acc, exit) => acc + exit.timeInLossInPercent, 0) /
+    exits.length;
+
   const result: BaseBacktestOptions = {
     successRate,
     timestamp: new Date(),
@@ -250,6 +257,8 @@ export const calculateBacktestResult = (
     shortLongRatio,
     executedOrders,
     lineOfBestFit,
+    avgTimeInLoss,
+    avgTimeInLossInPercent,
   };
 
   return result;

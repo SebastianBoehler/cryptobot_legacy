@@ -1,6 +1,6 @@
 import { addDays, subDays } from "date-fns";
 import Mongo from "./mongodb/index";
-import { Exchanges } from "./types/trading";
+import { Exchanges, OrderObject } from "./types/trading";
 import { calculateBacktestResult } from "./utils";
 import BigNumber from "bignumber.js";
 const mongo = new Mongo("okx");
@@ -17,8 +17,9 @@ async function main() {
     exchange,
     "symbol"
   );
-  const start = new Date("2022-12-31T07:16:42.198+00:00");
-  const allTrades = [];
+  const start = new Date("2022-11-17T19:06:00");
+  const allResults = [];
+  const allTrades: OrderObject[] = [];
 
   ruleLoop: for (const rule of setOfRules) {
     const allTradesPromise = setOfSymbols.map(async (symbol) => {
@@ -26,21 +27,22 @@ async function main() {
       const { trades } = await mongo.getTradesOfBacktest(exchange, {
         strategyName: rule,
         symbol,
-        start,
+        //start,
       });
       const result = calculateBacktestResult(trades, trades[0]?.netInvest || 0);
       return { symbol, rule, trades, result };
     });
     const trades = await Promise.all(allTradesPromise);
-    allTrades.push(...trades);
+    allResults.push(...trades);
     //console.log(allTrades);
   }
 
   //create an array of dates in intervals from start to now
   //how often to get backtets result and decide if it is worth to invest
+  const dayInterval = 2;
   const dates = [start];
   while (dates[dates.length - 1] < new Date()) {
-    dates.push(addDays(dates[dates.length - 1], 2));
+    dates.push(addDays(dates[dates.length - 1], dayInterval));
   }
 
   const profits = [];
@@ -49,10 +51,10 @@ async function main() {
   for (const [i, date] of listOfDates) {
     if (i <= 6) continue;
 
-    const tempResults = allTrades.map((trade) => {
+    const tempResults = allResults.map((trade) => {
       const { trades } = trade;
       const filteredTrades = trades.filter(
-        ({ timestamp }) => timestamp <= date && timestamp > subDays(date, 7) //10 = 1.76
+        ({ timestamp }) => timestamp <= date && timestamp > subDays(date, 12) //10 = 1.76
       );
       const tempResult = calculateBacktestResult(
         filteredTrades,
@@ -68,28 +70,34 @@ async function main() {
         (a, b) => b.result.netProfitInPercent - a.result.netProfitInPercent
       );
 
-    console.log(`Day ${i - 6} ${date.toISOString()}`);
+    console.log(`Date ${i - 6} ${date.toISOString()}`);
 
     if (prevResults) {
       //TODO: use best 10 and get the best where all criteria are met
       const bestPrev = prevResults[0];
-      if (!bestPrev) continue;
+      if (!bestPrev) {
+        prevResults = tempResultsSorted;
+        continue;
+      }
       const { result } = bestPrev;
       if (
         bestPrev &&
         result.netProfitInPercent > 30 &&
-        result.successRate > 0.4
+        result.successRate > 0.4 &&
+        result.avgTimeInLossInPercent < 40
         //result.avgHoldDuration < 400
       ) {
         //calculate profit for last best on this day
-        const result = allTrades.find(
+        const result = allResults.find(
           (item) =>
             item.symbol === bestPrev.symbol && item.rule === bestPrev.rule
         )!;
         const trades = result.trades.filter(
           (trade) =>
-            trade.timestamp <= date && trade.timestamp > subDays(date, 1)
+            trade.timestamp <= date &&
+            trade.timestamp > subDays(date, dayInterval)
         );
+        allTrades.push(...trades);
 
         const current = calculateBacktestResult(
           trades,
@@ -114,7 +122,17 @@ async function main() {
     (acc, curr) => acc.times(curr),
     BigNumber(1)
   );
-  console.log({ totalProfit: totalProfit.toNumber() });
+  const result = calculateBacktestResult(
+    allTrades,
+    allTrades[0]?.netInvest || 0
+  );
+  const { successRate, avgHoldDuration, avgTimeInLossInPercent } = result;
+  console.log({
+    totalProfit: totalProfit.toNumber(),
+    successRate,
+    avgHoldDuration,
+    avgTimeInLossInPercent,
+  });
 }
 
 main();

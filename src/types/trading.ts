@@ -47,6 +47,8 @@ export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
   highestPrice?: number;
   lowestPrice?: number;
   isLiquidated: boolean;
+  timeInLoss: number;
+  timeInLossInPercent: number;
 }
 
 export type OrderObject = EntryOrderObject | ExitOrderObject;
@@ -70,6 +72,8 @@ export interface BaseBacktestOptions {
   shortLongRatio: string;
   executedOrders: number;
   lineOfBestFit: number[];
+  avgTimeInLoss: number;
+  avgTimeInLossInPercent: number;
 }
 
 export interface BacktestingResult extends BaseBacktestOptions {

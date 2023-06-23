@@ -22,6 +22,9 @@ client.on("disconnected", () => {
 client.on("error", (err) => {
   logger.error("MongoDB error", err);
 });
+client.on("open", () => {
+  logger.info(`MongoDB connected to ${config.MONGO_URL}`);
+});
 
 class mongo {
   private db: string;
