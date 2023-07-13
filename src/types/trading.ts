@@ -109,4 +109,10 @@ export interface Indicators {
   ATR: number;
   candle: GeneratedCandle | null;
   stochRSI: { k: number; d: number };
+  HA: {
+    o: number;
+    c: number;
+    h: number;
+    l: number;
+  };
 }

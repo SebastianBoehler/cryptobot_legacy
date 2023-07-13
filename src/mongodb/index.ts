@@ -1,9 +1,11 @@
-import { subMinutes } from "date-fns";
+import { subDays, subMinutes } from "date-fns";
 import { MongoClient, ObjectId } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult, OrderObject } from "../types/trading";
-import { logger } from "../utils";
+import { createChunks, logger } from "../utils";
 import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
+import fs from "fs";
+import path from "path";
 const client = new MongoClient(config.MONGO_URL);
 
 process.on("exit", async () => {
@@ -434,6 +436,63 @@ class mongo {
     const data = await cursor.toArray();
     const result = data.map((d) => d._id);
     return result;
+  }
+
+  async symbolsSortedByVolume(
+    database: string,
+    loadFromFile: boolean = false
+  ): Promise<{ symbol: string; volume: number }[]> {
+    if (loadFromFile) {
+      const raw = fs.readFileSync(
+        path.join(__dirname, `./volumes_${database}.json`),
+        "utf-8"
+      );
+      const data = JSON.parse(raw);
+      return data;
+    }
+    const symbols = await this.existingCollections(database);
+    const chunkedSymbols = createChunks(symbols, 4);
+    const db = client.db(database);
+
+    const pipeline = [
+      {
+        $match: {
+          start: {
+            $gte: subDays(new Date(), 30),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          volume: {
+            $sum: {
+              $convert: {
+                input: "$volume",
+                to: "double",
+              },
+            },
+          },
+        },
+      },
+    ];
+
+    const volumes: { symbol: string; volume: number }[] = [];
+    for (const chunk of chunkedSymbols) {
+      const result = await Promise.all(
+        chunk.map(async (symbol) => {
+          const collection = db.collection(symbol);
+          const data = await collection.aggregate(pipeline).toArray();
+          return { symbol, volume: data[0]?.volume || 0 };
+        })
+      );
+
+      volumes.push(...result);
+    }
+
+    const sorted = volumes.sort((a, b) => b.volume - a.volume);
+
+    return sorted;
   }
 }
 

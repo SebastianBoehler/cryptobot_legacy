@@ -1,0 +1,598 @@
+[
+  {
+    "symbol": "BTC-USDT-SWAP",
+    "volume": 133730708805.532
+  },
+  {
+    "symbol": "ETH-USDT-SWAP",
+    "volume": 122293820982.56
+  },
+  {
+    "symbol": "BCH-USDT-SWAP",
+    "volume": 16881234269.355
+  },
+  {
+    "symbol": "BTC-USD-SWAP",
+    "volume": 16271136700
+  },
+  {
+    "symbol": "LTC-USDT-SWAP",
+    "volume": 12091641614.01
+  },
+  {
+    "symbol": "ETH-USD-SWAP",
+    "volume": 10347648210
+  },
+  {
+    "symbol": "XRP-USDT-SWAP",
+    "volume": 4838312894.966
+  },
+  {
+    "symbol": "SOL-USDT-SWAP",
+    "volume": 4758660463.589
+  },
+  {
+    "symbol": "DOGE-USDT-SWAP",
+    "volume": 4745003373.46
+  },
+  {
+    "symbol": "CFX-USDT-SWAP",
+    "volume": 4479042616.5862
+  },
+  {
+    "symbol": "BNB-USDT-SWAP",
+    "volume": 3243558598.7237
+  },
+  {
+    "symbol": "FIL-USDT-SWAP",
+    "volume": 3197681928.0146
+  },
+  {
+    "symbol": "OP-USDT-SWAP",
+    "volume": 3015791570.6474
+  },
+  {
+    "symbol": "ETC-USDT-SWAP",
+    "volume": 2583805610.47
+  },
+  {
+    "symbol": "APT-USDT-SWAP",
+    "volume": 2441346775.3327
+  },
+  {
+    "symbol": "WAVES-USDT-SWAP",
+    "volume": 2097320577.29
+  },
+  {
+    "symbol": "MATIC-USDT-SWAP",
+    "volume": 2068197791.038
+  },
+  {
+    "symbol": "EOS-USDT-SWAP",
+    "volume": 1988326871.841
+  },
+  {
+    "symbol": "COMP-USDT-SWAP",
+    "volume": 1628604421.858
+  },
+  {
+    "symbol": "ADA-USDT-SWAP",
+    "volume": 1575029520.953
+  },
+  {
+    "symbol": "LTC-USD-SWAP",
+    "volume": 1523579570
+  },
+  {
+    "symbol": "MASK-USDT-SWAP",
+    "volume": 1506209188.64
+  },
+  {
+    "symbol": "BSV-USDT-SWAP",
+    "volume": 1187788617.96
+  },
+  {
+    "symbol": "STORJ-USDT-SWAP",
+    "volume": 1098489706.583
+  },
+  {
+    "symbol": "APE-USDT-SWAP",
+    "volume": 897444673.26881
+  },
+  {
+    "symbol": "LINK-USDT-SWAP",
+    "volume": 863322323.773
+  },
+  {
+    "symbol": "DOT-USDT-SWAP",
+    "volume": 850364913.999
+  },
+  {
+    "symbol": "LUNC-USDT-SWAP",
+    "volume": 841063854.0812
+  },
+  {
+    "symbol": "AAVE-USDT-SWAP",
+    "volume": 787424877.821
+  },
+  {
+    "symbol": "SHIB-USDT-SWAP",
+    "volume": 770364367.14
+  },
+  {
+    "symbol": "DYDX-USDT-SWAP",
+    "volume": 745369562.586
+  },
+  {
+    "symbol": "CRV-USDT-SWAP",
+    "volume": 724167676.981
+  },
+  {
+    "symbol": "FIL-USD-SWAP",
+    "volume": 658390300
+  },
+  {
+    "symbol": "UNI-USDT-SWAP",
+    "volume": 651079280.645
+  },
+  {
+    "symbol": "FTM-USDT-SWAP",
+    "volume": 647789618.251
+  },
+  {
+    "symbol": "ALPHA-USDT-SWAP",
+    "volume": 611580420.0816
+  },
+  {
+    "symbol": "GALA-USDT-SWAP",
+    "volume": 592744700.3618
+  },
+  {
+    "symbol": "AXS-USDT-SWAP",
+    "volume": 580113759.5212
+  },
+  {
+    "symbol": "BCH-USD-SWAP",
+    "volume": 532379700
+  },
+  {
+    "symbol": "ATOM-USDT-SWAP",
+    "volume": 519741684.435
+  },
+  {
+    "symbol": "AGLD-USDT-SWAP",
+    "volume": 504624489.2189
+  },
+  {
+    "symbol": "AVAX-USDT-SWAP",
+    "volume": 500782348.56
+  },
+  {
+    "symbol": "TRX-USDT-SWAP",
+    "volume": 496418524.88
+  },
+  {
+    "symbol": "SAND-USDT-SWAP",
+    "volume": 462724584.294
+  },
+  {
+    "symbol": "DOGE-USD-SWAP",
+    "volume": 457185060
+  },
+  {
+    "symbol": "NEAR-USDT-SWAP",
+    "volume": 453872831.492
+  },
+  {
+    "symbol": "PEOPLE-USDT-SWAP",
+    "volume": 416945875.355
+  },
+  {
+    "symbol": "MKR-USDT-SWAP",
+    "volume": 404517455.189
+  },
+  {
+    "symbol": "OMG-USDT-SWAP",
+    "volume": 402360944.9982
+  },
+  {
+    "symbol": "ANT-USDT-SWAP",
+    "volume": 398713346.757
+  },
+  {
+    "symbol": "EOS-USD-SWAP",
+    "volume": 350843800
+  },
+  {
+    "symbol": "GRT-USDT-SWAP",
+    "volume": 335361931.2619
+  },
+  {
+    "symbol": "SUSHI-USDT-SWAP",
+    "volume": 333535640.0259
+  },
+  {
+    "symbol": "LUNA-USDT-SWAP",
+    "volume": 319135758.024
+  },
+  {
+    "symbol": "SNX-USDT-SWAP",
+    "volume": 296321994.418
+  },
+  {
+    "symbol": "CELO-USDT-SWAP",
+    "volume": 276184322.8473
+  },
+  {
+    "symbol": "MANA-USDT-SWAP",
+    "volume": 275790173.769
+  },
+  {
+    "symbol": "XRP-USD-SWAP",
+    "volume": 274666380
+  },
+  {
+    "symbol": "ETHW-USDT-SWAP",
+    "volume": 268580267.5853
+  },
+  {
+    "symbol": "QTUM-USDT-SWAP",
+    "volume": 265170555.493
+  },
+  {
+    "symbol": "FLM-USDT-SWAP",
+    "volume": 260699846.67
+  },
+  {
+    "symbol": "ZEC-USDT-SWAP",
+    "volume": 260492995.324
+  },
+  {
+    "symbol": "IMX-USDT-SWAP",
+    "volume": 252503407.2129
+  },
+  {
+    "symbol": "DASH-USDT-SWAP",
+    "volume": 246178612.965
+  },
+  {
+    "symbol": "REN-USDT-SWAP",
+    "volume": 246000204.0784
+  },
+  {
+    "symbol": "ICP-USDT-SWAP",
+    "volume": 241571570.71398
+  },
+  {
+    "symbol": "GMT-USDT-SWAP",
+    "volume": 235391858.3974
+  },
+  {
+    "symbol": "ZIL-USDT-SWAP",
+    "volume": 221769665.584
+  },
+  {
+    "symbol": "BTC-USDC-SWAP",
+    "volume": 199618271.69187
+  },
+  {
+    "symbol": "NEO-USDT-SWAP",
+    "volume": 193365305.725
+  },
+  {
+    "symbol": "ETC-USD-SWAP",
+    "volume": 189343590
+  },
+  {
+    "symbol": "XMR-USDT-SWAP",
+    "volume": 186606386.789
+  },
+  {
+    "symbol": "YFI-USDT-SWAP",
+    "volume": 186494244.1538
+  },
+  {
+    "symbol": "MINA-USDT-SWAP",
+    "volume": 179847355.2351
+  },
+  {
+    "symbol": "CHZ-USDT-SWAP",
+    "volume": 176385995.197
+  },
+  {
+    "symbol": "ALGO-USDT-SWAP",
+    "volume": 175808386.898
+  },
+  {
+    "symbol": "ZEN-USDT-SWAP",
+    "volume": 175707972.327
+  },
+  {
+    "symbol": "XLM-USDT-SWAP",
+    "volume": 174022838.825
+  },
+  {
+    "symbol": "ETH-USDC-SWAP",
+    "volume": 170948021.21976
+  },
+  {
+    "symbol": "YFII-USDT-SWAP",
+    "volume": 162325556.5968
+  },
+  {
+    "symbol": "CEL-USDT-SWAP",
+    "volume": 162157007.178
+  },
+  {
+    "symbol": "ADA-USD-SWAP",
+    "volume": 141929730
+  },
+  {
+    "symbol": "ENS-USDT-SWAP",
+    "volume": 137247801.0466
+  },
+  {
+    "symbol": "USTC-USDT-SWAP",
+    "volume": 136590817.264
+  },
+  {
+    "symbol": "BAND-USDT-SWAP",
+    "volume": 134544720.958
+  },
+  {
+    "symbol": "ONT-USDT-SWAP",
+    "volume": 128867227.703
+  },
+  {
+    "symbol": "1INCH-USDT-SWAP",
+    "volume": 117953172.4004
+  },
+  {
+    "symbol": "LRC-USDT-SWAP",
+    "volume": 114565229.619
+  },
+  {
+    "symbol": "RVN-USDT-SWAP",
+    "volume": 107572400.0668
+  },
+  {
+    "symbol": "KSM-USDT-SWAP",
+    "volume": 106452937.424
+  },
+  {
+    "symbol": "SOL-USD-SWAP",
+    "volume": 104842410
+  },
+  {
+    "symbol": "BSV-USD-SWAP",
+    "volume": 104085720
+  },
+  {
+    "symbol": "KNC-USDT-SWAP",
+    "volume": 101316659.50659999
+  },
+  {
+    "symbol": "LOOKS-USDT-SWAP",
+    "volume": 96201929.10177
+  },
+  {
+    "symbol": "DOT-USD-SWAP",
+    "volume": 86694150
+  },
+  {
+    "symbol": "FITFI-USDT-SWAP",
+    "volume": 84340159.36315
+  },
+  {
+    "symbol": "LPT-USDT-SWAP",
+    "volume": 82454040.534
+  },
+  {
+    "symbol": "THETA-USDT-SWAP",
+    "volume": 81606938.196
+  },
+  {
+    "symbol": "UNI-USD-SWAP",
+    "volume": 81336410
+  },
+  {
+    "symbol": "LINK-USD-SWAP",
+    "volume": 77673570
+  },
+  {
+    "symbol": "XTZ-USDT-SWAP",
+    "volume": 75063479.508
+  },
+  {
+    "symbol": "ENJ-USDT-SWAP",
+    "volume": 73960629.8845
+  },
+  {
+    "symbol": "ZRX-USDT-SWAP",
+    "volume": 73668386.43
+  },
+  {
+    "symbol": "EGLD-USDT-SWAP",
+    "volume": 72532208.322
+  },
+  {
+    "symbol": "YGG-USDT-SWAP",
+    "volume": 72056124.447
+  },
+  {
+    "symbol": "RSR-USDT-SWAP",
+    "volume": 67443461.837
+  },
+  {
+    "symbol": "IOTA-USDT-SWAP",
+    "volume": 62187808.044
+  },
+  {
+    "symbol": "TRB-USDT-SWAP",
+    "volume": 58443524.676
+  },
+  {
+    "symbol": "TON-USDT-SWAP",
+    "volume": 57312062.649
+  },
+  {
+    "symbol": "CSPR-USDT-SWAP",
+    "volume": 56079176.31708
+  },
+  {
+    "symbol": "UMA-USDT-SWAP",
+    "volume": 54286698.6033
+  },
+  {
+    "symbol": "ZEC-USD-SWAP",
+    "volume": 50396070
+  },
+  {
+    "symbol": "BAL-USDT-SWAP",
+    "volume": 44039346.6654
+  },
+  {
+    "symbol": "BAT-USDT-SWAP",
+    "volume": 42911360.281
+  },
+  {
+    "symbol": "KLAY-USDT-SWAP",
+    "volume": 41777869.279
+  },
+  {
+    "symbol": "CVC-USDT-SWAP",
+    "volume": 39541550.77
+  },
+  {
+    "symbol": "CRO-USDT-SWAP",
+    "volume": 35176794.9643
+  },
+  {
+    "symbol": "XCH-USDT-SWAP",
+    "volume": 33089649.6913
+  },
+  {
+    "symbol": "DASH-USD-SWAP",
+    "volume": 32358900
+  },
+  {
+    "symbol": "STARL-USDT-SWAP",
+    "volume": 32057306.3272
+  },
+  {
+    "symbol": "CRV-USD-SWAP",
+    "volume": 31631530
+  },
+  {
+    "symbol": "ATOM-USD-SWAP",
+    "volume": 31258670
+  },
+  {
+    "symbol": "DORA-USDT-SWAP",
+    "volume": 30692262.2261
+  },
+  {
+    "symbol": "API3-USDT-SWAP",
+    "volume": 28187995.281
+  },
+  {
+    "symbol": "IOST-USDT-SWAP",
+    "volume": 27040533.997
+  },
+  {
+    "symbol": "SLP-USDT-SWAP",
+    "volume": 25990883.98127
+  },
+  {
+    "symbol": "PERP-USDT-SWAP",
+    "volume": 24799342.8883
+  },
+  {
+    "symbol": "JST-USDT-SWAP",
+    "volume": 23785334.043
+  },
+  {
+    "symbol": "SWEAT-USDT-SWAP",
+    "volume": 23652235.93713
+  },
+  {
+    "symbol": "SUSHI-USD-SWAP",
+    "volume": 23474310
+  },
+  {
+    "symbol": "BNT-USDT-SWAP",
+    "volume": 22699383.205
+  },
+  {
+    "symbol": "TRX-USD-SWAP",
+    "volume": 19686300
+  },
+  {
+    "symbol": "SAND-USD-SWAP",
+    "volume": 16789980
+  },
+  {
+    "symbol": "AVAX-USD-SWAP",
+    "volume": 13933620
+  },
+  {
+    "symbol": "ALGO-USD-SWAP",
+    "volume": 13522400
+  },
+  {
+    "symbol": "GRT-USD-SWAP",
+    "volume": 13276550
+  },
+  {
+    "symbol": "GODS-USDT-SWAP",
+    "volume": 13133842.1523
+  },
+  {
+    "symbol": "BADGER-USDT-SWAP",
+    "volume": 11888838.1487
+  },
+  {
+    "symbol": "XMR-USD-SWAP",
+    "volume": 11588860
+  },
+  {
+    "symbol": "BICO-USDT-SWAP",
+    "volume": 11415360.5291
+  },
+  {
+    "symbol": "XLM-USD-SWAP",
+    "volume": 7701460
+  },
+  {
+    "symbol": "NEO-USD-SWAP",
+    "volume": 6609410
+  },
+  {
+    "symbol": "NFT-USDT-SWAP",
+    "volume": 6354850.6429
+  },
+  {
+    "symbol": "KISHU-USDT-SWAP",
+    "volume": 5948859.336
+  },
+  {
+    "symbol": "MANA-USD-SWAP",
+    "volume": 5420440
+  },
+  {
+    "symbol": "YFI-USD-SWAP",
+    "volume": 4622640
+  },
+  {
+    "symbol": "1INCH-USD-SWAP",
+    "volume": 4608480
+  },
+  {
+    "symbol": "KSM-USD-SWAP",
+    "volume": 4446400
+  },
+  {
+    "symbol": "THETA-USD-SWAP",
+    "volume": 3667400
+  }
+]

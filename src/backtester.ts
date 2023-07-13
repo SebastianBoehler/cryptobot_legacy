@@ -15,7 +15,7 @@ import BigNumber from "bignumber.js";
 import { subMinutes } from "date-fns";
 const mongoClient = new mongo("admin");
 
-const startTime: Date | null = subDays(new Date(), 30 * 6);
+const startTime: Date | null = subDays(new Date(), 30 * 3);
 
 BigNumber.config({
   FORMAT: {
@@ -49,22 +49,7 @@ const exchangeConfigs: Record<
 };
 
 async function backtester(exchange: Exchanges, symbol: string) {
-  const strategyNames = [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-  ]; //as const;
+  let strategyNames = ["0"]; //as const;
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
@@ -530,7 +515,39 @@ async function backtester(exchange: Exchanges, symbol: string) {
           ],
           short_exit: [[exit2 || trailingExit || holdDuration > 60 * 24]],
         },
+        //copy of 4 with HA indicator
+        "14": {
+          long_entry: [
+            [close < indicators_60min.bollinger_bands.lower],
+            [
+              !!prev_indicators_60min &&
+                !!prev_indicators_2h &&
+                close > indicators_60min.bollinger_bands.lower &&
+                indicators_2h.MACD.histogram >
+                  prev_indicators_2h.MACD.histogram &&
+                indicators_2h.HA.c > indicators_2h.HA.o,
+            ],
+          ],
+          long_exit: [[exit2 || holdDuration > 60 * 24]],
+          short_entry: [
+            [exchangeConfig.derivatesEnabled],
+            [close > indicators_60min.bollinger_bands.upper],
+            [
+              !!prev_indicators_60min &&
+                !!prev_indicators_2h &&
+                close < indicators_60min.bollinger_bands.upper &&
+                indicators_2h.MACD.histogram <
+                  prev_indicators_2h.MACD.histogram,
+              indicators_2h.HA.c < indicators_2h.HA.o,
+            ],
+          ],
+          short_exit: [[exit2 || holdDuration > 60 * 24]],
+        },
       };
+
+      const strategyNamesParsed = Object.keys(strategies);
+      if (strategyNamesParsed.length > strategyNames.length)
+        strategyNames = strategyNamesParsed;
 
       const strategy = strategies[strategyName];
       //strategy.saveProfits = true;
@@ -574,6 +591,11 @@ async function backtester(exchange: Exchanges, symbol: string) {
           },
           holdDuration,
           ema_diff: item.ema_8 / item.ema_55,
+          HA: {
+            ...item.HA,
+            diff_oc: item.HA.o / item.HA.c,
+            diff_hl: item.HA.h / item.HA.l,
+          },
         };
       };
 
@@ -630,7 +652,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
 
           if (netProfit > 10 && strategy.saveProfits) {
             object.netInvest =
-              (lastTrade.netInvest ?? startCapital) + netProfit * 0.25;
+              (lastTrade.netInvest ?? startCapital) + netProfit * 0.8; //20% saved
           }
 
           const exitObject: ExitOrderObject = {
@@ -741,13 +763,15 @@ async function main() {
 
   //create an array of [exchange]@[symbol] pairs
   for (const exchange of exchanges) {
-    const collections = await mongoClient.existingCollections(exchange);
-    const formatted = collections.map((collection) => {
-      return {
-        exchange,
-        symbol: collection,
-      };
-    });
+    const symbolsAndVol = await mongoClient.symbolsSortedByVolume(
+      exchange,
+      true
+    );
+    const formatted = symbolsAndVol.slice(0, 25).map(({ symbol }) => ({
+      exchange,
+      symbol,
+    }));
+
     pairs.push(...formatted);
   }
 

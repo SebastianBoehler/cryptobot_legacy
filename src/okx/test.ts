@@ -2,6 +2,7 @@ import { addMinutes } from "date-fns";
 import { generateIndicators } from "../generateIndicators";
 import CryptoJS from "node:crypto";
 import { OkxClient } from "./utils";
+import Mongo from "../mongodb";
 
 const okxClient = new OkxClient();
 
@@ -10,7 +11,10 @@ okxClient.subscribeToPriceData(symbol);
 //okxClient.subscribeToPositionData(symbol);
 //okxClient.subsribeToOderData(symbol);
 
+const mongo = new Mongo("trader");
+
 async function test() {
+  await mongo.symbolsSortedByVolume("okx").catch((err) => console.log(err));
   const start = new Date("2023-03-03T08:00:00.090+00:00");
   const indicators = await new generateIndicators("okx", "MANA-USDT-SWAP", 25);
 

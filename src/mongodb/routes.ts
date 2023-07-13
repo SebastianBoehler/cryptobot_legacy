@@ -65,4 +65,20 @@ router.post("/backtests/:exchange", async (req: Request, res: Response) => {
   res.json(result);
 });
 
+router.get(
+  "/symbolsSortedByVol/:exchange",
+  async (req: Request, res: Response) => {
+    const { exchange } = req.params;
+    if (!exchange) {
+      res.status(400).send("exchange query parameter is required");
+      return;
+    }
+
+    const result = await client.symbolsSortedByVolume(exchange, true);
+    const ONE_DAY = 60 * 60 * 24;
+    res.set("Cache-control", `public, max-age=${ONE_DAY}`);
+    res.json(result);
+  }
+);
+
 export default router;

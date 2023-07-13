@@ -6,6 +6,7 @@ import {
   ADX,
   ATR,
   Stochastic,
+  HeikenAshi,
 } from "@debut/indicators";
 import { format, subMinutes } from "date-fns";
 import mongodb from "./mongodb";
@@ -27,6 +28,7 @@ class generateIndicators {
     stochRSI: new Stochastic(14, 14),
     ADX: new ADX(),
     ATR: new ATR(14, "EMA"),
+    HA: new HeikenAshi(),
   };
   private granularity: number;
   public lastValues: Indicators = {
@@ -52,6 +54,12 @@ class generateIndicators {
     ATR: 0,
     stochRSI: { k: 0, d: 0 },
     candle: null,
+    HA: {
+      o: 0,
+      c: 0,
+      h: 0,
+      l: 0,
+    },
   };
   public prevValues: Indicators | null = null;
   private lastTimestamp: string | null = null;
@@ -95,7 +103,7 @@ class generateIndicators {
         return this.lastValues;
       }
 
-      const { close, high, low } = candle;
+      const { close, high, low, open } = candle;
 
       const obj = {
         ema_8: this.indicators.ema_8.nextValue(close),
@@ -110,6 +118,7 @@ class generateIndicators {
         ATR: this.indicators.ATR.nextValue(high, low, close),
         stochRSI: this.indicators.stochRSI.nextValue(high, low, close),
         candle,
+        HA: this.indicators.HA.nextValue(open, high, low, close),
       };
 
       if (!obj.bollinger_bands || !obj.MACD) {
