@@ -15,7 +15,7 @@ import BigNumber from "bignumber.js";
 import { subMinutes } from "date-fns";
 const mongoClient = new mongo("admin");
 
-const startTime: Date | null = subDays(new Date(), 30 * 3);
+const startTime: Date | null = subDays(new Date(), 30 * 4);
 
 BigNumber.config({
   FORMAT: {
@@ -49,7 +49,7 @@ const exchangeConfigs: Record<
 };
 
 async function backtester(exchange: Exchanges, symbol: string) {
-  let strategyNames = ["0"]; //as const;
+  let strategyNames = ["random"]; //as const;
   const exchangeConfig = exchangeConfigs[exchange];
   const leverage = exchangeConfig.derivatesEnabled ? config.LEVERAGE || 5 : 1;
 
@@ -73,13 +73,16 @@ async function backtester(exchange: Exchanges, symbol: string) {
     "25min": new generateIndicators(exchange, symbol, 25),
     "60min": new generateIndicators(exchange, symbol, 60),
     "2h": new generateIndicators(exchange, symbol, 60 * 2),
+    "4h": new generateIndicators(exchange, symbol, 60 * 4),
+    "12h": new generateIndicators(exchange, symbol, 60 * 12),
   };
 
   const startOffest = 60 * 12;
   outerLoop: for (let i = startOffest; i < Infinity; i++) {
     const timestamp = addMinutes(start, i);
     if (timestamp.getTime() >= end.getTime()) break;
-    if (startTime && timestamp < subMinutes(startTime, startOffest * 2))
+    //TODO: increased due to 12h indicator
+    if (startTime && timestamp < subMinutes(startTime, startOffest * 2 * 20))
       continue;
 
     //get candle form history and if not available get time<timestamp candle from db
@@ -92,20 +95,38 @@ async function backtester(exchange: Exchanges, symbol: string) {
     const { volume } = candle;
     const close = +candle.close;
 
-    logger.debug(timestamp, exchange, symbol, exchangeConfig.derivatesEnabled);
+    logger.debug(timestamp, exchange, symbol);
 
-    const [indicators_25min, indicators_60min, indicators_2h] =
-      await Promise.all([
-        indicators["25min"].getIndicators(timestamp.getTime()),
-        indicators["60min"].getIndicators(timestamp.getTime()),
-        indicators["2h"].getIndicators(timestamp.getTime()),
-      ]);
-    if (startOffest * 4 > i || indicators_2h.ema_55 === 0) continue;
+    const [
+      indicators_25min,
+      indicators_60min,
+      indicators_2h,
+      indicators_4h,
+      indicators_12h,
+    ] = await Promise.all([
+      indicators["25min"].getIndicators(timestamp.getTime()),
+      indicators["60min"].getIndicators(timestamp.getTime()),
+      indicators["2h"].getIndicators(timestamp.getTime()),
+      indicators["4h"].getIndicators(timestamp.getTime()),
+      indicators["12h"].getIndicators(timestamp.getTime()),
+    ]);
+    if (startOffest * 4 > i || !indicators_12h.ema_55) continue;
     if (startTime && startTime > timestamp) continue;
 
     const prev_indicators_25min = indicators["25min"].prevValues;
     const prev_indicators_60min = indicators["60min"].prevValues;
     const prev_indicators_2h = indicators["2h"].prevValues;
+    const prev_indicators_4h = indicators["4h"].prevValues;
+    const prev_indicators_12h = indicators["12h"].prevValues;
+
+    if (
+      !prev_indicators_25min ||
+      !prev_indicators_60min ||
+      !prev_indicators_2h ||
+      !prev_indicators_4h ||
+      !prev_indicators_12h
+    )
+      continue;
 
     for (const strategyName of strategyNames) {
       if (!storage[strategyName])
@@ -149,399 +170,63 @@ async function backtester(exchange: Exchanges, symbol: string) {
       const lastNetInvest = lastTrade?.netInvest || startCapital;
       const canExecuteOrder = volume > lastNetInvest;
       //const conservativeTrigger = indicators_25min.vol / 6 > lastNetInvest;
-      const exit =
-        netProfitInPercent > 1 * leverage ||
-        netProfitInPercent < -0.5 * leverage;
-      const exit2 =
-        netProfitInPercent > 5 * leverage ||
-        netProfitInPercent < -2.5 * leverage;
       const exit3 =
         netProfitInPercent > 3 * leverage ||
         netProfitInPercent < -1.5 * leverage;
-      const trailingExit =
-        (close < highestPrice * 0.985 && isLong) ||
-        (close > lowestPrice * 1.015 && !isLong);
 
       const isLiquidation =
         netProfit < 0 && Math.abs(netProfit) >= lastNetInvest;
 
       //currently only support one step strategies
       const strategies: Record<(typeof strategyNames)[number], Rule> = {
-        //really basic for indicator analysis
-        "0": {
+        random: {
+          isCorrelationTest: true,
+          long_entry: [[Math.random().toFixed(1) === "0.5"]],
+          long_exit: [[exit3]],
+          short_entry: [[Math.random().toFixed(1) === "0.5"]],
+          short_exit: [[exit3]],
+        },
+        "0_long": {
+          isCorrelationTest: true,
           long_entry: [[holdDuration > 60 * 6 || !lastTrade]],
+          long_exit: [[exit3]],
+          short_entry: [[false]],
+          short_exit: [[exit3]],
+        },
+        "0_short": {
+          isCorrelationTest: true,
+          long_entry: [[false]],
           long_exit: [[exit3]],
           short_entry: [[holdDuration > 60 * 6 || !lastTrade]],
           short_exit: [[exit3]],
         },
-        "1": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_25min.MACD.histogram >
-                  prev_indicators_25min.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_25min.MACD.histogram <
-                  prev_indicators_25min.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit]],
+        "1_long": {
+          isCorrelationTest: true,
+          long_entry: [[holdDuration > 60 * 1 || !lastTrade]],
+          long_exit: [[holdDuration > 60 * 1]],
+          short_entry: [[false]],
+          short_exit: [[false]],
         },
-        //1 with holdDuration
-        "2": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_25min.MACD.histogram >
-                  prev_indicators_25min.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit3 || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_25min.MACD.histogram <
-                  prev_indicators_25min.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit3 || holdDuration > 60 * 12]],
+        "1_short": {
+          isCorrelationTest: true,
+          long_entry: [[false]],
+          long_exit: [[false]],
+          short_entry: [[holdDuration > 60 * 1 || !lastTrade]],
+          short_exit: [[holdDuration > 60 * 1]],
         },
-        "3": {
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit2]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit2]],
+        "2_long": {
+          isCorrelationTest: true,
+          long_entry: [[holdDuration > 60 * 1 || !lastTrade]],
+          long_exit: [[exit3]],
+          short_entry: [[false]],
+          short_exit: [[false]],
         },
-        //base is 3, even shorter hold duration than 1
-        "4": {
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit2 || holdDuration > 60 * 24]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit2 || holdDuration > 60 * 24]],
-        },
-        //base is 3, indicators shifted to 60 and 25min && exit instead of exit2, hold duration 12h
-        "5": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit || holdDuration > 60 * 12]],
-        },
-        "6": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_60min.ADX.pdi > indicators_60min.ADX.mdi,
-            ],
-          ],
-          long_exit: [[exit || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_60min.ADX.pdi < indicators_60min.ADX.mdi,
-            ],
-          ],
-          short_exit: [[exit || holdDuration > 60 * 12]],
-        },
-        //5 with close tp and sl
-        "7": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit3 || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit3 || holdDuration > 60 * 12]],
-        },
-        //base 5, with RSI
-        "8": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_25min.RSI < 65,
-            ],
-          ],
-          long_exit: [[exit3 || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_25min.RSI > 35,
-            ],
-          ],
-          short_exit: [[exit3 || holdDuration > 60 * 12]],
-        },
-        //base 7, with BB middle line
-        "9": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                close < indicators_25min.bollinger_bands.middle &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit3 || holdDuration > 60 * 12]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                close > indicators_25min.bollinger_bands.middle &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit3 || holdDuration > 60 * 12]],
-        },
-        //3 with trailing stop
-        "10": {
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit2 || trailingExit]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit2 || trailingExit]],
-        },
-        //8 with trailing stop
-        "11": {
-          long_entry: [
-            [close < indicators_25min.bollinger_bands.lower],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close > indicators_25min.bollinger_bands.lower &&
-                indicators_60min.MACD.histogram >
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_25min.RSI < 65,
-            ],
-          ],
-          long_exit: [[exit3 || holdDuration > 60 * 12 || trailingExit]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_25min.bollinger_bands.upper],
-            [
-              !!prev_indicators_25min &&
-                !!prev_indicators_60min &&
-                close < indicators_25min.bollinger_bands.upper &&
-                indicators_60min.MACD.histogram <
-                  prev_indicators_60min.MACD.histogram &&
-                indicators_25min.RSI > 35,
-            ],
-          ],
-          short_exit: [[exit3 || holdDuration > 60 * 12 || trailingExit]],
-        },
-        //copy of 4 with saveProfits
-        "12": {
-          saveProfits: true,
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit2 || holdDuration > 60 * 24]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit2 || holdDuration > 60 * 24]],
-        },
-        //3 with trailing stop, saveProfits and holdDuration 24h
-        "13": {
-          saveProfits: true,
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          long_exit: [[exit2 || trailingExit || holdDuration > 60 * 24]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-            ],
-          ],
-          short_exit: [[exit2 || trailingExit || holdDuration > 60 * 24]],
-        },
-        //copy of 4 with HA indicator
-        "14": {
-          long_entry: [
-            [close < indicators_60min.bollinger_bands.lower],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close > indicators_60min.bollinger_bands.lower &&
-                indicators_2h.MACD.histogram >
-                  prev_indicators_2h.MACD.histogram &&
-                indicators_2h.HA.c > indicators_2h.HA.o,
-            ],
-          ],
-          long_exit: [[exit2 || holdDuration > 60 * 24]],
-          short_entry: [
-            [exchangeConfig.derivatesEnabled],
-            [close > indicators_60min.bollinger_bands.upper],
-            [
-              !!prev_indicators_60min &&
-                !!prev_indicators_2h &&
-                close < indicators_60min.bollinger_bands.upper &&
-                indicators_2h.MACD.histogram <
-                  prev_indicators_2h.MACD.histogram,
-              indicators_2h.HA.c < indicators_2h.HA.o,
-            ],
-          ],
-          short_exit: [[exit2 || holdDuration > 60 * 24]],
+        "2_short": {
+          isCorrelationTest: true,
+          long_entry: [[false]],
+          long_exit: [[false]],
+          short_entry: [[holdDuration > 60 * 1 || !lastTrade]],
+          short_exit: [[exit3]],
         },
       };
 
@@ -550,6 +235,10 @@ async function backtester(exchange: Exchanges, symbol: string) {
         strategyNames = strategyNamesParsed;
 
       const strategy = strategies[strategyName];
+      if (!strategy) {
+        logger.error(`Strategy ${strategyName} not found`);
+        continue outerLoop;
+      }
       //strategy.saveProfits = true;
 
       //check all conditions
@@ -571,7 +260,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       if (shortExitChecks && shortExitChecks.every((condition) => condition))
         storage[strategyName].indexes.short_exit++;
 
-      const extendIndicators = (item: Indicators) => {
+      const extendIndicators = (item: Indicators, prev: Indicators) => {
         return {
           ...item,
           ADX: {
@@ -584,6 +273,10 @@ async function backtester(exchange: Exchanges, symbol: string) {
           bollinger_bands: {
             ...item.bollinger_bands,
             diff: item.bollinger_bands.upper / item.bollinger_bands.lower,
+            increase:
+              prev.bollinger_bands.upper /
+              prev.bollinger_bands.lower /
+              (item.bollinger_bands.upper / item.bollinger_bands.lower),
           },
           stochRSI: {
             ...item.stochRSI,
@@ -591,10 +284,28 @@ async function backtester(exchange: Exchanges, symbol: string) {
           },
           holdDuration,
           ema_diff: item.ema_8 / item.ema_55,
+          ema8_increasing: prev.ema_8 / item.ema_8,
+          ema55_increasing: prev.ema_55 / item.ema_55,
           HA: {
             ...item.HA,
             diff_oc: item.HA.o / item.HA.c,
             diff_hl: item.HA.h / item.HA.l,
+          },
+          candle: {
+            ...item.candle,
+            diff_oc: item.candle
+              ? item.candle.open / item.candle.close
+              : undefined,
+            diff_hl: item.candle
+              ? item.candle.high / item.candle.low
+              : undefined,
+          },
+          RSI_and_EMA: {
+            variant1: item.RSI < 35 && item.ema_8 > item.ema_55,
+            variant2: item.RSI > 65 && item.ema_8 < item.ema_55,
+            variant3:
+              item.RSI < 35 &&
+              item.ema_8 / item.ema_55 > prev.ema_8 / prev.ema_55,
           },
         };
       };
@@ -609,9 +320,17 @@ async function backtester(exchange: Exchanges, symbol: string) {
         fee,
         holdDuration,
         details: {
-          indicators_25min: extendIndicators(indicators_25min),
-          indicators_60min: extendIndicators(indicators_60min),
-          indicators_2h: extendIndicators(indicators_2h),
+          indicators_25min: extendIndicators(
+            indicators_25min,
+            prev_indicators_25min
+          ),
+          indicators_60min: extendIndicators(
+            indicators_60min,
+            prev_indicators_60min
+          ),
+          indicators_2h: extendIndicators(indicators_2h, prev_indicators_2h),
+          indicators_4h: extendIndicators(indicators_4h, prev_indicators_4h),
+          indicators_12h: extendIndicators(indicators_12h, prev_indicators_12h),
           candle,
           highestPrice,
           lowestPrice,
@@ -683,7 +402,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       }
 
       if (!hasOpenPosition) {
-        if (netInvest < 0) continue;
+        if (netInvest < 0 && !strategy.isCorrelationTest) continue;
         const longEntry =
           storage[strategyName].indexes.long_entry >=
           strategy.long_entry.length;

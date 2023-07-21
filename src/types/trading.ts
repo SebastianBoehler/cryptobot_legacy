@@ -7,6 +7,7 @@ export type Rule = {
   short_exit: boolean[][];
   noStrictVolume?: boolean;
   saveProfits?: boolean;
+  isCorrelationTest?: boolean;
 };
 
 export type Exchanges = "binance" | "coinbase" | "dydx" | "kraken" | "okx";
