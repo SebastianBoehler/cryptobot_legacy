@@ -3,7 +3,7 @@ import { subMinutes, subMonths } from "date-fns";
 import { createChunks, logger, sleep } from "../utils";
 import config from "../config/config";
 import Mongo from "../mongodb/index";
-import { DatabaseType } from "../mongodb/types";
+import { DatabaseType } from "../types/mongodb";
 
 const client = new DydxClient("https://api.dydx.exchange");
 const startTime = subMonths(new Date(), 3).getTime();

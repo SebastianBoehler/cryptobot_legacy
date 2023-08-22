@@ -2,7 +2,7 @@ import { createChunks, logger, sleep } from "../utils";
 import Kraken from "./utils";
 import Mongo from "../mongodb/index";
 import { subMinutes, subMonths } from "date-fns";
-import { DatabaseType } from "../mongodb/types";
+import { DatabaseType } from "../types/mongodb";
 
 const client = new Kraken();
 const mongo = new Mongo("kraken");

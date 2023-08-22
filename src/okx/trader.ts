@@ -163,6 +163,7 @@ async function trader() {
     ? differenceInMinutes(new Date(), lastTrade.timestamp)
     : 0;
 
+  //TODO: indicators need to be tested bc of new data loading
   const [indicators_25min, indicators_60min, indicators_2h] = await Promise.all(
     [
       indicators["25min"].getIndicators(new Date().getTime()),
@@ -246,6 +247,8 @@ async function trader() {
       storage,
     },
     spread,
+    //TODO: adjust portfolio val
+    portfolio: netInvest,
   };
 
   if (!hasOpenPosition) {
@@ -325,6 +328,10 @@ async function trader() {
           slippage: Math.abs(price / +details.avgPx - 1),
         },
         leverage: +details.lever,
+        //TODO: adjust following 3 values
+        portfolio: netInvest + netProfit,
+        timeInLoss: 0,
+        timeInLossInPercent: 0,
       });
       resetStorage();
     }

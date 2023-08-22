@@ -3,7 +3,7 @@ import config from "../config/config";
 import { createChunks, logger, sleep } from "../utils";
 import Mongo from "../mongodb";
 import { subMinutes, subMonths } from "date-fns";
-import { DatabaseType } from "../mongodb/types";
+import { DatabaseType } from "../types/mongodb";
 
 const startTime = subMonths(new Date(), 3).getTime();
 const mongo = new Mongo("binance");

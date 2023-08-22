@@ -237,12 +237,12 @@ export const calculateBacktestResult = (
     exits.map((exit) => exit.netInvest)
   );
 
-  //avg timeInLoss
+  /*avg timeInLoss
   const avgTimeInLoss =
     exits.reduce((acc, exit) => acc + exit.timeInLoss, 0) / exits.length;
   const avgTimeInLossInPercent =
     exits.reduce((acc, exit) => acc + exit.timeInLossInPercent, 0) /
-    exits.length;
+    exits.length;*/
 
   const result: BaseBacktestOptions = {
     successRate,
@@ -257,9 +257,67 @@ export const calculateBacktestResult = (
     shortLongRatio,
     executedOrders,
     lineOfBestFit,
-    avgTimeInLoss,
-    avgTimeInLossInPercent,
+    //avgTimeInLoss,
+    //avgTimeInLossInPercent,
   };
 
   return result;
+};
+
+/**
+ *
+ * @param lastTrade
+ * @param price
+ * @param trailingStopLossPercent % of price change no matter of leverage
+ * @returns
+ */
+export const trailingStopLoss = ({
+  lastTrade,
+  price,
+  trailingStopLossPercent,
+  high,
+  low,
+}: {
+  lastTrade?: OrderObject;
+  price: number;
+  trailingStopLossPercent: number;
+  high: number;
+  low: number;
+}) => {
+  if (!lastTrade) return false;
+  const isLong = lastTrade.type.includes("Long");
+  const trailingStopLoss = isLong
+    ? high - (high * trailingStopLossPercent) / 100
+    : low + (low * trailingStopLossPercent) / 100;
+
+  if (isLong && price <= trailingStopLoss) {
+    return true;
+  } else if (!isLong && price >= trailingStopLoss) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Returns true if the last trade was a loss and the hold duration is above the threshold
+ * @param lastTrade
+ * @param holdDuration
+ * @param thresholdMinutes
+ * @returns
+ */
+export const waitAfterLoss = (
+  lastTrade: OrderObject | undefined,
+  holdDuration: number,
+  thresholdMinutes: number
+) => {
+  if (!lastTrade || !isExitOrder(lastTrade)) return true;
+  const isLoss = lastTrade.netProfit < 0;
+  if (!isLoss) return true;
+
+  if (isLoss && holdDuration > thresholdMinutes) {
+    return true;
+  }
+
+  return false;
 };

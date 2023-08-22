@@ -2,7 +2,7 @@ import { RestClient } from "okx-api";
 import { createChunks, logger, sleep } from "../utils";
 import Mongo from "../mongodb/index";
 import { subMonths, addMinutes } from "date-fns";
-import { DatabaseType } from "../mongodb/types";
+import { DatabaseType } from "../types/mongodb";
 
 const mongo = new Mongo("okx");
 const okxClient = new RestClient({

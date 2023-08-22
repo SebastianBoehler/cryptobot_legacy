@@ -3,7 +3,7 @@ import Mongo from "../mongodb";
 import { addMinutes, getUnixTime, subMinutes, subMonths } from "date-fns";
 import { createChunks, logger, sleep } from "../utils";
 import config from "../config/config";
-import { DatabaseType } from "../mongodb/types";
+import { DatabaseType } from "../types/mongodb";
 
 const startTime = subMonths(new Date(), 3).getTime();
 const client = new CoinbaseAdvanced(config.CB_API_KEY);

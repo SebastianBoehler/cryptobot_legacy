@@ -1,4 +1,4 @@
-import { GeneratedCandle } from "../mongodb/types";
+import { Candle } from "./mongodb";
 
 export type Rule = {
   long_entry: boolean[][];
@@ -48,8 +48,8 @@ export interface ExitOrderObject extends Omit<EntryOrderObject, "type"> {
   highestPrice?: number;
   lowestPrice?: number;
   isLiquidated: boolean;
-  timeInLoss: number;
-  timeInLossInPercent: number;
+  //timeInLoss: number;
+  //timeInLossInPercent: number;
 }
 
 export type OrderObject = EntryOrderObject | ExitOrderObject;
@@ -73,8 +73,8 @@ export interface BaseBacktestOptions {
   shortLongRatio: string;
   executedOrders: number;
   lineOfBestFit: number[];
-  avgTimeInLoss: number;
-  avgTimeInLossInPercent: number;
+  //avgTimeInLoss: number;
+  //avgTimeInLossInPercent: number;
 }
 
 export interface BacktestingResult extends BaseBacktestOptions {
@@ -85,6 +85,7 @@ export interface BacktestingResult extends BaseBacktestOptions {
   end: Date;
   leverage: number;
   hodlProfitInPercent: number;
+  tradesCount: number;
 }
 
 export interface Indicators {
@@ -108,12 +109,28 @@ export interface Indicators {
   RSI: number;
   ADX: { adx: number; pdi: number; mdi: number };
   ATR: number;
-  candle: GeneratedCandle | null;
+  ATR_percent: number;
+  candle: Candle | null;
   stochRSI: { k: number; d: number };
   HA: {
     o: number;
     c: number;
     h: number;
     l: number;
+  };
+  CCI: number;
+  ChaikinOS: number;
+  ROC: number;
+  PSAR: number;
+  OBV: undefined | number;
+  OBV_RSI: number;
+  OBV_SMA: number;
+  VWAP: undefined | number;
+  VWAP_deviation: {
+    basis: number;
+    upperDeviation2: number;
+    upperDeviation3: number;
+    lowerDeviation2: number;
+    lowerDeviation3: number;
   };
 }

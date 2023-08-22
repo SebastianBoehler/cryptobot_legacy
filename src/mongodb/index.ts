@@ -1,12 +1,18 @@
 import { subDays, subMinutes } from "date-fns";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId, Document } from "mongodb";
 import config from "../config/config";
 import { BacktestingResult, OrderObject } from "../types/trading";
 import { createChunks, logger } from "../utils";
-import { DatabaseType, GeneratedCandle, GetBacktestOptions } from "./types";
+import {
+  Candle,
+  DatabaseType,
+  GeneratedCandle,
+  GetBacktestOptions,
+} from "../types/mongodb";
 import fs from "fs";
 import path from "path";
 const client = new MongoClient(config.MONGO_URL);
+const localClient = new MongoClient("mongodb://localhost:27017");
 
 process.on("exit", async () => {
   await client.close();
@@ -40,7 +46,21 @@ class mongo {
 
   async connect() {
     await client.connect();
+    await localClient.connect();
     logger.info("Connected to MongoDB");
+  }
+
+  async aggregate<T extends Document>(
+    pipeline: Document[],
+    collectionName: string,
+    database?: string
+  ) {
+    const db = client.db(database || this.db);
+    const collection = db.collection(collectionName);
+    const cursor = await collection.aggregate<T>(pipeline, {
+      allowDiskUse: true,
+    });
+    return cursor;
   }
 
   async write(data: any, collectionName: string, database?: string) {
@@ -122,12 +142,13 @@ class mongo {
     granularity: number,
     timestamp: number,
     symbol: string
-  ): Promise<GeneratedCandle | undefined> {
+  ): Promise<Candle | undefined> {
+    const start = subMinutes(timestamp, granularity);
     const pipeline = [
       {
         $match: {
           start: {
-            $gte: subMinutes(timestamp, granularity),
+            $gte: start,
             $lt: new Date(timestamp),
           },
         },
@@ -166,14 +187,15 @@ class mongo {
       low: +data[0].low,
       close: +data[0].close,
       volume: +data[0].volume,
+      start,
     };
   }
 
-  async getHistory(
+  async getHistory<T>(
     database: string,
     symbol: string,
     projection: Record<string, 1 | 0>
-  ) {
+  ): Promise<T[]> {
     return await this.loadAllEntries(database, symbol, projection, {
       start: 1,
     });
@@ -247,7 +269,7 @@ class mongo {
   }
 
   async saveBacktest(result: BacktestingResult) {
-    const db = client.db("backtests");
+    const db = localClient.db("backtests");
     const collection = db.collection(result.exchange);
 
     const query = {
@@ -269,23 +291,23 @@ class mongo {
 
   async getBacktests(
     exchange: string,
-    options?: GetBacktestOptions,
+    queryOptions?: GetBacktestOptions,
     project: Record<string, any> = { trades: 0 }
   ) {
-    const db = client.db("backtests");
+    const db = localClient.db("backtests");
     const collection = db.collection(exchange);
 
     const query: Record<string, any> = {};
-    if (options?.minProfit !== undefined)
-      query.netProfitInPercent = { $gte: options.minProfit };
-    if (options?.rule) query.strategyName = options.rule;
-    if (options?.testedAfter)
-      query.timestamp = { $gte: new Date(options.testedAfter) };
-    if (options?._ids)
-      query._id = { $in: options._ids.map((id) => new ObjectId(id)) };
-    if (options?.start)
+    if (queryOptions?.minProfit !== undefined)
+      query.netProfitInPercent = { $gte: queryOptions.minProfit };
+    if (queryOptions?.rule) query.strategyName = queryOptions.rule;
+    if (queryOptions?.testedAfter)
+      query.timestamp = { $gte: new Date(queryOptions.testedAfter) };
+    if (queryOptions?._ids)
+      query._id = { $in: queryOptions._ids.map((id) => new ObjectId(id)) };
+    if (queryOptions?.start)
       query.start = {
-        $gt: new Date(options.start.$gt),
+        $gt: new Date(queryOptions.start.$gt),
       };
 
     logger.debug(query);
@@ -296,7 +318,7 @@ class mongo {
   }
 
   async getTradesOfBacktest(exchange: string, query: Record<string, any>) {
-    const db = client.db("backtests");
+    const db = localClient.db("backtests");
     const collection = db.collection(exchange);
 
     const result = await collection

@@ -1,10 +1,19 @@
 export interface GeneratedCandle {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: number;
+  start: Date;
+}
+
+export interface Candle {
   open: number;
   high: number;
   low: number;
   close: number;
   volume: number;
-  openTime?: Date;
+  start: Date;
 }
 
 export interface GetBacktestOptions {
