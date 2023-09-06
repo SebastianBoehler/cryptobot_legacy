@@ -248,4 +248,156 @@
       ],
     ],
   },
+  //! loosing strategy avg -85%
+  "momentum-based-closer-sl": {
+    long_entry: [
+      [
+        !!indicators_30min.OBV &&
+          indicators_4h.ADX.adx > 25 &&
+          indicators_30min.RSI < 30 &&
+          indicators_30min.OBV > indicators_30min.OBV_SMA,
+      ],
+    ],
+    long_exit: [
+      [
+        close > indicators_30min.bollinger_bands.upper * 0.99 ||
+          indicators_30min.RSI > 70 ||
+          (!!indicators_30min.OBV &&
+            indicators_30min.OBV < indicators_30min.OBV_SMA) ||
+          trailingStopLoss(trailingStopLossParams),
+      ],
+    ],
+    short_entry: [
+      [
+        !!indicators_30min.OBV &&
+          indicators_4h.ADX.adx > 25 &&
+          indicators_30min.RSI > 70 &&
+          indicators_30min.OBV < indicators_30min.OBV_SMA,
+      ],
+    ],
+    short_exit: [
+      [
+        close < indicators_30min.bollinger_bands.lower * 1.01 ||
+          indicators_30min.RSI < 30 ||
+          (!!indicators_30min.OBV &&
+            indicators_30min.OBV > indicators_30min.OBV_SMA) ||
+          trailingStopLoss(trailingStopLossParams),
+      ],
+    ],
+  },
+  //! loosing avg -100%
+  "vwap-trend-following": {
+    long_entry: [
+      [
+        !!indicators_1h.VWAP &&
+          !!prev_indicators_1h.VWAP &&
+          close > indicators_1h.VWAP && // Price above VWAP
+          indicators_1h.VWAP > prev_indicators_1h.VWAP && // VWAP trending up
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    long_exit: [
+      [
+        trailingStopLoss(trailingStopLossParams) ||
+          netProfitInPercent > 2 * leverage || // Take profit at 2% net profit
+          holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
+          (!!indicators_1h.VWAP && close < indicators_1h.VWAP), // Price below VWAP
+      ],
+    ],
+    short_entry: [
+      [
+        !!indicators_1h.VWAP &&
+          !!prev_indicators_1h.VWAP &&
+          close < indicators_1h.VWAP && // Price below VWAP
+          indicators_1h.VWAP < prev_indicators_1h.VWAP && // VWAP trending down
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    short_exit: [
+      [
+        trailingStopLoss(trailingStopLossParams) ||
+          netProfitInPercent > 2 * leverage || // Take profit at 2% net profit
+          holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
+          (!!indicators_1h.VWAP && close > indicators_1h.VWAP), // Price above VWAP
+      ],
+    ],
+  },
+  //! loosing avg -100%
+  "trend-momentum-combo": {
+    long_entry: [
+      [
+        indicators_30min.ema_8 > indicators_30min.ema_21 && // EMA crossover
+          indicators_30min.MACD.histogram > 0 && // Positive MACD histogram
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    long_exit: [
+      [
+        trailingStopLoss({
+          ...trailingStopLossParams,
+          trailingStopLossPercent: 0.5, // Tighter trailing stop loss
+        }) ||
+          netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
+          holdDuration > 60 * 6, // Hold for a maximum of 6 hours
+      ],
+    ],
+    short_entry: [
+      [
+        indicators_30min.ema_8 < indicators_30min.ema_21 && // EMA crossover
+          indicators_30min.MACD.histogram < 0 && // Negative MACD histogram
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    short_exit: [
+      [
+        trailingStopLoss({
+          ...trailingStopLossParams,
+          trailingStopLossPercent: 0.5, // Tighter trailing stop loss
+        }) ||
+          netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
+          holdDuration > 60 * 6, // Hold for a maximum of 6 hours
+      ],
+    ],
+  },
+  //! loosing avg -100%
+  "range-breakout": {
+    long_entry: [
+      [
+        close > indicators_4h.bollinger_bands.middle && // Above middle Bollinger Band
+          close < indicators_4h.bollinger_bands.upper && // Below upper Bollinger Band
+          indicators_1h.RSI > 30 && // RSI above 30 (avoid oversold)
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    long_exit: [
+      [
+        trailingStopLoss({
+          ...trailingStopLossParams,
+          trailingStopLossPercent: 0.5, // Tighter trailing stop loss
+        }) ||
+          netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
+          holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
+          close < indicators_4h.bollinger_bands.middle, // Below middle Bollinger Band
+      ],
+    ],
+    short_entry: [
+      [
+        close < indicators_4h.bollinger_bands.middle && // Below middle Bollinger Band
+          close > indicators_4h.bollinger_bands.lower && // Above lower Bollinger Band
+          indicators_1h.RSI < 70 && // RSI below 70 (avoid overbought)
+          waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
+      ],
+    ],
+    short_exit: [
+      [
+        trailingStopLoss({
+          ...trailingStopLossParams,
+          trailingStopLossPercent: 0.5, // Tighter trailing stop loss
+        }) ||
+          netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
+          holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
+          close > indicators_4h.bollinger_bands.middle, // Above middle Bollinger Band
+      ],
+    ],
+  },
 }

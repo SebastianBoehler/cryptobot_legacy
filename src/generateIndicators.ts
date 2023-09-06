@@ -21,7 +21,7 @@ import { Indicators } from "./types/trading";
 import { OBV, VWAP } from "technicalindicators";
 import { VWAPDeviation } from "./custom_indicators/vwap_deviation";
 
-class generateIndicators {
+class GenerateIndicators {
   public exchange: string;
   public symbol: string;
   private mongodb: mongodb;
@@ -164,61 +164,7 @@ class generateIndicators {
         );
       }
 
-      const { high, low, open, close, volume } = candle;
-      const onBalanceVol = this.indicators.OBV.nextValue({
-        close: +close,
-        volume: +volume,
-      });
-
-      const vwap = this.indicators.VWAP.nextValue({
-        close: +close,
-        high: +high,
-        low: +low,
-        volume: +volume,
-      });
-
-      const ATR = this.indicators.ATR.nextValue(+high, +low, +close);
-
-      const obj: Indicators = {
-        ema_8: this.indicators.ema_8.nextValue(+close),
-        ema_13: this.indicators.ema_13.nextValue(+close),
-        ema_21: this.indicators.ema_21.nextValue(+close),
-        ema_55: this.indicators.ema_55.nextValue(+close),
-        bollinger_bands: this.indicators.bollinger_bands.nextValue(+close),
-        MACD: this.indicators.MACD.nextValue(+close),
-        vol: candle.volume,
-        RSI: this.indicators.RSI.nextValue(+close),
-        ADX: this.indicators.ADX.nextValue(+high, +low, +close),
-        ATR,
-        ATR_percent: ATR / +close,
-        stochRSI: this.indicators.stochRSI.nextValue(+high, +low, +close),
-        candle: {
-          high: +high,
-          low: +low,
-          open: +open,
-          close: +close,
-          volume: +candle.volume,
-          start: candle.start,
-        },
-        HA: this.indicators.HA.nextValue(+open, +high, +low, +close),
-        CCI: this.indicators.CCI.nextValue(+high, +low, +close),
-        ChaikinOS: this.indicators.ChaikinOS.nextValue(
-          +high,
-          +low,
-          +close,
-          volume
-        ),
-        ROC: this.indicators.ROC.nextValue(+close),
-        PSAR: this.indicators.PSAR.nextValue(+high, +low, +close),
-        OBV: onBalanceVol,
-        OBV_RSI: this.indicators.OBV_RSI.nextValue(onBalanceVol ?? 0),
-        OBV_SMA: this.indicators.OBV_SMA.nextValue(onBalanceVol ?? 0),
-        VWAP: vwap,
-        VWAP_deviation: this.indicators.VWAP_deviation.nextValue(
-          +close,
-          volume
-        ),
-      };
+      const obj = await this.handleNewCandle(candle);
 
       this.lastTimestamp = format(timestamp, "yyyy-MM-dd HH:mm");
       this.prevValues = this.lastValues;
@@ -242,38 +188,90 @@ class generateIndicators {
       );
     }
 
-    historicCandles.forEach(({ high, low, close, open, volume }) => {
-      this.indicators.ema_8.nextValue(+close);
-      this.indicators.ema_13.nextValue(+close);
-      this.indicators.ema_21.nextValue(+close);
-      this.indicators.ema_55.nextValue(+close);
-      this.indicators.bollinger_bands.nextValue(+close);
-      this.indicators.MACD.nextValue(+close);
-      this.indicators.RSI.nextValue(+close);
-      this.indicators.ADX.nextValue(+high, +low, +close);
-      this.indicators.ATR.nextValue(+high, +low, +close);
-      this.indicators.stochRSI.nextValue(+high, +low, +close);
-      this.indicators.HA.nextValue(+open, +high, +low, +close);
-      this.indicators.CCI.nextValue(+high, +low, +close);
-      this.indicators.ChaikinOS.nextValue(+high, +low, +close, +close);
-      this.indicators.ROC.nextValue(+close);
-      this.indicators.PSAR.nextValue(+high, +low, +close);
+    historicCandles.forEach((candle) => {
+      this.handleNewCandle(candle);
+    });
+
+    const obj = await this.handleNewCandle(lastCandle);
+
+    this.lastValues = obj;
+    this.firstCall = false;
+    return obj;
+  }
+
+  /**
+   * Returns all indicators for the whole timeframe in an array of objects like {timestamp: number, indicators: Indicators}
+   */
+  async getIndicatorsForWholeTimeframe() {
+    // we expect to have all candles in this.candles
+    type Nullable<T> = { [P in keyof T]: T[P] | null };
+    interface ExtendedData extends Indicators {
+      candle: Candle;
+    }
+    interface NullableExtendedData extends Nullable<ExtendedData> {}
+    const historicCandles = this.candles;
+
+    const data = historicCandles.map((candle) => {
+      const { high, low, close, open, volume, start } = candle;
+      const ATR = this.indicators.ATR.nextValue(+high, +low, +close) || null;
       const onBalanceVol = this.indicators.OBV.nextValue({
         close: +close,
         volume: +volume,
       });
-      this.indicators.OBV_RSI.nextValue(onBalanceVol ?? 0);
-      this.indicators.OBV_SMA.nextValue(onBalanceVol ?? 0);
-      this.indicators.VWAP.nextValue({
-        close: +close,
-        high: +high,
-        low: +low,
-        volume: +volume,
-      });
-      this.indicators.VWAP_deviation.nextValue(+close, volume);
+
+      const extended: NullableExtendedData = {
+        candle: {
+          high: +high,
+          low: +low,
+          open: +open,
+          close: +close,
+          volume: +volume,
+          start,
+        },
+        ema_8: this.indicators.ema_8.nextValue(+close) || null,
+        ema_13: this.indicators.ema_13.nextValue(+close) || null,
+        ema_21: this.indicators.ema_21.nextValue(+close) || null,
+        ema_55: this.indicators.ema_55.nextValue(+close) || null,
+        bollinger_bands:
+          this.indicators.bollinger_bands.nextValue(+close) || null,
+        MACD: this.indicators.MACD.nextValue(+close) || null,
+        vol: volume,
+        RSI: this.indicators.RSI.nextValue(+close) || null,
+        ADX: this.indicators.ADX.nextValue(+high, +low, +close) || null,
+        ATR,
+        ATR_percent: ATR / +close || null,
+        stochRSI:
+          this.indicators.stochRSI.nextValue(+high, +low, +close) || null,
+        HA: this.indicators.HA.nextValue(+open, +high, +low, +close) || null,
+        CCI: this.indicators.CCI.nextValue(+high, +low, +close) || null,
+        ChaikinOS:
+          this.indicators.ChaikinOS.nextValue(+high, +low, +close, volume) ||
+          null,
+        ROC: this.indicators.ROC.nextValue(+close) || null,
+        PSAR: this.indicators.PSAR.nextValue(+high, +low, +close) || null,
+        OBV: onBalanceVol || null,
+        OBV_RSI: this.indicators.OBV_RSI.nextValue(onBalanceVol ?? 0) || null,
+        OBV_SMA: this.indicators.OBV_SMA.nextValue(onBalanceVol ?? 0) || null,
+        VWAP:
+          this.indicators.VWAP.nextValue({
+            close: +close,
+            open: +open,
+            high: +high,
+            low: +low,
+            volume,
+          }) || null,
+        VWAP_deviation:
+          this.indicators.VWAP_deviation.nextValue(+close, volume) || null,
+      };
+
+      return extended;
     });
 
-    const { high, low, close, open, volume } = lastCandle;
+    return data;
+  }
+
+  async handleNewCandle(candle: GeneratedCandle | Candle) {
+    const { high, low, close, open, volume, start } = candle;
 
     const onBalanceVol = this.indicators.OBV.nextValue({
       close: +close,
@@ -307,7 +305,7 @@ class generateIndicators {
         open: +open,
         close: +close,
         volume: +volume,
-        start: lastCandle.start,
+        start,
       },
       HA: this.indicators.HA.nextValue(+open, +high, +low, +close),
       CCI: this.indicators.CCI.nextValue(+high, +low, +close),
@@ -326,8 +324,6 @@ class generateIndicators {
       VWAP_deviation: this.indicators.VWAP_deviation.nextValue(+close, volume),
     };
 
-    this.lastValues = obj;
-    this.firstCall = false;
     return obj;
   }
 
@@ -346,4 +342,4 @@ class generateIndicators {
   }
 }
 
-export { generateIndicators };
+export { GenerateIndicators };

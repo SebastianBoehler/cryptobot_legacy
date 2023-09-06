@@ -1,6 +1,6 @@
 import { differenceInMinutes, subDays } from "date-fns";
 import config from "./config/config";
-import { generateIndicators } from "./generateIndicators";
+import { GenerateIndicators } from "./generateIndicators";
 import mongo from "./mongodb/index";
 import {
   BacktestingResult,
@@ -14,13 +14,12 @@ import {
   calculateProfit,
   logger,
   trailingStopLoss,
-  waitAfterLoss,
 } from "./utils";
 import { Storage } from "./types/backtester";
 import BigNumber from "bignumber.js";
 const mongoClient = new mongo("admin");
 
-const startTime: Date | null = subDays(new Date(), 30 * 5);
+const startTime: Date | null = subDays(new Date(), 30 * 4);
 
 BigNumber.config({
   FORMAT: {
@@ -79,13 +78,14 @@ async function backtester(exchange: Exchanges, symbol: string) {
   const startCapital = 1_500;
 
   const indicators = {
-    "5min": new generateIndicators(exchange, symbol, 5),
-    "15min": new generateIndicators(exchange, symbol, 15),
-    "30min": new generateIndicators(exchange, symbol, 30),
-    "1h": new generateIndicators(exchange, symbol, 60),
-    "90min": new generateIndicators(exchange, symbol, 90),
-    "4h": new generateIndicators(exchange, symbol, 60 * 4),
-    "12h": new generateIndicators(exchange, symbol, 60 * 12),
+    "5min": new GenerateIndicators(exchange, symbol, 5),
+    "15min": new GenerateIndicators(exchange, symbol, 15),
+    "30min": new GenerateIndicators(exchange, symbol, 30),
+    "1h": new GenerateIndicators(exchange, symbol, 60),
+    "90min": new GenerateIndicators(exchange, symbol, 90),
+    "4h": new GenerateIndicators(exchange, symbol, 60 * 4),
+    "12h": new GenerateIndicators(exchange, symbol, 60 * 12),
+    "1d": new GenerateIndicators(exchange, symbol, 60 * 24),
   };
 
   const promises = Object.keys(indicators).map(async (key) => {
@@ -121,6 +121,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       indicators_1h,
       indicators_4h,
       indicators_12h,
+      indicators_1d,
     ] = await Promise.all([
       indicators["5min"].getIndicators(timestamp.getTime()),
       indicators["15min"].getIndicators(timestamp.getTime()),
@@ -128,6 +129,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       indicators["1h"].getIndicators(timestamp.getTime()),
       indicators["4h"].getIndicators(timestamp.getTime()),
       indicators["12h"].getIndicators(timestamp.getTime()),
+      indicators["1d"].getIndicators(timestamp.getTime()),
     ]);
     if (!indicators_12h.ema_55) continue;
     if (startTime && startTime > timestamp) continue;
@@ -138,6 +140,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
     const prev_indicators_1h = indicators["1h"].prevValues;
     const prev_indicators_4h = indicators["4h"].prevValues;
     const prev_indicators_12h = indicators["12h"].prevValues;
+    const prev_indicators_1d = indicators["1d"].prevValues;
 
     if (
       !prev_indicators_5min ||
@@ -145,7 +148,8 @@ async function backtester(exchange: Exchanges, symbol: string) {
       !prev_indicators_30min ||
       !prev_indicators_1h ||
       !prev_indicators_4h ||
-      !prev_indicators_12h
+      !prev_indicators_12h ||
+      !prev_indicators_1d
     )
       continue;
 
@@ -198,44 +202,31 @@ async function backtester(exchange: Exchanges, symbol: string) {
       const trailingStopLossParams = {
         lastTrade,
         price: close,
-        trailingStopLossPercent: 1.5,
+        trailingStopLossPercent: 0.5,
         high: highestPrice,
         low: lowestPrice,
       };
 
+      const futurePrice30min = +history[i + 30]?.close || null;
+      const timeSpan = history.slice(i, i + 30);
+      const lowInFuturesSpan = Math.min(...timeSpan.map((c) => +c.close));
+      const highInFuturesSpan = Math.max(...timeSpan.map((c) => +c.close));
+
       //currently only support one step strategies
       const strategies: Record<(typeof strategyNames)[number], Rule> = {
-        //! loosing 100%
-        random: {
-          isCorrelationTest: true,
-          long_entry: [[Math.random().toFixed(1) === "0.5"]],
-          long_exit: [
-            [
-              trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 3 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-          short_entry: [[Math.random().toFixed(1) === "0.5"]],
-          short_exit: [
-            [
-              trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 3 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-        },
         "0_long": {
           isCorrelationTest: true,
-          long_entry: [[holdDuration > 60 * 6 || !lastTrade]],
+          long_entry: [[!!futurePrice30min && futurePrice30min / close > 1.01]],
+          long_exit: [[holdDuration > 29 || netProfitInPercent > 1 * leverage]],
+          short_entry: [[false]],
+          short_exit: [[false]],
+        },
+        papa: {
+          long_entry: [[!lastTrade || holdDuration > 60 * 2]],
           long_exit: [
             [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 4,
+              netProfitInPercent > 1 * leverage ||
+                netProfitInPercent < -0.5 * leverage,
             ],
           ],
           short_entry: [[false]],
@@ -245,1145 +236,123 @@ async function backtester(exchange: Exchanges, symbol: string) {
           isCorrelationTest: true,
           long_entry: [[false]],
           long_exit: [[false]],
-          short_entry: [[holdDuration > 60 * 6 || !lastTrade]],
+          short_entry: [
+            [!!futurePrice30min && futurePrice30min / close < 0.99],
+          ],
           short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 4,
-            ],
+            [holdDuration > 29 || netProfitInPercent > 1 * leverage],
           ],
         },
-        // correlation only
         "1_long": {
           isCorrelationTest: true,
-          long_entry: [[holdDuration > 60 * 3 || !lastTrade]],
-          long_exit: [[holdDuration > 60 * 1]],
+          long_entry: [
+            [
+              !!futurePrice30min &&
+                futurePrice30min / close > 1.01 &&
+                lowInFuturesSpan / close > 0.995,
+            ],
+          ],
+          long_exit: [[holdDuration > 29 || netProfitInPercent > 1 * leverage]],
           short_entry: [[false]],
           short_exit: [[false]],
         },
-        // correlation only
         "1_short": {
           isCorrelationTest: true,
           long_entry: [[false]],
           long_exit: [[false]],
-          short_entry: [[holdDuration > 60 * 3 || !lastTrade]],
-          short_exit: [[holdDuration > 60 * 1]],
+          short_entry: [
+            [
+              !!futurePrice30min &&
+                futurePrice30min / close < 0.99 &&
+                highInFuturesSpan / close < 1.005,
+            ],
+          ],
+          short_exit: [
+            [holdDuration > 29 || netProfitInPercent > 1 * leverage],
+          ],
         },
-        //! loosing -13%
-        "momentum-based-long": {
+        "2_long": {
+          isCorrelationTest: true,
           long_entry: [
             [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA,
+              !!futurePrice30min &&
+                futurePrice30min / close > 1.01 &&
+                lowInFuturesSpan / close > 0.995,
             ],
           ],
           long_exit: [
             [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
+              holdDuration > 29 ||
+                netProfitInPercent > 1 * leverage ||
                 trailingStopLoss(trailingStopLossParams),
             ],
           ],
           short_entry: [[false]],
           short_exit: [[false]],
         },
-        //! loosing -5%
-        "momentum-based-short": {
+        //work only on 2 strategies
+        "15min-strat-long": {
+          long_entry: [
+            [indicators_15min.RSI > 30],
+            [
+              indicators_15min.RSI < 30 &&
+                indicators_15min.RSI > prev_indicators_15min.RSI,
+            ],
+          ],
+          long_exit: [
+            [
+              netProfitInPercent > 1 * leverage ||
+                netProfitInPercent < -0.5 * leverage ||
+                (holdDuration > 30 && netProfitInPercent < 0) ||
+                holdDuration > 60,
+            ],
+          ],
+          short_entry: [[false]],
+          short_exit: [[false]],
+        },
+        "1d-strat-long": {
+          long_entry: [
+            [
+              !!indicators_1d.OBV &&
+                indicators_1d.OBV > indicators_1d.OBV_SMA &&
+                indicators_1d.RSI < 50,
+            ],
+          ],
+          long_exit: [
+            [
+              indicators_1d.RSI > 70 ||
+                (!!indicators_1d.OBV &&
+                  indicators_1d.OBV < indicators_1d.OBV_SMA) ||
+                trailingStopLoss({
+                  ...trailingStopLossParams,
+                  trailingStopLossPercent: 3,
+                }) ||
+                netProfitInPercent > 6,
+            ],
+          ],
+          short_entry: [[false]],
+          short_exit: [[false]],
+        },
+        "1d-strat-short": {
           long_entry: [[false]],
           long_exit: [[false]],
           short_entry: [
             [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA,
+              !!indicators_1d.OBV &&
+                indicators_1d.OBV < indicators_1d.OBV_SMA &&
+                indicators_1d.RSI > 50,
             ],
           ],
           short_exit: [
             [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-        },
-        //! loosing strategy avg -85%
-        "momentum-based": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA,
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA,
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-        },
-        //! loosing strategy avg -85%
-        "momentum-based-closer-sl": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA,
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA,
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-        },
-        //! loosing avg -8%
-        "momentum-based-closer-sl-min": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-        },
-        //! loosing avg -8%
-        "momentum-based-closer-sl-min-tp": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 15,
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 15,
-            ],
-          ],
-        },
-        //! loosing avg -7%
-        "momentum-based-closer-sl-min-tp-atr": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA &&
-                indicators_30min.ATR / close < 0.05 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_30min.bollinger_bands.upper * 0.99 ||
-                indicators_30min.RSI > 70 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV < indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 15,
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_4h.ADX.adx > 25 &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA &&
-                indicators_30min.ATR / close < 0.05 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 6),
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_30min.bollinger_bands.lower * 1.01 ||
-                indicators_30min.RSI < 30 ||
-                (!!indicators_30min.OBV &&
-                  indicators_30min.OBV > indicators_30min.OBV_SMA) ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 15,
-            ],
-          ],
-        },
-        //! loosing avg -39%
-        "simple-ema": {
-          long_entry: [
-            [
-              indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_1h.ema_8 > indicators_1h.ema_55 &&
-                indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI < 35,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.OBV_RSI > 70 ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_1h.ema_8 < indicators_1h.ema_55 &&
-                indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI > 65,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.OBV_RSI < 30 ||
-                trailingStopLoss(trailingStopLossParams),
-            ],
-          ],
-        },
-        //! loosing avg -65%
-        "simple-macd": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 > indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.MACD.histogram < 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 < indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.MACD.histogram > 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -65%
-        "simple-ema-tp": {
-          long_entry: [
-            [
-              indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_1h.ema_8 > indicators_1h.ema_55 &&
-                indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI < 35,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.OBV_RSI > 70 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 10,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_1h.ema_8 < indicators_1h.ema_55 &&
-                indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI > 65,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.OBV_RSI < 30 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 10,
-            ],
-          ],
-        },
-        //! loosing avg -65%
-        "simple-ema-tp-4h": {
-          long_entry: [
-            [
-              indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 > indicators_4h.ema_21 &&
-                indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI < 35,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.OBV_RSI > 70 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 10,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.ema_8 > indicators_30min.ema_21 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 < indicators_4h.ema_21 &&
-                indicators_30min.ema_8 < indicators_30min.ema_21 &&
-                indicators_30min.OBV_RSI > 65,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.OBV_RSI < 30 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 10,
-            ],
-          ],
-        },
-        //! loosing avg -65%
-        "simple-macd-tp": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 > indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.MACD.histogram < 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12 ||
-                netProfitInPercent > 10,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 < indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.MACD.histogram > 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12 ||
-                netProfitInPercent > 10,
-            ],
-          ],
-        },
-        //! loosing avg -65%
-        "simple-macd-tp-4h": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 > indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          long_exit: [
-            [
-              indicators_30min.MACD.histogram < 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12 ||
-                netProfitInPercent > 10,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-            [
-              indicators_4h.ema_8 < indicators_4h.ema_55 &&
-                indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram,
-            ],
-          ],
-          short_exit: [
-            [
-              indicators_30min.MACD.histogram > 0 ||
-                trailingStopLoss(trailingStopLossParams) ||
-                holdDuration > 60 * 12 ||
-                netProfitInPercent > 10,
-            ],
-          ],
-        },
-        //! loosing -19
-        "scalping-obv-5min": {
-          long_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_5min.MACD.histogram >
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_30min.RSI < 30 &&
-                indicators_30min.OBV > indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_30min.OBV &&
-                indicators_5min.MACD.histogram <
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_30min.RSI > 70 &&
-                indicators_30min.OBV < indicators_30min.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -14%
-        "scalping-obv-5min-1h": {
-          long_entry: [
-            [
-              !!indicators_1h.OBV &&
-                indicators_5min.MACD.histogram >
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_1h.RSI < 30 &&
-                indicators_1h.OBV > indicators_1h.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_1h.OBV &&
-                indicators_5min.MACD.histogram <
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_1h.RSI > 70 &&
-                indicators_1h.OBV < indicators_1h.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        "scalping-obv-5min-1h-long": {
-          long_entry: [
-            [
-              !!indicators_1h.OBV &&
-                indicators_5min.MACD.histogram >
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_1h.RSI < 30 &&
-                indicators_1h.OBV > indicators_1h.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [[false]],
-          short_exit: [[false]],
-        },
-        //! loosing avg -60%
-        "scalping-macd-5min-4h": {
-          long_entry: [
-            [
-              indicators_4h.MACD.histogram >
-                prev_indicators_4h.MACD.histogram &&
-                indicators_5min.RSI < 30 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_4h.MACD.histogram <
-                prev_indicators_4h.MACD.histogram &&
-                indicators_5min.RSI > 70 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -27%
-        "scalping-macd-5min": {
-          long_entry: [
-            [
-              indicators_1h.MACD.histogram > 0 &&
-                indicators_1h.MACD.histogram >
-                  prev_indicators_1h.MACD.histogram &&
-                indicators_5min.RSI < 30 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_1h.MACD.histogram < 0 &&
-                indicators_1h.MACD.histogram <
-                  prev_indicators_1h.MACD.histogram &&
-                indicators_5min.RSI > 70 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -13%
-        "scalping-macd-5min-30min": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI < 30 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI > 70 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -5%
-        "scalping-macd-5min-30min-tighter": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI < 30 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI > 70 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-        },
-        "scalping-macd-5min-30min-tighter-long": {
-          long_entry: [
-            [
-              indicators_30min.MACD.histogram > 0 &&
-                indicators_30min.MACD.histogram >
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI < 30 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-          short_entry: [[false]],
-          short_exit: [[false]],
-        },
-        //! loosing avg -5%
-        "scalping-macd-5min-30min-tighter-short": {
-          long_entry: [[false]],
-          long_exit: [[false]],
-          short_entry: [
-            [
-              indicators_30min.MACD.histogram < 0 &&
-                indicators_30min.MACD.histogram <
-                  prev_indicators_30min.MACD.histogram &&
-                indicators_5min.RSI > 70 &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 6,
-            ],
-          ],
-        },
-        //! loosing avg -9%
-        "scalping-obv-5min-1h-tighter": {
-          long_entry: [
-            [
-              !!indicators_1h.OBV &&
-                indicators_5min.MACD.histogram >
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_1h.RSI < 30 &&
-                indicators_1h.OBV > indicators_1h.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_1h.OBV &&
-                indicators_5min.MACD.histogram <
-                  prev_indicators_5min.MACD.histogram &&
-                indicators_1h.RSI > 70 &&
-                indicators_1h.OBV < indicators_1h.OBV_SMA &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5,
-              }) ||
-                netProfitInPercent > 1 * leverage ||
-                holdDuration > 60 * 12,
-            ],
-          ],
-        },
-        //! loosing avg -33%
-        "scalping-macd-rsi": {
-          long_entry: [
-            [
-              indicators_5min.MACD.histogram > 0 &&
-                indicators_5min.RSI < 30 &&
-                indicators_4h.HA.o < indicators_4h.HA.c &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                (netProfitInPercent < 0 && holdDuration > 60 * 2),
-              holdDuration > 60 * 6,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_5min.MACD.histogram < 0 &&
-                indicators_5min.RSI > 70 &&
-                indicators_4h.HA.o > indicators_4h.HA.c &&
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                (netProfitInPercent < 0 && holdDuration > 60 * 2),
-              holdDuration > 60 * 6,
-            ],
-          ],
-        },
-        //! loosing avg -9%
-        "scalping-macd-rsi-atr": {
-          long_entry: [
-            [
-              indicators_5min.MACD.histogram > 0 &&
-                indicators_5min.RSI < 30 &&
-                indicators_4h.HA.o > indicators_4h.HA.c &&
-                indicators_30min.ATR / close > 0.015 && // Increased volatility (ATR as a percentage)
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                (netProfitInPercent < 0 && holdDuration > 60 * 2),
-              holdDuration > 60 * 6,
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_5min.MACD.histogram < 0 &&
-                indicators_5min.RSI > 70 &&
-                indicators_4h.HA.o < indicators_4h.HA.c &&
-                indicators_30min.ATR / close > 0.015 && // Increased volatility (ATR as a percentage)
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5),
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 1,
-              }) ||
-                netProfitInPercent > 2 * leverage ||
-                (netProfitInPercent < 0 && holdDuration > 60 * 2),
-              holdDuration > 60 * 6,
-            ],
-          ],
-        },
-        "horizontal-volatility": {
-          long_entry: [
-            [
-              indicators_5min.RSI < 40 && // Oversold condition
-                indicators_5min.ATR / close > 0.015 && // Increased volatility (ATR as a percentage)
-                close < indicators_5min.bollinger_bands.lower * 1.005, // Near lower Bollinger Band
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_5min.bollinger_bands.middle || // Price moves above middle Bollinger Band
-                trailingStopLoss(trailingStopLossParams) || // Trailing stop loss triggered
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_5min.RSI > 60 && // Overbought condition
-                indicators_5min.ATR / close > 0.015 && // Increased volatility (ATR as a percentage)
-                close > indicators_5min.bollinger_bands.upper * 0.995, // Near upper Bollinger Band
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_5min.bollinger_bands.middle || // Price moves below middle Bollinger Band
-                trailingStopLoss(trailingStopLossParams) || // Trailing stop loss triggered
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-        },
-        "horizontal-volatility-increased-long": {
-          long_entry: [
-            [
-              indicators_5min.RSI < 40 && // Oversold condition
-                indicators_5min.ATR / close > 0.03 && // Increased volatility (ATR as a percentage)
-                close < indicators_5min.bollinger_bands.lower * 1.005, // Near lower Bollinger Band
-            ],
-          ],
-          long_exit: [
-            [
-              close > indicators_5min.bollinger_bands.middle || // Price moves above middle Bollinger Band
-                trailingStopLoss(trailingStopLossParams) || // Trailing stop loss triggered
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-          short_entry: [[false]],
-          short_exit: [[false]],
-        },
-        "horizontal-volatility-increased-short": {
-          long_entry: [[false]],
-          long_exit: [[false]],
-          short_entry: [
-            [
-              indicators_5min.RSI > 60 && // Overbought condition
-                indicators_5min.ATR / close > 0.03 && // Increased volatility (ATR as a percentage)
-                close > indicators_5min.bollinger_bands.upper * 0.995, // Near upper Bollinger Band
-            ],
-          ],
-          short_exit: [
-            [
-              close < indicators_5min.bollinger_bands.middle || // Price moves below middle Bollinger Band
-                trailingStopLoss(trailingStopLossParams) || // Trailing stop loss triggered
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-        },
-        //! loosing avg -100%
-        "trend-momentum-combo": {
-          long_entry: [
-            [
-              indicators_30min.ema_8 > indicators_30min.ema_21 && // EMA crossover
-                indicators_30min.MACD.histogram > 0 && // Positive MACD histogram
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5, // Tighter trailing stop loss
-              }) ||
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-          short_entry: [
-            [
-              indicators_30min.ema_8 < indicators_30min.ema_21 && // EMA crossover
-                indicators_30min.MACD.histogram < 0 && // Negative MACD histogram
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5, // Tighter trailing stop loss
-              }) ||
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6, // Hold for a maximum of 6 hours
-            ],
-          ],
-        },
-        //! loosing avg -100%
-        "range-breakout": {
-          long_entry: [
-            [
-              close > indicators_4h.bollinger_bands.middle && // Above middle Bollinger Band
-                close < indicators_4h.bollinger_bands.upper && // Below upper Bollinger Band
-                indicators_1h.RSI > 30 && // RSI above 30 (avoid oversold)
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5, // Tighter trailing stop loss
-              }) ||
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
-                close < indicators_4h.bollinger_bands.middle, // Below middle Bollinger Band
-            ],
-          ],
-          short_entry: [
-            [
-              close < indicators_4h.bollinger_bands.middle && // Below middle Bollinger Band
-                close > indicators_4h.bollinger_bands.lower && // Above lower Bollinger Band
-                indicators_1h.RSI < 70 && // RSI below 70 (avoid overbought)
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss({
-                ...trailingStopLossParams,
-                trailingStopLossPercent: 0.5, // Tighter trailing stop loss
-              }) ||
-                netProfitInPercent > 1.5 * leverage || // Take profit at 1.5% net profit
-                holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
-                close > indicators_4h.bollinger_bands.middle, // Above middle Bollinger Band
-            ],
-          ],
-        },
-        //! loosing avg -100%
-        "vwap-trend-following": {
-          long_entry: [
-            [
-              !!indicators_1h.VWAP &&
-                !!prev_indicators_1h.VWAP &&
-                close > indicators_1h.VWAP && // Price above VWAP
-                indicators_1h.VWAP > prev_indicators_1h.VWAP && // VWAP trending up
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          long_exit: [
-            [
-              trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 2 * leverage || // Take profit at 2% net profit
-                holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
-                (!!indicators_1h.VWAP && close < indicators_1h.VWAP), // Price below VWAP
-            ],
-          ],
-          short_entry: [
-            [
-              !!indicators_1h.VWAP &&
-                !!prev_indicators_1h.VWAP &&
-                close < indicators_1h.VWAP && // Price below VWAP
-                indicators_1h.VWAP < prev_indicators_1h.VWAP && // VWAP trending down
-                waitAfterLoss(lastTrade, holdDuration, 30 * 5), // Wait after a loss
-            ],
-          ],
-          short_exit: [
-            [
-              trailingStopLoss(trailingStopLossParams) ||
-                netProfitInPercent > 2 * leverage || // Take profit at 2% net profit
-                holdDuration > 60 * 6 || // Hold for a maximum of 6 hours
-                (!!indicators_1h.VWAP && close > indicators_1h.VWAP), // Price above VWAP
+              indicators_1d.RSI < 30 ||
+                (!!indicators_1d.OBV &&
+                  indicators_1d.OBV > indicators_1d.OBV_SMA) ||
+                trailingStopLoss({
+                  ...trailingStopLossParams,
+                  trailingStopLossPercent: 3,
+                }) ||
+                netProfitInPercent > 6,
             ],
           ],
         },
@@ -1460,11 +429,18 @@ async function backtester(exchange: Exchanges, symbol: string) {
               : undefined,
           },
           RSI_and_EMA: {
-            variant1: item.RSI < 35 && item.ema_8 > item.ema_55,
-            variant2: item.RSI > 65 && item.ema_8 < item.ema_55,
-            variant3:
+            variant1: +(item.RSI < 35 && item.ema_8 > item.ema_55),
+            variant2: +(item.RSI > 65 && item.ema_8 < item.ema_55),
+            variant3: +(
               item.RSI < 35 &&
-              item.ema_8 / item.ema_55 > prev.ema_8 / prev.ema_55,
+              item.ema_8 / item.ema_55 > prev.ema_8 / prev.ema_55
+            ),
+          },
+          RSI_threshold: {
+            variant1: +(item.RSI < 35),
+            variant2: +(item.RSI > 65),
+            variant3: +(item.RSI < 50),
+            variant4: +(item.RSI > 50),
           },
         };
       };
@@ -1479,6 +455,10 @@ async function backtester(exchange: Exchanges, symbol: string) {
         fee,
         holdDuration,
         details: {
+          indicators_5min: extendIndicators(
+            indicators_5min,
+            prev_indicators_5min
+          ),
           indicators_15min: extendIndicators(
             indicators_15min,
             prev_indicators_15min
@@ -1490,6 +470,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
           indicators_1h: extendIndicators(indicators_1h, prev_indicators_1h),
           indicators_4h: extendIndicators(indicators_4h, prev_indicators_4h),
           indicators_12h: extendIndicators(indicators_12h, prev_indicators_12h),
+          indicators_1d: extendIndicators(indicators_1d, prev_indicators_1d),
           candle,
           highestPrice,
           lowestPrice,
@@ -1588,7 +569,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       symbol,
       strategyName,
       exchange,
-      start,
+      start: startTime || start,
       end,
       leverage,
       hodlProfitInPercent,
@@ -1604,7 +585,7 @@ async function backtester(exchange: Exchanges, symbol: string) {
       });
       logger.error(error);
       logger.error(
-        `Failed to save backtest for ${symbol} trades: ${trades.length}`
+        `Failed to save backtest for ${symbol} ${strategyName} trades: ${trades.length}`
       );
     }
   }

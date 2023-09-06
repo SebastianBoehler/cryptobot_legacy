@@ -130,6 +130,11 @@ export function calculateProfitForTrades(
     (acc, exit) => acc * (exit.netProfitInPercent / 100 + 1),
     1
   );
+  //sum of all netProfits
+  const netProfitSumInPercent = filteredExits.reduce(
+    (acc, exit) => acc + exit.netProfitInPercent,
+    0
+  );
 
   const executedOrders =
     filteredExits.filter((exit) => exit.canExecuteOrder).length /
@@ -140,6 +145,7 @@ export function calculateProfitForTrades(
     netProfit,
     netProfitInPercent: (netProfitInPercent - 1) * 100,
     executedOrders,
+    netProfitSumInPercent,
   };
 }
 
