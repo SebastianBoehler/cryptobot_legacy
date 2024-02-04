@@ -8,7 +8,7 @@ module.exports = {
     env_dev: {
       NODE_ENV: "dev"
     },
-    watch: false
+    watch: true
   },
   {
     name: "okx_database",
@@ -19,7 +19,7 @@ module.exports = {
     env_dev: {
       NODE_ENV: "dev"
     },
-    watch: false
+    watch: true
   },
   {
     name: "server",
@@ -31,8 +31,20 @@ module.exports = {
     env_dev: {
       NODE_ENV: "dev"
     },
-    watch: false,
+    watch: true,
     exec_mode: "cluster",
     instances: "max",
-  }],
+  },
+  {
+    name: 'okx trader basti',
+    script: './build/okx/trader.js',
+    env_prod: {
+      NODE_ENV: "prod"
+    },
+    env_dev: {
+      NODE_ENV: "dev"
+    },
+    watch: false
+  }
+  ],
 }

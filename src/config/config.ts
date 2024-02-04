@@ -1,24 +1,20 @@
-import extendedEnv from "dotenv-extended";
-import dotenvParseVariables from "dotenv-parse-variables";
+import extendedEnv from 'dotenv-extended'
+import dotenvParseVariables from 'dotenv-parse-variables'
 
 const options = {
   silent: false,
-  defaults: "./src/config/.env.defaults",
-  schema: "./src/config/.env.schema",
-  path: `./src/config/.env.${process.env.NODE_ENV?.split(" ").join("")}`,
+  defaults: './src/config/.env.defaults',
+  schema: './src/config/.env.schema',
+  path: `./src/config/.env.${process.env.NODE_ENV?.split(' ').join('')}`,
   includeProcessEnv: true,
   assignToProcessEnv: true,
   overrideProcessEnv: false,
-};
+}
 
-const env = extendedEnv.load(options);
-const parsedConfig = dotenvParseVariables(env);
+const env = extendedEnv.load(options)
+const parsedConfig = dotenvParseVariables(env)
 
 const config = {
-  //FTX
-  FTX_KEY: parsedConfig.FTX_KEY as string,
-  FTX_SECRET: parsedConfig.FTX_SECRET as string,
-  FTX_FEE: parsedConfig.FTX_FEE as number,
   //BINANCE
   BINANCE_API_KEY: parsedConfig.BINANCE_API_KEY as string,
   BINANCE_API_SECRET: parsedConfig.BINANCE_API_SECRET as string,
@@ -36,20 +32,19 @@ const config = {
   //Back testing
   START_INDEX: parsedConfig.START_INDEX as number,
   //NODE defaults
-  NODE_ENV: parsedConfig.NODE_ENV as "prod" | "dev" | undefined,
+  NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | undefined,
   LOG_LEVEL: parsedConfig.LOG_LEVEL as string,
 
   //API
   API_SECRET: parsedConfig.API_SECRET as string,
   API_WHITELIST: parsedConfig.API_WHITELIST as string[],
 
-  //deprecated
-  SQL_USER: parsedConfig.SQL_USER as string,
-  SQL_PASSWORD: parsedConfig.SQL_PASSWORD as string,
-  SQL_HOST: parsedConfig.SQL_HOST as string,
+  OKX_KEY: parsedConfig.OKX_KEY as string,
+  OKX_SECRET: parsedConfig.OKX_SECRET as string,
+  OKX_PASS: parsedConfig.OKX_PASS as string,
 
-  EXCHANGE: "",
+  EXCHANGE: '',
   SQL_PORT: null,
-};
+}
 
-export default config;
+export default config
