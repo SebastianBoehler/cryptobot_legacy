@@ -15,7 +15,7 @@ const symbol = 'SOL-USDT-SWAP'
 // ]
 
 const strategy = new BUILD_SCALP()
-strategy.startCapital = 230
+strategy.startCapital = 400
 async function main() {
   await strategy.initalize(symbol, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
