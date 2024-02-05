@@ -9,6 +9,7 @@ export class BUILD_SCALP extends Base implements Strategy {
   public readonly name = 'build-scalp'
   public startCapital = 250
   public steps = 6
+  public multiplier = 1
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -48,13 +49,13 @@ export class BUILD_SCALP extends Base implements Strategy {
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > 1) {
-      if (price < avgEntryPrice * 0.975 && price < lastOrder.avgPrice * 0.975) {
+      if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
       }
 
-      if (price < highestPrice * 0.95 && price > avgEntryPrice * 1.05) {
+      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05 * this.multiplier) {
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -62,7 +63,11 @@ export class BUILD_SCALP extends Base implements Strategy {
     }
 
     //TAKE PROFITS
-    if (price > avgEntryPrice * 1.05 && ctSize > initialSizeInCts && price > lastOrder.avgPrice * 1.05) {
+    if (
+      price > avgEntryPrice * 1.05 * this.multiplier &&
+      ctSize > initialSizeInCts &&
+      price > lastOrder.avgPrice * 1.05 * this.multiplier
+    ) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
       if (reduceBy > 1) {
@@ -74,7 +79,11 @@ export class BUILD_SCALP extends Base implements Strategy {
 
     //LEVERAGE INCREASE
     //TODO: increase leverage in steps
-    if (price > avgEntryPrice * 1.1 && leverage < 40 && (!lastLeverIncrease || price > lastLeverIncrease * 1.025)) {
+    if (
+      price > avgEntryPrice * 1.1 * this.multiplier &&
+      leverage < 40 &&
+      (!lastLeverIncrease || price > lastLeverIncrease * 1.025 * this.multiplier)
+    ) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3)
       lastLeverIncrease = price
@@ -88,7 +97,11 @@ export class BUILD_SCALP extends Base implements Strategy {
 
     //SCALE DOWN IF LEVERAGE IS TOO HIGH AND WE FELL TO price < avgEntryPrice * 1.02
     //IF UPPER CASE DOESNT COVER IT
-    if (highestPrice > avgEntryPrice * 1.025 && ctSize > initialSizeInCts && price < avgEntryPrice * 1.01) {
+    if (
+      highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
+      ctSize > initialSizeInCts &&
+      price < avgEntryPrice * 1.01 * this.multiplier
+    ) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
