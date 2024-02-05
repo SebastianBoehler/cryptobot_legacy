@@ -99,6 +99,13 @@ class MongoWrapper {
     return result[0] || null
   }
 
+  async readFirstCandle(collectionName: string) {
+    const db = client.db(this.db)
+    const collection = db.collection(collectionName)
+    const result = await collection.find<DatabaseType>({}).sort({ start: 1 }).limit(1).toArray()
+    return result[0] || null
+  }
+
   async getStartAndEndDates(database: string, collectionName: string) {
     const db = client.db(database)
     const collection = db.collection(collectionName)
@@ -207,7 +214,7 @@ class MongoWrapper {
       start: 1,
     }
 
-    const cursor = await collection.find().project(projection).sort(sort)
+    const cursor = collection.find().project(projection).sort(sort)
 
     while (await cursor.hasNext()) {
       const item = await cursor.next()

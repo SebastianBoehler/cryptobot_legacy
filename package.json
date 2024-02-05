@@ -13,6 +13,7 @@
     "nodemon": "export NODE_ENV=dev && nodemon src/backtester.ts",
     "nodemon:worker": "export NODE_ENV=dev && nodemon src/worker/index.ts",
     "nodemon:database": "export NODE_ENV=dev && nodemon src/okx/database.ts",
+    "nodemon:previous": "export NODE_ENV=dev && nodemon src/okx/previous.ts",
     "nodemon:trader": "export NODE_ENV=dev && nodemon src/okx/trader.ts",
     "nodemon:server": "export NODE_ENV=dev && nodemon src/server.ts",
     "nodemon:backtester": "export NODE_ENV=dev && nodemon src/backtester.ts",

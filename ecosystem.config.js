@@ -36,7 +36,7 @@ module.exports = {
     instances: "max",
   },
   {
-    name: 'okx trader basti',
+    name: 'okx_trader_basti',
     script: './build/okx/trader.js',
     env_prod: {
       NODE_ENV: "prod"
