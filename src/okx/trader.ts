@@ -1,40 +1,25 @@
 import { BUILD_SCALP } from '../strategies/build_scalp'
 import { logger, sleep } from '../utils'
 
-const strategies = [
-  {
-    strategy: new BUILD_SCALP(),
-    symbol: 'SOL-USDT-SWAP',
-    startCapital: 400,
-  },
-  {
-    strategy: new BUILD_SCALP(),
-    symbol: 'TIA-USDT-SWAP',
-    startCapital: 40,
-    multiplier: 0.95,
-  },
-]
+if (!process.env.SYMBOL) throw new Error('no symbol')
+if (!process.env.START_CAPITAL) throw new Error('no start capital')
 
+//set by env variable
+const symbol = process.env.SYMBOL
+
+const strategy = new BUILD_SCALP()
+strategy.startCapital = +process.env.START_CAPITAL
 async function main() {
-  for (const item of strategies) {
-    await item.strategy.initalize(item.symbol, true, true)
-    if (!item.strategy.orderHelper) throw new Error('no orderHelper')
-    item.strategy.orderHelper.identifier = `${item.strategy.name}-${item.symbol}-live`
-
-    item.strategy.startCapital = item.startCapital
-    if (item.multiplier) item.strategy.multiplier = item.multiplier
-  }
-
+  await strategy.initalize(symbol, true, true)
+  if (!strategy.orderHelper) throw new Error('no orderHelper')
+  strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   await sleep(1000 * 5)
   while (true) {
-    for (const item of strategies) {
-      if (!item.strategy.orderHelper) throw new Error(`[trader] OrderHelper not initialized ${item.symbol}`)
-      const price = item.strategy.orderHelper.price
-      await item.strategy.update(price, [], new Date())
+    const price = strategy.orderHelper.price
+    await strategy.update(price, [], new Date())
 
-      const pos = item.strategy.orderHelper.position
-      logger.debug('pos', pos)
-    }
+    const pos = strategy.orderHelper.position
+    logger.debug('pos', pos)
     await sleep(1000 * 5)
   }
 }

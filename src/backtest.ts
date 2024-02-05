@@ -9,7 +9,7 @@ const saveToMongo = true
 
 export async function backtest(
   symbol: string,
-  start?: Date,
+  start: Date = new Date('2024-01-10'),
   identifier?: string,
   amount?: number,
   strategyName?: keyof typeof strategies,

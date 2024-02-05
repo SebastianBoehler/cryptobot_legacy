@@ -105,6 +105,8 @@ class OkxClient {
         //@ts-ignore
         const realizedPnl = +data.realizedPnl
 
+        if (+data.pos < 1) return
+
         this.position = {
           uplUsd: data.upl,
           profit: data.uplRatio,

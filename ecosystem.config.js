@@ -36,13 +36,22 @@ module.exports = {
     instances: "max",
   },
   {
-    name: 'okx_trader_basti',
+    name: 'okx_trader_sol',
     script: './build/okx/trader.js',
     env_prod: {
-      NODE_ENV: "prod"
+      NODE_ENV: "prod",
+      SYMBOL: 'SOL-USDT-SWAP',
+      START_CAPITAL: 400,
     },
-    env_dev: {
-      NODE_ENV: "dev"
+    watch: false
+  },
+  {
+    name: 'okx_trader_sol',
+    script: './build/okx/trader.js',
+    env_prod: {
+      NODE_ENV: "prod",
+      SYMBOL: 'TIA-USDT-SWAP',
+      START_CAPITAL: 50,
     },
     watch: false
   }

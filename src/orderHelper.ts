@@ -305,7 +305,7 @@ export class LiveOrderHelper {
 
       //TODO: integrate https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-leverage-estimated-info
 
-      console.log('new margin', reduceBy)
+      console.log('new margin', reduceBy, this.symbol)
       await this.reduceMargin(reduceBy.toString())
 
       await sleep(1_000)
