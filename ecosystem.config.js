@@ -28,6 +28,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
         START_CAPITAL: 80,
+        MULTIPLIER: 0.95
       },
       watch: false
     }

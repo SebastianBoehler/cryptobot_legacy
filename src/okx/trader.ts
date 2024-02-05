@@ -9,6 +9,10 @@ const symbol = process.env.SYMBOL
 
 const strategy = new BUILD_SCALP()
 strategy.startCapital = +process.env.START_CAPITAL
+
+const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
+if (strategy.multiplier) strategy.multiplier = multiplier
+
 async function main() {
   await strategy.initalize(symbol, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
