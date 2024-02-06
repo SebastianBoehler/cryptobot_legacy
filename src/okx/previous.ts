@@ -39,7 +39,10 @@ async function processSymbol(symbol: string) {
     })
     .filter(({ start }) => start.getTime() < firstCandleTime.getTime())
 
-  if (data.length) await mongo.writeMany(symbol, data)
+  if (data.length) {
+    logger.info(`Writing ${data.length} candles for ${symbol}`)
+    await mongo.writeMany(symbol, data)
+  }
 }
 
 async function main() {

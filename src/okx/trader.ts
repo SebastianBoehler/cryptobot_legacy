@@ -23,7 +23,10 @@ async function main() {
     await strategy.update(price, [], new Date())
 
     const pos = strategy.orderHelper.position
-    logger.debug('pos', pos)
+    logger.debug('pos', {
+      ...pos,
+      gains: strategy.orderHelper.profitUSD,
+    })
     await sleep(1000 * 5)
   }
 }

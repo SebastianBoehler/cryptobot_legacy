@@ -7,7 +7,7 @@ let lastLeverIncrease: number | null
 
 export class BUILD_SCALP extends Base implements Strategy {
   public readonly name = 'build-scalp'
-  public startCapital = 250
+  public startCapital = 80
   public steps = 6
   public multiplier = 1
 

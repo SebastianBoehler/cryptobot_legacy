@@ -31,6 +31,17 @@ module.exports = {
         MULTIPLIER: 0.95
       },
       watch: false
+    },
+    {
+      name: 'okx_trader_pyth',
+      script: './build/okx/trader.js',
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'PYTH-USDT-SWAP',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
     }
   ],
 }

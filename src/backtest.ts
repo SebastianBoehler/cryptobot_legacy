@@ -91,7 +91,7 @@ export async function backtest(
       winRatio,
       stringifiedFunc,
       time: new Date(),
-      start: history[0].start,
+      start: start || history[0].start,
       end: history[history.length - 1].start,
       pnl_pct,
       hodl_pct,

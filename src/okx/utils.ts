@@ -97,6 +97,7 @@ class OkxClient {
           this.position = null
           return
         }
+        if (+data.pos < 1) return
 
         //@ts-ignore
         const fee = +data.fee
@@ -104,8 +105,6 @@ class OkxClient {
         const fudingFee = +data.fundingFee
         //@ts-ignore
         const realizedPnl = +data.realizedPnl
-
-        if (+data.pos < 1) return
 
         this.position = {
           uplUsd: data.upl,

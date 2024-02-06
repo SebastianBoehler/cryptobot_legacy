@@ -7,7 +7,7 @@ let lastLeverIncrease: number | null
 
 export class BUILD_FAST extends Base implements Strategy {
   public readonly name = 'build-fast'
-  public startCapital = 250
+  public startCapital = 80
   public steps = 3
 
   async update(price: number, indicators: Indicators[], time: Date) {
