@@ -7,7 +7,7 @@ let lastLeverIncrease: number | null
 
 export class BUILD extends Base implements Strategy {
   public readonly name = 'build'
-  public startCapital = 80
+  public startCapital = 250
   public steps = 3
   public multiplier = 1
 
@@ -82,7 +82,7 @@ export class BUILD extends Base implements Strategy {
     if (
       price > avgEntryPrice * 1.3 * this.multiplier &&
       leverage < 40 &&
-      (!lastLeverIncrease || price > lastLeverIncrease * 1.1 * this.multiplier)
+      (!lastLeverIncrease || price > lastLeverIncrease * 1.1)
     ) {
       await this.orderHelper.setLeverage(leverage + 2)
       lastLeverIncrease = price

@@ -7,7 +7,7 @@ let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST extends Base implements Strategy {
   public readonly name = 'build-scalp-fast'
-  public startCapital = 80
+  public startCapital = 250
   public steps = 6
   public multiplier = 0.95
 
@@ -82,7 +82,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
       leverage < 40 &&
-      (!lastLeverIncrease || price > lastLeverIncrease * 1.025 * this.multiplier)
+      (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3)

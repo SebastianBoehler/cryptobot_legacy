@@ -5,11 +5,11 @@ import { createUniqueId } from '../utils'
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
-export class BUILD_SCALP extends Base implements Strategy {
-  public readonly name = 'build-scalp'
+export class BUILD_SCALP_FAST_V2 extends Base implements Strategy {
+  public readonly name = 'build-scalp-fast-v2'
   public startCapital = 250
   public steps = 6
-  public multiplier = 1
+  public multiplier = 0.95
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -82,7 +82,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
       leverage < 40 &&
-      (!lastLeverIncrease || price > lastLeverIncrease * 1.025 * this.multiplier)
+      (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3)
@@ -100,7 +100,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     if (
       highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
       ctSize > initialSizeInCts &&
-      price < avgEntryPrice * 1.01 * this.multiplier
+      price < avgEntryPrice * 0.99
     ) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts

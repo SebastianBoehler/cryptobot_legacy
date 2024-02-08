@@ -9,7 +9,7 @@ const saveToMongo = true
 
 export async function backtest(
   symbol: string,
-  start: Date = new Date('2024-01-10'),
+  start?: Date, // = new Date('2024-01-10'),
   identifier?: string,
   amount?: number,
   strategyName?: keyof typeof strategies,
@@ -17,10 +17,10 @@ export async function backtest(
   multiplier?: number
 ) {
   const history = await mongo.getHistory<{ close: string; start: Date }>('okx', symbol, { close: 1 })
-  const indicators = [new GenerateIndicators('okx', symbol, 15), new GenerateIndicators('okx', symbol, 60)]
+  const indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
 
   //returns & deletes first 5k candles
-  //history.splice(0, 10_000)
+  history.splice(0, 10_000)
 
   const rndStr = createUniqueId(4)
 

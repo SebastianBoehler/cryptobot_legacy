@@ -1,4 +1,6 @@
 import { BUILD_SCALP } from '../strategies/build_scalp'
+import { BUILD_SCALP_FAST_V2 } from '../strategies/build_scalp_fast_v2'
+import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
 import { logger, sleep } from '../utils'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
@@ -7,7 +9,15 @@ if (!process.env.START_CAPITAL) throw new Error('no start capital')
 //set by env variable
 const symbol = process.env.SYMBOL
 
-const strategy = new BUILD_SCALP()
+const strategies = {
+  BUILD_SCALP: new BUILD_SCALP(),
+  SCALP_INDICATORS: new SCALP_INDICATORS(),
+  FAST_V2: new BUILD_SCALP_FAST_V2(),
+}
+
+const strategy = strategies[(process.env.STRATEGY || 'BUILD_SCALP') as keyof typeof strategies]
+if (!strategy) throw new Error('no strategy')
+logger.info(`Using strategy: ${strategy.name}`)
 strategy.startCapital = +process.env.START_CAPITAL
 
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1

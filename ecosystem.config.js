@@ -27,6 +27,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
+        STRATEGY: 'SCALP_INDICATORS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -38,6 +39,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
+        STRATEGY: 'FAST_V2',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
