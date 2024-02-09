@@ -44,6 +44,14 @@ module.exports = {
         MULTIPLIER: 0.95
       },
       watch: false
+    },
+    {
+      name: 'okx_database',
+      script: './build/okx/database.js',
+      env_prod: {
+        NODE_ENV: "prod"
+      },
+      watch: true
     }
   ],
 }
