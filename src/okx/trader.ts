@@ -1,3 +1,5 @@
+import { Indicators } from 'cryptobot-types'
+import { GenerateIndicators } from '../indicators'
 import { BUILD_SCALP } from '../strategies/build_scalp'
 import { BUILD_SCALP_FAST_V2 } from '../strategies/build_scalp_fast_v2'
 import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
@@ -23,14 +25,19 @@ strategy.startCapital = +process.env.START_CAPITAL
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
 
+const indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
+
 async function main() {
   await strategy.initalize(symbol, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   await sleep(1000 * 5)
   while (true) {
+    const indicatorsPromise = await Promise.all(indicators.map((i) => i.getIndicators(new Date())))
+    const indicatorsLoaded = indicatorsPromise.filter((i) => i !== undefined) as unknown as Indicators[]
+
     const price = strategy.orderHelper.price
-    await strategy.update(price, [], new Date())
+    await strategy.update(price, indicatorsLoaded, new Date())
 
     const pos = strategy.orderHelper.position
     logger.debug('pos', {

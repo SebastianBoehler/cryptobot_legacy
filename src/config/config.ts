@@ -31,9 +31,11 @@ const config = {
   API_SECRET: parsedConfig.API_SECRET as string,
   API_WHITELIST: parsedConfig.API_WHITELIST as string[],
 
+  //OKX
   OKX_KEY: parsedConfig.OKX_KEY as string,
   OKX_SECRET: parsedConfig.OKX_SECRET as string,
   OKX_PASS: parsedConfig.OKX_PASS as string,
+  OKX_ENABLED_PAIRS: parsedConfig.OKX_ENABLED_PAIRS as string[],
 }
 
 export default config

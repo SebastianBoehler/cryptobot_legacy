@@ -47,7 +47,9 @@ async function processSymbol(symbol: string) {
 
 async function main() {
   const markets = await okxClient.getTickers('SWAP')
-  const symbols = markets.map((market) => market.instId).filter((symbol) => !symbol.endsWith('-USD-SWAP'))
+  let symbols = markets.map((market) => market.instId).filter((symbol) => !symbol.endsWith('-USD-SWAP'))
+  if (config.OKX_ENABLED_PAIRS && config.OKX_ENABLED_PAIRS.length)
+    symbols = symbols.filter((symbol) => config.OKX_ENABLED_PAIRS.includes(symbol))
 
   const chunks = createChunks(symbols, 10)
 
