@@ -3,6 +3,7 @@ import MongoWrapper from './mongodb'
 import { OkxClient } from './okx/utils'
 import { createUniqueId, sleep } from './utils'
 import { omit } from 'lodash'
+import config from './config/config'
 
 const okxClient = new OkxClient()
 const mongo = new MongoWrapper('backtests')
@@ -286,11 +287,15 @@ export class LiveOrderHelper {
   }
 
   //TODO: return gained margin
-  public async setLeverage(leverage: number) {
+  public async setLeverage(leverage: number, posSide?: 'long' | 'short') {
     if (leverage > 100) throw new Error('[orderHelper > setLeverage] Leverage cannot be higher than 100')
 
+    if (config.IS_HEDGE) {
+      posSide = 'long'
+    }
+
     const prevLeverage = this.leverage
-    await okxClient.setLeverage(this.symbol, leverage, 'isolated')
+    await okxClient.setLeverage(this.symbol, leverage, 'isolated', posSide)
     this.leverage = leverage
 
     //INCREMENT LEVERAGE

@@ -317,8 +317,13 @@ class OkxClient {
     return resp
   }
 
-  async setLeverage(symbol: string, leverage: number, mgnMode: 'cross' | 'isolated' = 'isolated') {
-    logger.warn(`Setting leverage to ${leverage} for ${symbol}`)
+  async setLeverage(
+    symbol: string,
+    leverage: number,
+    mgnMode: 'cross' | 'isolated' = 'isolated',
+    posSide?: 'long' | 'short'
+  ) {
+    logger.warn(`Setting leverage to ${leverage} for ${symbol} and side ${posSide}`)
     const resp = await this.restClient.setLeverage({
       instId: symbol,
       mgnMode,
