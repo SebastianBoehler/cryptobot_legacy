@@ -82,7 +82,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
       leverage < 40 &&
-      (!lastLeverIncrease || price > lastLeverIncrease * 1.025 * this.multiplier)
+      (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3)
