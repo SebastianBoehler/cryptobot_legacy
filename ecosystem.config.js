@@ -39,7 +39,19 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
-        STRATEGY: 'FAST_V2',
+        STRATEGY: 'SCALP_INDICATORS',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'okx_trader_sui',
+      script: './build/okx/trader.js',
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'SUI-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -52,6 +64,30 @@ module.exports = {
         NODE_ENV: "prod"
       },
       watch: true
-    }
+    },
+    //HB CAPITAL
+    {
+      name: 'hb_trader_tia',
+      script: './build/okx/trader.js',
+      env_prod: {
+        NODE_ENV: "hb",
+        SYMBOL: 'TIA-USDT-SWAP',
+        STRATEGY: 'SCALP_INDICATORS',
+        START_CAPITAL: 80,
+      },
+      watch: false
+    },
+    {
+      name: 'hb_trader_pyth',
+      script: './build/okx/trader.js',
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'PYTH-USDT-SWAP',
+        STRATEGY: 'SCALP_INDICATORS',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
   ],
 }

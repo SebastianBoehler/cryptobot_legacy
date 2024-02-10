@@ -4,6 +4,7 @@ import { BUILD_SCALP } from '../strategies/build_scalp'
 import { BUILD_SCALP_FAST_V2 } from '../strategies/build_scalp_fast_v2'
 import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
 import { logger, sleep } from '../utils'
+import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -13,6 +14,7 @@ const symbol = process.env.SYMBOL
 
 const strategies = {
   BUILD_SCALP: new BUILD_SCALP(),
+  BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   SCALP_INDICATORS: new SCALP_INDICATORS(),
   FAST_V2: new BUILD_SCALP_FAST_V2(),
 }
