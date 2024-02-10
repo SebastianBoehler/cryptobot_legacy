@@ -327,6 +327,7 @@ class OkxClient {
     const resp = await this.restClient.setLeverage({
       instId: symbol,
       mgnMode,
+      posSide,
       lever: String(leverage),
     })
     return resp
