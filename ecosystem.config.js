@@ -81,7 +81,7 @@ module.exports = {
       name: 'hb_trader_pyth',
       script: './build/okx/trader.js',
       env_prod: {
-        NODE_ENV: "prod",
+        NODE_ENV: "hb",
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_INDICATORS',
         START_CAPITAL: 80,
