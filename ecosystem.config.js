@@ -74,6 +74,7 @@ module.exports = {
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'SCALP_INDICATORS',
         START_CAPITAL: 80,
+        IS_HEDGE: true,
       },
       watch: false
     },
@@ -85,7 +86,8 @@ module.exports = {
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_INDICATORS',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        IS_HEDGE: true,
       },
       watch: false
     },

@@ -210,6 +210,9 @@ class OkxClient {
       slOrdPx: string
     }
   ) {
+    if (!config.IS_HEDGE) {
+      posSide = 'net'
+    }
     if (clOrdId.length > 32) throw new Error(`clOrdId too long: ${side} ${clOrdId}`)
     const resp = await this.restClient
       .submitOrder({
@@ -218,7 +221,7 @@ class OkxClient {
         ordType: 'market',
         side,
         tag: 'hb-capital-' + createUniqueId(10),
-        //posSide,
+        posSide,
         sz: String(size),
         tdMode: 'isolated',
         reduceOnly,
