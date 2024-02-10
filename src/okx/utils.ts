@@ -212,9 +212,8 @@ class OkxClient {
   ) {
     if (!config.IS_HEDGE) {
       posSide = 'net'
-    } else {
-      logger.debug('Hedge mode enabled', posSide)
     }
+    logger.debug('Hedge mode enabled', posSide)
     if (clOrdId.length > 32) throw new Error(`clOrdId too long: ${side} ${clOrdId}`)
     const resp = await this.restClient
       .submitOrder({
