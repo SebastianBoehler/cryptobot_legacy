@@ -16,6 +16,7 @@ const startTime = subMonths(new Date(), 12).getTime()
 async function processSymbol(symbol: string) {
   const lastCandle = await mongo.readLastCandle(symbol)
   const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
+  //TODO: las time / ymbol to pm2 value
   const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
   if (secondsAgo < 70) return
 

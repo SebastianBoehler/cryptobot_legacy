@@ -5,9 +5,12 @@ import { BUILD_SCALP_FAST_V2 } from '../strategies/build_scalp_fast_v2'
 import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
 import { logger, sleep } from '../utils'
 import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
+import MongoWrapper from '../mongodb'
+import { LivePosition } from '../orderHelper'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
+const mongo = new MongoWrapper('backtests')
 
 //set by env variable
 const symbol = process.env.SYMBOL
@@ -34,9 +37,20 @@ async function main() {
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   await sleep(1000 * 5)
+
+  let index = 0
   while (true) {
-    const indicatorsPromise = await Promise.all(indicators.map((i) => i.getIndicators(new Date())))
+    const indicatorsPromise = await Promise.all(indicators.map((i) => i.getIndicators(new Date()))).catch((e) => {
+      logger.error('error getting indicators', e)
+      return []
+    })
+
     const indicatorsLoaded = indicatorsPromise.filter((i) => i !== undefined) as unknown as Indicators[]
+    if (indicatorsLoaded.length !== indicators.length) {
+      logger.error('indicators not loaded')
+      await sleep(1000 * 5)
+      continue
+    }
 
     const price = strategy.orderHelper.price
     await strategy.update(price, indicatorsLoaded, new Date())
@@ -46,7 +60,14 @@ async function main() {
       ...pos,
       gains: strategy.orderHelper.profitUSD,
     })
+
+    if (index % 10 === 0) {
+      await mongo.saveLivePosition(pos as unknown as LivePosition).catch((e) => {
+        logger.error('[mongodb] saving live position', e)
+      })
+    }
     await sleep(1000 * 5)
+    index++
   }
 }
 

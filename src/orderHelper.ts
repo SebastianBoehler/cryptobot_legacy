@@ -263,7 +263,7 @@ export class OrderHelper {
   }
 }
 
-interface LivePosition extends Position {
+export interface LivePosition extends Position {
   realizedPnlUSD: number
   posId: string
 }
@@ -347,7 +347,11 @@ export class LiveOrderHelper {
 
     if (!okxClient.position) return
     let orders = this.position?.orders || []
-    if (orders.length === 0) orders = await mongo.getOrders<Order | CloseOrder>(okxClient.position.posId)
+    let savedPos = this.position
+    if (orders.length === 0) {
+      orders = await mongo.getOrders<Order | CloseOrder>(okxClient.position.posId)
+      savedPos = await mongo.getLivePosition(okxClient.position.posId)
+    }
 
     const unrealizedPnlPcnt = +okxClient.position.profit * 100
     const unrealizedPnlUSD = +okxClient.position.uplUsd
@@ -358,8 +362,9 @@ export class LiveOrderHelper {
       //use if no position existing otherwise overwrite with proper values
       highestPrice: okxClient.position.avgEntryPrice,
       lowestPrice: okxClient.position.avgEntryPrice,
+      ...savedPos,
       ...this.position,
-      //everything that should be updated after ...this.position
+      //everything that MUST be updated after ...this.position
       type: okxClient.position.type,
       avgEntryPrice: +okxClient.position.avgEntryPrice,
       fee: +okxClient.position.fee,

@@ -5,17 +5,24 @@ import { createChunks, logger } from '../utils'
 import fs from 'fs'
 import path from 'path'
 import { Candle, CloseOrder, ClosedPosition, DatabaseType, GeneratedCandle, Order } from 'cryptobot-types'
-const client = new MongoClient(config.MONGO_URL)
+import { LivePosition } from '../orderHelper'
+
+//const FIVE_MINUTES = 1000 * 60 * 5
+const client = new MongoClient(config.MONGO_URL, {
+  appName: `cryptobot-${config.NODE_ENV} ${config.SYMBOL}`,
+  //heartbeatFrequencyMS: FIVE_MINUTES,
+  //socketTimeoutMS: FIVE_MINUTES,
+})
 
 process.on('exit', async () => {
   await client.close()
 })
 
 client.on('error', (err) => {
-  logger.error('MongoDB error', err)
+  logger.error('[mongodb] error', err)
 })
 client.on('open', () => {
-  logger.info(`MongoDB connected to ${config.MONGO_URL}`)
+  logger.info(`[mongodb] connected to ${config.MONGO_URL}`)
 })
 
 class MongoWrapper {
@@ -465,6 +472,37 @@ class MongoWrapper {
     }
 
     return candles
+  }
+
+  async saveLivePosition(position: LivePosition) {
+    const db = client.db('trader')
+    const collection = db.collection('livePositions')
+    await collection.updateOne(
+      {
+        posId: position.posId,
+      },
+      {
+        $set: position,
+      },
+      {
+        upsert: true,
+      }
+    )
+  }
+
+  async getLivePosition(posId: string) {
+    const db = client.db('trader')
+    const collection = db.collection('livePositions')
+    const result = await collection
+      .find<LivePosition>({
+        posId,
+      })
+      .toArray()
+
+    if (result.length > 1) {
+      logger.error(`More than one live position found for ${posId}`)
+    }
+    return result[0]
   }
 }
 

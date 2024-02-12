@@ -24,7 +24,7 @@ const config = {
   WRITE_TO_DB: parsedConfig.WRITE_TO_DB as boolean,
   MONGO_URL: parsedConfig.MONGO_URL as string,
   //NODE defaults
-  NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | undefined,
+  NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb' | undefined,
   LOG_LEVEL: parsedConfig.LOG_LEVEL as string,
 
   //API
@@ -37,6 +37,12 @@ const config = {
   OKX_PASS: parsedConfig.OKX_PASS as string,
   OKX_ENABLED_PAIRS: parsedConfig.OKX_ENABLED_PAIRS as string[],
   IS_HEDGE: parsedConfig.IS_HEDGE as boolean,
+
+  //TRADING
+  STRATEGY: parsedConfig.STRATEGY as 'BUILD_SCALP' | 'BUILD_SCALP_FAST' | 'SCALP_INDICATORS' | 'FAST_V2' | undefined,
+  START_CAPITAL: parsedConfig.START_CAPITAL as number | undefined,
+  SYMBOL: parsedConfig.SYMBOL as string | undefined,
+  MULTIPLIER: parsedConfig.MULTIPLIER as number | undefined,
 }
 
 export default config

@@ -19,6 +19,7 @@ import { OBV, VWAP } from 'technicalindicators'
 import { VWAPDeviation } from './vwap_deviation'
 import { AvgCandleSize } from './avg_candle_size'
 import { Candle, GeneratedCandle, Indicators } from 'cryptobot-types'
+import { logger } from '../utils'
 
 class GenerateIndicators {
   private symbol: string
@@ -79,6 +80,11 @@ class GenerateIndicators {
         if (!newCandle) throw new Error(`[indicators] No data found for ${this.symbol} at ${adjustedTimestamp}`)
         indicators = this.handleNewCandle(newCandle)
       }
+      logger.debug('new candle added', {
+        start: indicators.candle.start,
+        symbol: this.symbol,
+        timestamp: format(timestamp, 'yyyy-MM-dd HH:mm'),
+      })
 
       this.lastTimestamp = format(timestamp, 'yyyy-MM-dd HH:mm')
       this.prevValues = this.lastValues

@@ -5,10 +5,9 @@ export class Base {
   public orderHelper: OrderHelper | LiveOrderHelper | undefined
   public symbol: string | undefined
 
-  public async initalize(symbol: string, saveToMongo?: boolean, live?: boolean, leverage: number = 2) {
+  public async initalize(symbol: string, saveToMongo?: boolean, live?: boolean) {
     this.symbol = symbol
     this.orderHelper = live ? new LiveOrderHelper(symbol) : new OrderHelper(symbol, saveToMongo)
-    this.orderHelper.setLeverage(leverage)
     await this.orderHelper.getContractInfo()
   }
 
