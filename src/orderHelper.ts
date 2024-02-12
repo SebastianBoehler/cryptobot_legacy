@@ -351,6 +351,7 @@ export class LiveOrderHelper {
     if (orders.length === 0) {
       orders = await mongo.getOrders<Order | CloseOrder>(okxClient.position.posId)
       savedPos = await mongo.getLivePosition(okxClient.position.posId)
+      this.leverage = +okxClient.position.lever
     }
 
     const unrealizedPnlPcnt = +okxClient.position.profit * 100

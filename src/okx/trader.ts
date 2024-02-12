@@ -7,6 +7,7 @@ import { logger, sleep } from '../utils'
 import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
 import MongoWrapper from '../mongodb'
 import { LivePosition } from '../orderHelper'
+import { livePositionMetrics } from '../pm2'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -66,6 +67,9 @@ async function main() {
         logger.error('[mongodb] saving live position', e)
       })
     }
+
+    livePositionMetrics(pos)
+
     await sleep(1000 * 5)
     index++
   }
