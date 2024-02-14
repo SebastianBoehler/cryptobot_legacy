@@ -78,7 +78,6 @@ export class BUILD extends Base implements Strategy {
     }
 
     //LEVERAGE INCREASE
-    //TODO: increase leverage in steps
     if (
       price > avgEntryPrice * 1.3 * this.multiplier &&
       leverage < 40 &&

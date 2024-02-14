@@ -4,7 +4,7 @@ import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
 const startCapital = 80
-const startDate = new Date('2024-01-01')
+const startDate = new Date('2024-01-01') //JUNE
 
 ;(async () => {
   const symbols = await mongo.symbolsSortedByVolume('okx') //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume('okx') //

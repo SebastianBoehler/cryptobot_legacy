@@ -8,6 +8,7 @@ import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
 import MongoWrapper from '../mongodb'
 import { LivePosition } from '../orderHelper'
 import { livePositionMetrics } from '../pm2'
+import config from '../config/config'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -54,18 +55,24 @@ async function main() {
     }
 
     const price = strategy.orderHelper.price
+    //TODO: continue while no incoming ticker stream received yet
     await strategy.update(price, indicatorsLoaded, new Date())
 
-    const pos = strategy.orderHelper.position
+    const pos = strategy.orderHelper.position as LivePosition
     logger.debug('pos', {
       ...pos,
       gains: strategy.orderHelper.profitUSD,
     })
 
     if (index % 10 === 0) {
-      await mongo.saveLivePosition(pos as unknown as LivePosition).catch((e) => {
-        logger.error('[mongodb] saving live position', e)
-      })
+      await mongo
+        .saveLivePosition({
+          ...pos,
+          env: config.NODE_ENV,
+        })
+        .catch((e) => {
+          logger.error('[mongodb] saving live position', e)
+        })
     }
 
     livePositionMetrics(pos)

@@ -474,7 +474,7 @@ class MongoWrapper {
     return candles
   }
 
-  async saveLivePosition(position: LivePosition) {
+  async saveLivePosition<T extends LivePosition>(position: T) {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     await collection.updateOne(
@@ -489,7 +489,6 @@ class MongoWrapper {
       }
     )
   }
-
   async getLivePosition(posId: string) {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
