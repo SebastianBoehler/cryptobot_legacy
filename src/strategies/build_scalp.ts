@@ -100,7 +100,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     if (
       highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
       ctSize > initialSizeInCts &&
-      price < avgEntryPrice * 1.01 * this.multiplier
+      price < avgEntryPrice * 1.01
     ) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
@@ -111,7 +111,7 @@ export class BUILD_SCALP extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -90) {
+    if (unrealizedPnlPcnt < -80) {
       const ordId = 'liq' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return

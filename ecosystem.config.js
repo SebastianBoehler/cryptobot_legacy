@@ -16,6 +16,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP',
         START_CAPITAL: 400,
       },
       watch: false

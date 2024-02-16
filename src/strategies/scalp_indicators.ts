@@ -10,6 +10,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
+  public requiresIndicators = true
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -56,7 +57,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
         return
       }
 
-      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05 * this.multiplier) {
+      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice) {
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -67,7 +68,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
     if (
       price > avgEntryPrice * 1.05 * this.multiplier &&
       ctSize > initialSizeInCts &&
-      price > lastOrder.avgPrice * 1.05 * this.multiplier
+      price > lastOrder.avgPrice * 1.0005
     ) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
@@ -82,7 +83,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
     //TODO: increase leverage in steps
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
-      leverage < 40 &&
+      leverage < 37 &&
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
@@ -98,11 +99,9 @@ export class SCALP_INDICATORS extends Base implements Strategy {
 
     //SCALE DOWN IF LEVERAGE IS TOO HIGH AND WE FELL TO price < avgEntryPrice * 1.02
     //IF UPPER CASE DOESNT COVER IT
-    if (
-      highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
-      ctSize > initialSizeInCts &&
-      price < avgEntryPrice * 1.01 * this.multiplier
-    ) {
+    const cond1 = price < avgEntryPrice * 0.9595 && leverage < 6
+    const cond2 = price < avgEntryPrice * 0.98 && leverage >= 6
+    if (highestPrice > avgEntryPrice * 1.025 * this.multiplier && ctSize > initialSizeInCts && (cond1 || cond2)) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
@@ -112,7 +111,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -90) {
+    if (unrealizedPnlPcnt < -80) {
       const ordId = 'liq' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return

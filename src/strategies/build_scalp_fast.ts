@@ -55,7 +55,8 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         return
       }
 
-      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05 * this.multiplier) {
+      //TODO: ONLY IF LEVERAGE IS NOT TOO HIGH
+      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice) {
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -78,10 +79,9 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     //LEVERAGE INCREASE
-    //TODO: increase leverage in steps
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
-      leverage < 40 &&
+      leverage < 37 &&
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
@@ -97,10 +97,13 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
 
     //SCALE DOWN IF LEVERAGE IS TOO HIGH AND WE FELL TO price < avgEntryPrice * 1.02
     //IF UPPER CASE DOESNT COVER IT
+    const cond1 = price < avgEntryPrice * 1.01 * this.multiplier && leverage < 10
+    const cond2 = price < avgEntryPrice * 1.005 && leverage >= 10
     if (
       highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
       ctSize > initialSizeInCts &&
-      price < avgEntryPrice * 1.01 * this.multiplier
+      price < avgEntryPrice * 1.005 &&
+      (cond1 || cond2)
     ) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
@@ -111,7 +114,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -90) {
+    if (unrealizedPnlPcnt < -80) {
       const ordId = 'liq' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return

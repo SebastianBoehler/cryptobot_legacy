@@ -98,7 +98,7 @@ export class BUILD_FAST extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -90) {
+    if (unrealizedPnlPcnt < -80) {
       const ordId = 'liq' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
