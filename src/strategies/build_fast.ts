@@ -9,6 +9,7 @@ export class BUILD_FAST extends Base implements Strategy {
   public readonly name = 'build-fast'
   public startCapital = 250
   public steps = 3
+  public multiplier = 1
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -99,7 +100,7 @@ export class BUILD_FAST extends Base implements Strategy {
     }
 
     if (unrealizedPnlPcnt < -80) {
-      const ordId = 'liq' + createUniqueId(10)
+      const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
     }

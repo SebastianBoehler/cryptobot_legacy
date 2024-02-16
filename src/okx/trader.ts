@@ -8,6 +8,7 @@ import MongoWrapper from '../mongodb'
 import { LivePosition } from '../orderHelper'
 import { livePositionMetrics } from '../pm2'
 import config from '../config/config'
+import { BUILD_FAST } from '../strategies/build_fast'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -18,6 +19,7 @@ const symbol = process.env.SYMBOL
 
 const strategies = {
   BUILD_SCALP: new BUILD_SCALP(),
+  BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   SCALP_INDICATORS: new SCALP_INDICATORS(),
 }
@@ -30,12 +32,13 @@ strategy.startCapital = +process.env.START_CAPITAL
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
 
-const indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
+let indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
 
 async function main() {
   await strategy.initalize(symbol, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
+  if (!strategy.requiresIndicators) indicators = []
   await sleep(1000 * 5)
 
   let index = 0
@@ -62,7 +65,7 @@ async function main() {
       gains: strategy.orderHelper.profitUSD,
     })
 
-    if (index % 10 === 0) {
+    if (index % 15 === 0) {
       await mongo
         .saveLivePosition({
           ...pos,

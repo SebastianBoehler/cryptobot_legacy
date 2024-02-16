@@ -66,6 +66,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     //TAKE PROFITS
     if (
       price > avgEntryPrice * 1.05 * this.multiplier &&
+      price > avgEntryPrice && // SO this.multiplier still can be used for adjusting
       ctSize > initialSizeInCts &&
       price > lastOrder.avgPrice * 1.05 * this.multiplier
     ) {
@@ -105,7 +106,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       price < avgEntryPrice * 1.005 &&
       (cond1 || cond2)
     ) {
-      //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
       if (reduceCtsAmount > 0) {
@@ -115,7 +115,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     if (unrealizedPnlPcnt < -80) {
-      const ordId = 'liq' + createUniqueId(10)
+      const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
     }

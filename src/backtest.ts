@@ -73,7 +73,7 @@ export async function backtest(
 
     const stringifiedFunc = strategy.update.toString()
     const orders = positions.map((pos) => pos.orders).flat()
-    const liquidations = orders.filter((o) => o.ordId.slice(0, 3) === 'liq').length
+    const liquidations = orders.filter((o) => o.ordId.slice(0, 4) === 'loss').length
 
     const hodl_pct = ((+history[history.length - 1].close - +history[0].close) / +history[0].close) * 100
 

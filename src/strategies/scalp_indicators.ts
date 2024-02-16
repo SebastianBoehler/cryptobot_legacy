@@ -67,6 +67,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
     //TAKE PROFITS
     if (
       price > avgEntryPrice * 1.05 * this.multiplier &&
+      price > avgEntryPrice && // SO this.multiplier still can be used for adjusting
       ctSize > initialSizeInCts &&
       price > lastOrder.avgPrice * 1.0005
     ) {
@@ -80,7 +81,6 @@ export class SCALP_INDICATORS extends Base implements Strategy {
     }
 
     //LEVERAGE INCREASE
-    //TODO: increase leverage in steps
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
       leverage < 37 &&
@@ -99,8 +99,8 @@ export class SCALP_INDICATORS extends Base implements Strategy {
 
     //SCALE DOWN IF LEVERAGE IS TOO HIGH AND WE FELL TO price < avgEntryPrice * 1.02
     //IF UPPER CASE DOESNT COVER IT
-    const cond1 = price < avgEntryPrice * 0.9595 && leverage < 6
-    const cond2 = price < avgEntryPrice * 0.98 && leverage >= 6
+    const cond1 = price < avgEntryPrice * 1.01 * this.multiplier && leverage < 10
+    const cond2 = price < avgEntryPrice * 1.005 && leverage >= 10
     if (highestPrice > avgEntryPrice * 1.025 * this.multiplier && ctSize > initialSizeInCts && (cond1 || cond2)) {
       //SCALE DOWN ONCE PRICE WAS 10% ABOVE AVG ENTRY PRICE AND WE FELL AGAIN
       const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
@@ -112,7 +112,7 @@ export class SCALP_INDICATORS extends Base implements Strategy {
     }
 
     if (unrealizedPnlPcnt < -80) {
-      const ordId = 'liq' + createUniqueId(10)
+      const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
     }

@@ -99,6 +99,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     //IF UPPER CASE DOESNT COVER IT
     if (
       highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
+      price > avgEntryPrice && // SO this.multiplier still can be used for adjusting
       ctSize > initialSizeInCts &&
       price < avgEntryPrice * 1.01
     ) {
@@ -112,7 +113,7 @@ export class BUILD_SCALP extends Base implements Strategy {
     }
 
     if (unrealizedPnlPcnt < -80) {
-      const ordId = 'liq' + createUniqueId(10)
+      const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
     }
