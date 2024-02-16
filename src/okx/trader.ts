@@ -1,7 +1,6 @@
 import { Indicators } from 'cryptobot-types'
 import { GenerateIndicators } from '../indicators'
 import { BUILD_SCALP } from '../strategies/build_scalp'
-import { BUILD_SCALP_FAST_V2 } from '../strategies/build_scalp_fast_v2'
 import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
 import { logger, sleep } from '../utils'
 import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
@@ -21,10 +20,9 @@ const strategies = {
   BUILD_SCALP: new BUILD_SCALP(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   SCALP_INDICATORS: new SCALP_INDICATORS(),
-  FAST_V2: new BUILD_SCALP_FAST_V2(),
 }
 
-const strategy = strategies[(process.env.STRATEGY || 'BUILD_SCALP') as keyof typeof strategies]
+const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]
 if (!strategy) throw new Error('no strategy')
 logger.info(`Using strategy: ${strategy.name}`)
 strategy.startCapital = +process.env.START_CAPITAL
@@ -48,7 +46,7 @@ async function main() {
     })
 
     const indicatorsLoaded = indicatorsPromise.filter((i) => i !== undefined) as unknown as Indicators[]
-    if (indicatorsLoaded.length !== indicators.length) {
+    if (indicatorsLoaded.length !== indicators.length && strategy.requiresIndicators) {
       logger.error('indicators not loaded')
       await sleep(1000 * 5)
       continue

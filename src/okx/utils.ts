@@ -1,7 +1,13 @@
 import { DefaultLogger, WebsocketClient, WsDataEvent, WsEvent, RestClient, InstrumentType, PositionSide } from 'okx-api'
 import { createUniqueId, logger } from '../utils'
 import { differenceInMinutes, subMinutes } from 'date-fns'
-import { OrderUpdateEvent, PositionUpdateEvent, TickerUpdateData, TickerUpdateEvent } from 'cryptobot-types'
+import {
+  BalanceAndPositionUpdateEvent,
+  OrderUpdateEvent,
+  PositionUpdateEvent,
+  TickerUpdateData,
+  TickerUpdateEvent,
+} from 'cryptobot-types'
 import config from '../config/config'
 
 const credentials = {
@@ -26,6 +32,7 @@ export interface LivePosition {
   realizedPnlUsd: number
   type: 'long' | 'short'
   posSide: PositionSide
+  gotLiquidated?: boolean
 }
 
 class OkxClient {
@@ -33,7 +40,6 @@ class OkxClient {
   private restClient: RestClient
   public lastTicker: TickerUpdateData | null = null
   public subscriptions: { channel: string; instId: string }[] = []
-  //TODO: proper type
   public position: LivePosition | null = null
   public closedPositions: LivePosition[] = []
   public candel1m: { close: string; start: Date }[] = []
@@ -86,7 +92,6 @@ class OkxClient {
         if (this.candel1m.length > 10) this.candel1m.shift()
       }
     } else if (isPositionUpdateEvent(event)) {
-      //TODO: check if emitted when pos manually updated
       //no extra event, values just set to ""
       if (event.data.length > 0) {
         //logger.debug('[OKX] position update', event.data[0].upl)
@@ -131,6 +136,23 @@ class OkxClient {
       // order placed / filled / cancelled
       const data = event.data[0]
       logger.debug('[OKX] order update', data.state, data.clOrdId, data.ordId)
+    } else if (isBalanceAndPositionUpdateEvent(event)) {
+      const data = event.data[0]
+      const posId = data.posData.posId
+      if (posId === this.position?.posId) {
+        logger.debug('[OKX] position update', data.eventType)
+        if (data.eventType === 'liquidation') {
+          this.position.gotLiquidated = true
+        }
+      }
+
+      const closedPosIndex = this.closedPositions.findIndex((p) => p.posId === posId)
+      if (closedPosIndex > 0) {
+        logger.debug('[OKX] closed position update', data.eventType)
+        if (data.eventType === 'liquidation') {
+          this.closedPositions[closedPosIndex].gotLiquidated = true
+        }
+      }
     } else {
       logger.info('[OKX] unhandled event', event)
     }
@@ -176,6 +198,12 @@ class OkxClient {
       channel: 'orders',
       instType,
       instId: symbol,
+    })
+  }
+
+  async subscribeToBalanceAndPositionsData(symbol: string, instType: InstrumentType = 'SWAP') {
+    this.wsClient.subscribe({
+      channel: 'balance_and_position',
     })
   }
 
@@ -357,4 +385,8 @@ export const isPositionUpdateEvent = (event: WsDataEvent): event is PositionUpda
 
 export const isOrderUpdateEvent = (event: WsDataEvent): event is OrderUpdateEvent => {
   return event.arg.channel === 'orders'
+}
+
+export const isBalanceAndPositionUpdateEvent = (event: WsDataEvent): event is BalanceAndPositionUpdateEvent => {
+  return event.arg.channel === 'balance_and_position'
 }

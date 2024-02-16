@@ -1,7 +1,7 @@
 import { CloseOrder, ClosedPosition, Indicators, Order, Position } from 'cryptobot-types'
 import MongoWrapper from './mongodb'
 import { OkxClient } from './okx/utils'
-import { createUniqueId, sleep } from './utils'
+import { createUniqueId, logger, sleep } from './utils'
 import { omit } from 'lodash'
 import config from './config/config'
 
@@ -11,6 +11,7 @@ export class OrderHelper {
   private symbol: string
   private ctVal: number | null = null
   private ctMult: number | null = null
+  private maxLever: number | null = null
   public leverage: number = 0
   public position: Position | null = null
   private time: Date = new Date(0)
@@ -27,10 +28,12 @@ export class OrderHelper {
 
   //TODO: return gained margin
   public setLeverage(leverage: number) {
-    if (leverage > 100) {
-      //logger.debug('[orderHelper > setLeverage] Leverage cannot be higher than 100')
+    const maxLever = this.maxLever || 100
+    if (leverage > maxLever) {
+      logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
       return
     }
+
     const prevLeverage = this.leverage
 
     //adjusting leverage
@@ -63,6 +66,7 @@ export class OrderHelper {
     }
     this.ctVal = +instrument.ctVal
     this.ctMult = +instrument.ctMult
+    this.maxLever = +instrument.lever
   }
 
   private calculateAvgEntryPrice(orders: (Order | CloseOrder)[]) {
@@ -271,6 +275,7 @@ export class LiveOrderHelper {
   private symbol: string
   private ctVal: number | null = null
   private ctMult: number | null = null
+  private maxLever: number | null = null
   public position: LivePosition | null = null
   public leverage: number = 0
   public price: number = 0
@@ -288,7 +293,11 @@ export class LiveOrderHelper {
 
   //TODO: return gained margin
   public async setLeverage(leverage: number, posSide?: 'long' | 'short') {
-    if (leverage > 100) throw new Error('[orderHelper > setLeverage] Leverage cannot be higher than 100')
+    const maxLever = this.maxLever || 100
+    if (leverage > maxLever) {
+      logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
+      return
+    }
 
     if (config.IS_HEDGE) {
       posSide = 'long'
@@ -339,11 +348,53 @@ export class LiveOrderHelper {
     }
     this.ctVal = +instrument.ctVal
     this.ctMult = +instrument.ctMult
+    this.maxLever = +instrument.lever
   }
 
   public async update(_price: number, _time: Date, indicators?: Indicators[]) {
     if (!okxClient.lastTicker) throw new Error('[orderHelper > update] No ticker data found')
     this.price = +okxClient.lastTicker.last
+
+    if (!okxClient.position && this.position) {
+      logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
+      const closedPos = okxClient.closedPositions.find((pos) => pos.posId === this.position!.posId)
+      if (closedPos) {
+        const margin = +closedPos.margin
+        const ordId = closedPos.gotLiquidated ? 'liq-unknown' : 'unknown'
+        const orderObj: CloseOrder = {
+          ordId,
+          posId: closedPos.posId,
+          avgPrice: closedPos.liqPrice,
+          size: closedPos.ctSize,
+          action: 'close',
+          margin,
+          lever: +closedPos.lever,
+          //TODO: get fee from liq event
+          fee: 0,
+          time: new Date(),
+          bruttoPnlUSD: -margin,
+        }
+
+        //@ts-ignore
+        const closedPosObj: ClosedPosition = {
+          ...this.position,
+          realizedPnlUSD: -margin + this.position.fee,
+          orders: [...this.position.orders, orderObj],
+          symbol: this.symbol,
+          type: this.position.type,
+          ctSize: 0,
+          margin: 0,
+          leverage: this.leverage,
+          identifier: this.identifier || 'unknown',
+        }
+        this.position = null
+        this.lastPosition = closedPosObj
+
+        this.positionId = `TT${createUniqueId(5)}TT`
+        await mongo.writeOrder(orderObj)
+        await mongo.writePosition(closedPosObj, 'trader')
+      }
+    }
 
     if (!okxClient.position) return
     let orders = this.position?.orders || []
