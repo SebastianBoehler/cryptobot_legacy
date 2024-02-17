@@ -41,11 +41,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (!highestPrice) throw new Error(`[${this.name}] Extreme prices not set`)
     const lastOrder = orders[orders.length - 1]
 
-    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
-    if (price < avgEntryPrice) {
-      this.addOptionalPositionInfo(price, price)
-    }
-
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > 1) {
@@ -55,8 +50,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         return
       }
 
-      //TODO: ONLY IF LEVERAGE IS NOT TOO HIGH
-      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice) {
+      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -64,12 +58,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     //TAKE PROFITS
-    if (
-      price > avgEntryPrice * 1.05 * this.multiplier &&
-      price > avgEntryPrice && // SO this.multiplier still can be used for adjusting
-      ctSize > initialSizeInCts &&
-      price > lastOrder.avgPrice * 1.05 * this.multiplier
-    ) {
+    if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
       if (reduceBy > 1) {
@@ -98,15 +87,14 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
 
     //SCALE DOWN IF LEVERAGE IS TOO HIGH AND WE FELL TO price < avgEntryPrice * 1.02
     //IF UPPER CASE DOESNT COVER IT
-    const cond1 = price < avgEntryPrice * 1.01 * this.multiplier && leverage < 10
-    const cond2 = price < avgEntryPrice * 1.005 && leverage >= 10
-    if (
-      highestPrice > avgEntryPrice * 1.025 * this.multiplier &&
-      ctSize > initialSizeInCts &&
-      price < avgEntryPrice * 1.005 &&
-      (cond1 || cond2)
-    ) {
-      const reduceCtsAmount = leverage > 2 ? ctSize : ctSize - initialSizeInCts
+    if (leverage >= 10 && price < avgEntryPrice * 1.005) {
+      const ordId = 'reduce' + createUniqueId(10)
+      await this.orderHelper.closeOrder(ctSize, ordId)
+      return
+    }
+
+    if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
+      const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
       if (reduceCtsAmount > 0) {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
@@ -118,6 +106,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
+    }
+
+    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
+    if (price < avgEntryPrice) {
+      this.addOptionalPositionInfo(price, price)
     }
 
     return

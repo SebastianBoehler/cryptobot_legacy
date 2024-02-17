@@ -1,7 +1,5 @@
 import { Indicators } from 'cryptobot-types'
 import { GenerateIndicators } from '../indicators'
-import { BUILD_SCALP } from '../strategies/build_scalp'
-import { SCALP_INDICATORS } from '../strategies/scalp_indicators'
 import { logger, sleep } from '../utils'
 import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
 import MongoWrapper from '../mongodb'
@@ -18,10 +16,8 @@ const mongo = new MongoWrapper('backtests')
 const symbol = process.env.SYMBOL
 
 const strategies = {
-  BUILD_SCALP: new BUILD_SCALP(),
   BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
-  SCALP_INDICATORS: new SCALP_INDICATORS(),
 }
 
 const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]

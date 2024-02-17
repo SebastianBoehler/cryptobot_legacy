@@ -4,6 +4,7 @@ import { LiveOrderHelper, OrderHelper } from '../orderHelper'
 export class Base {
   public orderHelper: OrderHelper | LiveOrderHelper | undefined
   public symbol: string | undefined
+  public multiplier = 1
   public requiresIndicators = false
 
   public async initalize(symbol: string, saveToMongo?: boolean, live?: boolean) {

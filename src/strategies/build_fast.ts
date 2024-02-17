@@ -9,7 +9,6 @@ export class BUILD_FAST extends Base implements Strategy {
   public readonly name = 'build-fast'
   public startCapital = 250
   public steps = 3
-  public multiplier = 1
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -41,11 +40,6 @@ export class BUILD_FAST extends Base implements Strategy {
     if (!highestPrice) throw new Error(`[${this.name}] Extreme prices not set`)
     const lastOrder = orders[orders.length - 1]
 
-    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
-    if (price < avgEntryPrice) {
-      this.addOptionalPositionInfo(price, price)
-    }
-
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > 1) {
@@ -74,7 +68,6 @@ export class BUILD_FAST extends Base implements Strategy {
     }
 
     //LEVERAGE INCREASE
-    //TODO: increase leverage in steps
     if (price > avgEntryPrice * 1.2 && leverage < 40 && (!lastLeverIncrease || price > lastLeverIncrease * 1.05)) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3)
@@ -103,6 +96,11 @@ export class BUILD_FAST extends Base implements Strategy {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
+    }
+
+    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
+    if (price < avgEntryPrice) {
+      this.addOptionalPositionInfo(price, price)
     }
 
     return

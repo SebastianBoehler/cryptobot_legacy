@@ -145,6 +145,8 @@ export class OrderHelper {
     const fee = this.calculateFee(amountContracts * contractValue)
     const ctSize = (this.position?.ctSize || 0) + amountContracts
 
+    this.profitUSD += order.fee
+
     orders.push({
       ...order,
       posAvgEntryPrice: avgEntryPrice,
@@ -178,13 +180,14 @@ export class OrderHelper {
 
     const fee = this.calculateFee(amountCts * contractValue)
     const pnl = this.calculateProfit(this.price, amountCts, this.position.type)
+    const margin = (amountCts * this.position.avgEntryPrice * this.ctVal * this.ctMult) / this.leverage
 
     const order: CloseOrder = {
       ordId: ordId || createUniqueId(32),
       avgPrice: this.price,
       size: amountCts,
       action: 'close',
-      margin: (amountCts * this.position.avgEntryPrice * this.ctVal * this.ctMult) / this.leverage,
+      margin,
       lever: this.leverage,
       fee,
       time: this.time,
@@ -206,7 +209,7 @@ export class OrderHelper {
     const closeOrders = orders.filter((order) => order.action === 'close') as CloseOrder[]
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + this.position.fee
-    this.profitUSD += realizedPnlUSD
+    this.profitUSD += order.bruttoPnlUSD + order.fee
 
     if (this.position.ctSize <= 0) {
       //FIXME: cant really determine invested capital
@@ -470,6 +473,8 @@ export class LiveOrderHelper {
       time: new Date(+details.cTime),
     }
 
+    this.profitUSD += orderObj.fee
+
     const orders = this.position?.orders || []
     orders.push(orderObj)
     const avgEntryPrice = okxClient.position.avgEntryPrice
@@ -538,15 +543,13 @@ export class LiveOrderHelper {
       bruttoPnlUSD: pnl,
     }
 
-    this.profitUSD += pnl
-
     const orders = this.position?.orders || []
     orders.push(orderObj)
 
     const closeOrders = orders.filter((order) => order.action === 'close') as CloseOrder[]
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) - this.position.fee
-    this.profitUSD = realizedPnlUSD
+    this.profitUSD = orderObj.bruttoPnlUSD + orderObj.fee
 
     if (!okxClient.position) {
       this.positionId = `TT${createUniqueId(5)}TT`

@@ -9,14 +9,14 @@ module.exports = {
       },
       watch: true
     },
-    //PERSONAL OKX ACC
+    //PERSONAL OKX SUB ACC
     {
       name: 'okx_trader_sol',
       script: './build/okx/trader.js',
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 400,
       },
       watch: false
@@ -27,30 +27,6 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
-        STRATEGY: 'SCALP_INDICATORS',
-        START_CAPITAL: 80,
-        MULTIPLIER: 0.95
-      },
-      watch: false
-    },
-    {
-      name: 'okx_trader_pyth',
-      script: './build/okx/trader.js',
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'PYTH-USDT-SWAP',
-        STRATEGY: 'SCALP_INDICATORS',
-        START_CAPITAL: 80,
-        MULTIPLIER: 0.95
-      },
-      watch: false
-    },
-    {
-      name: 'okx_trader_sui',
-      script: './build/okx/trader.js',
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'SUI-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
@@ -58,11 +34,11 @@ module.exports = {
       watch: false
     },
     {
-      name: 'okx_trader_API3',
+      name: 'okx_trader_ordi',
       script: './build/okx/trader.js',
       env_prod: {
         NODE_ENV: "prod",
-        SYMBOL: 'API3-USDT-SWAP',
+        SYMBOL: 'ORDI-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
@@ -76,33 +52,9 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
-        STRATEGY: 'SCALP_INDICATORS',
-        START_CAPITAL: 80,
-        MULTIPLIER: 0.95,
-      },
-      watch: false
-    },
-    {
-      name: 'hb_trader_pyth',
-      script: './build/okx/trader.js',
-      env_prod: {
-        NODE_ENV: "hb",
-        SYMBOL: 'PYTH-USDT-SWAP',
-        STRATEGY: 'SCALP_INDICATORS',
-        START_CAPITAL: 80,
-        MULTIPLIER: 0.95,
-      },
-      watch: false
-    },
-    {
-      name: 'hb_trader_API3',
-      script: './build/okx/trader.js',
-      env_prod: {
-        NODE_ENV: "hb",
-        SYMBOL: 'API3-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
       },
       watch: false
     },
