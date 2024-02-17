@@ -475,6 +475,7 @@ class MongoWrapper {
   }
 
   async saveLivePosition<T extends LivePosition>(position: T) {
+    if (!position.posId) return
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     await collection.updateOne(

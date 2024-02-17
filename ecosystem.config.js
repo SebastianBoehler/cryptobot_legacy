@@ -4,6 +4,8 @@ module.exports = {
     {
       name: 'okx_database',
       script: './build/okx/database.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      //error_file: "/dev/null"
       env_prod: {
         NODE_ENV: "prod"
       },
@@ -13,6 +15,7 @@ module.exports = {
     {
       name: 'okx_trader_sol',
       script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
@@ -24,6 +27,7 @@ module.exports = {
     {
       name: 'okx_trader_tia',
       script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
@@ -36,6 +40,7 @@ module.exports = {
     {
       name: 'okx_trader_ordi',
       script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
@@ -49,6 +54,7 @@ module.exports = {
     {
       name: 'hb_trader_tia',
       script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
