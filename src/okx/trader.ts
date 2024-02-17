@@ -35,7 +35,7 @@ async function main() {
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   if (!strategy.requiresIndicators) indicators = []
-  await sleep(1000 * 5)
+  await sleep(1000 * 10)
 
   let index = 0
   while (true) {
