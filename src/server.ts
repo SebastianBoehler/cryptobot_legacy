@@ -41,7 +41,7 @@ const middleware = async (req: Request, res: Response, next: any) => {
       message: 'Unauthorized',
       reason,
     })
-    return next()
+    return
   }
 
   const cacheInSeconds = 30
