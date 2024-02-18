@@ -110,7 +110,7 @@ const options = {
   cert: fs.readFileSync('../certificate.pem'),
 }
 
-https.createServer(options, server).listen(443, () => {
+https.createServer(options, server).listen(port, () => {
   console.log(`Server is running on port 443`)
 })
 
