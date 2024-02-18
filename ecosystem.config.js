@@ -11,6 +11,17 @@ module.exports = {
       },
       watch: true
     },
+    {
+      name: 'server',
+      script: './build/server.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      //error_file: "/dev/null"
+      env_prod: {
+        NODE_ENV: "prod",
+        PORT: 80
+      },
+      watch: true
+    },
     //PERSONAL OKX SUB ACC
     {
       name: 'okx_trader_sol',

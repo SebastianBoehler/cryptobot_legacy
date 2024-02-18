@@ -86,6 +86,18 @@ router.get('/backtest/positions', async (req: Request, res: Response) => {
   res.json(result)
 })
 
+router.get('/trader/orders', async (req: Request, res: Response) => {
+  const { posId } = req.query
+  if (!posId) {
+    res.status(400).send('posId params parameter is required')
+    return
+  }
+
+  const result = await client.getLiveOrders(posId as string)
+  //res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  res.json(result)
+})
+
 router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
   const { exchange } = req.params
   if (!exchange) {

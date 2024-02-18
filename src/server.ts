@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Request, Response } from 'express'
 import cors from 'cors'
 import * as dotenv from 'dotenv'
 import rateLimit from 'express-rate-limit'
@@ -8,7 +8,7 @@ dotenv.config({
   path: `${process.env.NODE_ENV?.split(' ').join('')}.env`,
 })
 
-const server: Express = express()
+const server = express()
 const port = process.env.PORT || 3001
 
 import mongoRoutes from './mongodb/routes'
@@ -33,7 +33,7 @@ const middleware = async (req: Request, res: Response, next: any) => {
   const validAuth = req.headers['hb-capital-auth'] === hash
   if (!validAuth && !isWhitelisted) {
     logger.warn(`Unauthorized request from ${IP}`)
-    const reason = validAuth ? 'invalid auth' : 'not whitelisted'
+    const reason = `Invalid auth, please contact support to get access.`
     res.status(401).send({
       message: 'Unauthorized',
       reason,
@@ -46,9 +46,13 @@ const middleware = async (req: Request, res: Response, next: any) => {
   next()
 }
 
-server.use(middleware)
+server.get('/health', (_req: Request, res: Response) => {
+  res.status(200).send({
+    message: 'Server is running',
+  })
+})
 
-server.use('/mongodb', mongoRoutes)
+server.use(middleware)
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -58,6 +62,8 @@ const limiter = rateLimit({
 })
 
 server.use(limiter)
+
+server.use('/mongodb', mongoRoutes)
 
 server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
   const symbol = req.params.symbol

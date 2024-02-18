@@ -490,6 +490,7 @@ class MongoWrapper {
       }
     )
   }
+
   async getLivePosition(posId: string) {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
@@ -503,6 +504,17 @@ class MongoWrapper {
       logger.error(`More than one live position found for ${posId}`)
     }
     return result[0]
+  }
+
+  async getLiveOrders(posId: string) {
+    const db = client.db('trader')
+    const collection = db.collection('orders')
+    const result = await collection
+      .find<CloseOrder>({
+        posId,
+      })
+      .toArray()
+    return result
   }
 }
 
