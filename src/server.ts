@@ -93,6 +93,10 @@ server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => 
   })
 })
 
+server.options('*', (_req, res: Response) => {
+  res.status(200).send()
+})
+
 server.get('*', (_req: Request, res: Response) => {
   res.status(404).send({
     message: 'Not found',
@@ -105,15 +109,17 @@ server.post('*', (_req: Request, res: Response) => {
   })
 })
 
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/fullchain.pem'),
+if (config.NODE_ENV === 'prod') {
+  const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/fullchain.pem'),
+  }
+
+  https.createServer(options, server).listen(port, () => {
+    console.log(`Server is running on port 443`)
+  })
+} else {
+  server.listen(port, () => {
+    console.log(`Server is running on port ${port}`)
+  })
 }
-
-https.createServer(options, server).listen(port, () => {
-  console.log(`Server is running on port 443`)
-})
-
-// server.listen(port, () => {
-//   console.log(`Server is running on port ${port}`)
-// })
