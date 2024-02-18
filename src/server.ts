@@ -22,6 +22,7 @@ server.use(express.json())
 const middleware = async (req: Request, res: Response, next: any) => {
   const IP = req.ip || req.connection.remoteAddress
   //logger.http(`Received ${req.method} request for ${req.url} from ${IP}`);
+  if (req.path === '/health') return next()
 
   const whitelist = config.API_WHITELIST || []
   const isWhitelisted = IP ? whitelist.includes(IP?.replace('::ffff:', '')) : false
@@ -38,7 +39,7 @@ const middleware = async (req: Request, res: Response, next: any) => {
       message: 'Unauthorized',
       reason,
     })
-    return
+    return next()
   }
 
   const cacheInSeconds = 30

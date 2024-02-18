@@ -18,7 +18,7 @@ module.exports = {
       //error_file: "/dev/null"
       env_prod: {
         NODE_ENV: "prod",
-        PORT: 80
+        PORT: 443
       },
       watch: true
     },
