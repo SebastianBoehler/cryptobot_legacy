@@ -106,8 +106,8 @@ server.post('*', (_req: Request, res: Response) => {
 })
 
 const options = {
-  key: fs.readFileSync('../privateKey.pem'),
-  cert: fs.readFileSync('../certificate.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/api.hb-capital.app/fullchain.pem'),
 }
 
 https.createServer(options, server).listen(port, () => {
