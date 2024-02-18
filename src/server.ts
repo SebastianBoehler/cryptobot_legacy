@@ -3,6 +3,8 @@ import cors from 'cors'
 import * as dotenv from 'dotenv'
 import rateLimit from 'express-rate-limit'
 import { createHmac } from 'crypto'
+import https from 'node:https'
+import fs from 'node:fs'
 
 dotenv.config({
   path: `${process.env.NODE_ENV?.split(' ').join('')}.env`,
@@ -103,6 +105,15 @@ server.post('*', (_req: Request, res: Response) => {
   })
 })
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
+const options = {
+  key: fs.readFileSync('../privateKey.pem'),
+  cert: fs.readFileSync('../certificate.pem'),
+}
+
+https.createServer(options, server).listen(443, () => {
+  console.log(`Server is running on port 443`)
 })
+
+// server.listen(port, () => {
+//   console.log(`Server is running on port ${port}`)
+// })
