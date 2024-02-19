@@ -19,6 +19,7 @@ router.get('/collections/:database', async (req: Request, res: Response) => {
     return
   }
   const collections = await client.existingCollections(database)
+  res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(collections)
 })
 
@@ -29,6 +30,7 @@ router.get('/count/:database/:collection', async (req: Request, res: Response) =
     return
   }
   const count = await client.getCount(collection, database)
+  res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(count)
 })
 
@@ -82,7 +84,7 @@ router.get('/backtest/positions', async (req: Request, res: Response) => {
   }
 
   const result = await client.loadAllPositions(identifier as string)
-  //res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
 
