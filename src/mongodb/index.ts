@@ -516,6 +516,20 @@ class MongoWrapper {
       .toArray()
     return result
   }
+
+  async getLivePositions(env: string) {
+    const db = client.db('trader')
+    const collection = db.collection('livePositions')
+    const result = await collection
+      .find<LivePosition>({
+        env,
+      })
+      .project({
+        orders: 0,
+      })
+      .toArray()
+    return result
+  }
 }
 
 export default MongoWrapper

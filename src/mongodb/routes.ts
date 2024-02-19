@@ -100,6 +100,18 @@ router.get('/trader/orders', async (req: Request, res: Response) => {
   res.json(result)
 })
 
+router.get('/trader/positions', async (req: Request, res: Response) => {
+  const { env } = req.query
+  if (!env) {
+    res.status(400).send('env params parameter is required')
+    return
+  }
+
+  const result = await client.getLivePositions(env as string)
+  //res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  res.json(result)
+})
+
 router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
   const { exchange } = req.params
   if (!exchange) {
