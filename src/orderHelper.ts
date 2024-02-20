@@ -537,7 +537,7 @@ export class LiveOrderHelper {
       ordId: order.clOrdId,
       posId,
       avgPrice: this.price,
-      posAvgEntryPrice: okxClient.position.avgEntryPrice,
+      posAvgEntryPrice: this.position.avgEntryPrice,
       size: amountCts,
       action: 'close',
       margin: withdrawnMargin,
