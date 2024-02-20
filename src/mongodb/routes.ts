@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 const router = express.Router()
 import mongo from './index'
 import { GenerateIndicators } from '../indicators'
+import config from '../config/config'
 const client = new mongo('admin')
 
 const FIVE_MIN = 60 * 5
@@ -72,7 +73,7 @@ router.get('/backtest', async (req: Request, res: Response) => {
   }
 
   const result = await client.getBacktestingResult(identifier as string)
-  res.set('Cache-control', `public, max-age=0`)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
 
@@ -84,7 +85,7 @@ router.get('/backtest/positions', async (req: Request, res: Response) => {
   }
 
   const result = await client.loadAllPositions(identifier as string)
-  res.set('Cache-control', `public, max-age=${ONE_DAY}`)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
 
@@ -96,7 +97,7 @@ router.get('/trader/orders', async (req: Request, res: Response) => {
   }
 
   const result = await client.getLiveOrders(posId as string)
-  //res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })
 
@@ -108,7 +109,7 @@ router.get('/trader/positions', async (req: Request, res: Response) => {
   }
 
   const result = await client.getLivePositions(env as string)
-  //res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })
 
@@ -120,7 +121,7 @@ router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) 
   }
 
   const result = await client.symbolsSortedByVolume(exchange, true)
-  res.set('Cache-control', `public, max-age=${ONE_DAY}`)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
 

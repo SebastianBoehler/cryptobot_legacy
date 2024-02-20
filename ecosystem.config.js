@@ -68,6 +68,19 @@ module.exports = {
       out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
+        SYMBOL: 'ORDI-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95,
+      },
+      watch: false
+    },
+    {
+      name: 'hb_trader_ordi',
+      script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
