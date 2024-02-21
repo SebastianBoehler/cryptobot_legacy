@@ -50,8 +50,13 @@ export class BUILD_FAST extends Base implements Strategy {
       }
 
       if (price < highestPrice * 0.9 && price > avgEntryPrice * 1.1) {
+        let buyAmountUSD = entrySizeUSD
+        const ratio = 1 - margin / buyAmountUSD
+        if (ratio > 0.95) {
+          buyAmountUSD = margin * 16.5
+        }
         const ordId = 'buyhigh' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return
       }
     }

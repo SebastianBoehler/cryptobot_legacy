@@ -1,4 +1,4 @@
-import { subMinutes } from 'date-fns'
+import { subDays, subMinutes } from 'date-fns'
 import { MongoClient, Document } from 'mongodb'
 import config from '../config/config'
 import { createChunks, logger } from '../utils'
@@ -352,13 +352,13 @@ class MongoWrapper {
     const db = client.db(database)
 
     const pipeline = [
-      // {
-      //   $match: {
-      //     start: {
-      //       $gte: subDays(new Date(), 30),
-      //     },
-      //   },
-      // },
+      {
+        $match: {
+          start: {
+            $gte: subDays(new Date(), 30),
+          },
+        },
+      },
       {
         $group: {
           _id: null,

@@ -96,7 +96,7 @@ export async function backtest(
       pnl_pct,
       hodl_pct,
       liquidations,
-      hodl_ratio: pnl_pct / hodl_pct,
+      hodl_ratio: hodl_pct < 0 && pnl_pct > 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
     })
   }
 

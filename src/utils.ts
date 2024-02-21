@@ -1,5 +1,3 @@
-import { OrderObject } from 'cryptobot-types'
-
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const createChunks = <T>(array: T[], chunkSize: number): T[][] => {
@@ -32,39 +30,4 @@ export function toDecimals(value: number, decimals: number) {
     .toString()
     .match(new RegExp('^-?\\d+(?:.\\d{0,' + decimals + '})?'))!
   return +arr[0]
-}
-
-/**
- *
- * @param lastTrade
- * @param price
- * @param trailingStopLossPercent % of price change no matter of leverage
- * @returns
- */
-export const trailingStopLoss = ({
-  lastTrade,
-  price,
-  trailingStopLossPercent,
-  high,
-  low,
-}: {
-  lastTrade?: OrderObject
-  price: number
-  trailingStopLossPercent: number
-  high: number
-  low: number
-}) => {
-  if (!lastTrade) return false
-  const isLong = lastTrade.type.includes('Long')
-  const trailingStopLoss = isLong
-    ? high - (high * trailingStopLossPercent) / 100
-    : low + (low * trailingStopLossPercent) / 100
-
-  if (isLong && price <= trailingStopLoss) {
-    return true
-  } else if (!isLong && price >= trailingStopLoss) {
-    return true
-  }
-
-  return false
 }

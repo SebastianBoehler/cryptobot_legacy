@@ -53,8 +53,13 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
       }
 
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
+        let buyAmountUSD = entrySizeUSD
+        const ratio = 1 - margin / buyAmountUSD
+        if (ratio > 0.95) {
+          buyAmountUSD = margin * 16.5
+        }
         const ordId = 'buyhigh' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return
       }
     }

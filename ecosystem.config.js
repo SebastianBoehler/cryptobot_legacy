@@ -31,6 +31,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
+        MULTIPLIER: 0.95,
         START_CAPITAL: 400,
       },
       watch: false
@@ -55,6 +56,19 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'okx_trader_op',
+      script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'OP-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
