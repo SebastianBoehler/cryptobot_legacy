@@ -77,7 +77,7 @@ module.exports = {
     },
     //HB CAPITAL
     {
-      name: 'hb_trader_tia',
+      name: 'hb_trader_ordi',
       script: './build/okx/trader.js',
       out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
@@ -90,7 +90,7 @@ module.exports = {
       watch: false
     },
     {
-      name: 'hb_trader_ordi',
+      name: 'hb_trader_tia',
       script: './build/okx/trader.js',
       out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
