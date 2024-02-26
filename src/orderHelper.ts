@@ -528,7 +528,7 @@ export class LiveOrderHelper {
     }
 
     const orderFee = +details.fee
-    const pnl = this.calculateProfit(this.price, amountCts, this.position.type)
+    const pnl = +details.pnl
 
     const marginPost = +okxClient.position?.margin || 0
     const withdrawnMargin = marginPre - marginPost
@@ -536,7 +536,7 @@ export class LiveOrderHelper {
     const orderObj: CloseOrder = {
       ordId: order.clOrdId,
       posId,
-      avgPrice: this.price,
+      avgPrice: +details.avgPx,
       posAvgEntryPrice: this.position.avgEntryPrice,
       size: amountCts,
       action: 'close',
@@ -554,11 +554,10 @@ export class LiveOrderHelper {
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + (this.position.fee + orderFee)
 
-    this.profitUSD = orderObj.bruttoPnlUSD + orderObj.fee
+    this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
 
     if (!okxClient.position) {
       this.positionId = `TT${createUniqueId(5)}TT`
-      const closedOkxPos = okxClient.closedPositions.reverse().find((pos) => pos.posId === posId)
 
       //@ts-ignore
       const closedPos: ClosedPosition = {
@@ -576,13 +575,7 @@ export class LiveOrderHelper {
       this.lastPosition = closedPos
 
       await mongo.writeOrder(orderObj)
-      await mongo.writePosition(
-        {
-          ...closedPos,
-          closedOkxPos,
-        },
-        'trader'
-      )
+      await mongo.writePosition(closedPos, 'trader')
       return closedPos
     }
 
@@ -599,29 +592,6 @@ export class LiveOrderHelper {
     await mongo.writeOrder(orderObj)
 
     return order
-  }
-
-  private calculateProfit(price: number, amountCt: number, type: 'long' | 'short') {
-    if (!this.ctVal || !this.ctMult) throw new Error('[orderHelper] No contract info found')
-    if (!amountCt) throw new Error('[orderHelper] No contracts specified')
-    if (!this.position) throw new Error('[orderHelper] No position found')
-
-    //calculate value of contracts in USD at entry price
-    const entryPrice = this.position.avgEntryPrice
-    const entryValue = entryPrice * amountCt * this.ctVal * this.ctMult
-
-    //calculate value of contracts in USD at exit price
-    const exitPrice = price
-    const exitValue = exitPrice * amountCt * this.ctVal * this.ctMult
-
-    let profit = 0
-    if (type === 'long') {
-      profit = exitValue - entryValue
-    } else if (type === 'short') {
-      profit = entryValue - exitValue
-    }
-
-    return profit
   }
 
   public closedPositions() {

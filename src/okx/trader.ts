@@ -56,9 +56,10 @@ async function main() {
     await strategy.update(price, indicatorsLoaded, new Date())
 
     const pos = strategy.orderHelper.position as LivePosition
+    const profitUSD = strategy.orderHelper.profitUSD
     logger.debug('pos', {
       ...pos,
-      gains: strategy.orderHelper.profitUSD,
+      gains: profitUSD,
     })
 
     if (index % 15 === 0) {
@@ -66,6 +67,7 @@ async function main() {
         .saveLivePosition({
           ...pos,
           env: config.NODE_ENV,
+          profitUSD,
         })
         .catch((e) => {
           logger.error('[mongodb] saving live position', e)
