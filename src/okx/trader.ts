@@ -70,6 +70,7 @@ async function main() {
         .catch((e) => {
           logger.error('[mongodb] saving live position', e)
         })
+      index = 0
     }
 
     livePositionMetrics(pos)

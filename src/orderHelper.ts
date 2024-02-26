@@ -361,7 +361,7 @@ export class LiveOrderHelper {
 
     if (!okxClient.position && this.position) {
       logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
-      const closedPos = okxClient.closedPositions.find((pos) => pos.posId === this.position!.posId)
+      const closedPos = okxClient.closedPositions.reverse().find((pos) => pos.posId === this.position!.posId)
       if (closedPos) {
         const margin = +closedPos.margin
         const ordId = closedPos.gotLiquidated ? 'liq-unknown' : 'unknown'
@@ -405,8 +405,8 @@ export class LiveOrderHelper {
     let orders = this.position?.orders || []
     let savedPos = this.position
     if (orders.length === 0) {
-      orders = await mongo.getOrders<Order | CloseOrder>(okxClient.position.posId)
       savedPos = await mongo.getLivePosition(okxClient.position.posId)
+      orders = savedPos?.orders || []
       this.leverage = +okxClient.position.lever
     }
 
@@ -552,11 +552,13 @@ export class LiveOrderHelper {
 
     const closeOrders = orders.filter((order) => order.action === 'close') as CloseOrder[]
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
-    const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) - this.position.fee
+    const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + (this.position.fee + orderFee)
+
     this.profitUSD = orderObj.bruttoPnlUSD + orderObj.fee
 
     if (!okxClient.position) {
       this.positionId = `TT${createUniqueId(5)}TT`
+      const closedOkxPos = okxClient.closedPositions.reverse().find((pos) => pos.posId === posId)
 
       //@ts-ignore
       const closedPos: ClosedPosition = {
@@ -574,7 +576,13 @@ export class LiveOrderHelper {
       this.lastPosition = closedPos
 
       await mongo.writeOrder(orderObj)
-      await mongo.writePosition(closedPos, 'trader')
+      await mongo.writePosition(
+        {
+          ...closedPos,
+          closedOkxPos,
+        },
+        'trader'
+      )
       return closedPos
     }
 
