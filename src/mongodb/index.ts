@@ -491,11 +491,11 @@ class MongoWrapper {
     )
   }
 
-  async getLivePosition(posId: string) {
+  async getLivePosition<T extends LivePosition>(posId: string) {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection
-      .find<LivePosition>({
+      .find<T>({
         posId,
       })
       .toArray()

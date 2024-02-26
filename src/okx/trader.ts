@@ -59,7 +59,7 @@ async function main() {
     const profitUSD = strategy.orderHelper.profitUSD
     logger.debug('pos', {
       ...pos,
-      gains: profitUSD,
+      profitUSD,
     })
 
     if (index % 15 === 0) {

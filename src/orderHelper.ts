@@ -435,6 +435,10 @@ export class LiveOrderHelper {
       leverage: +okxClient.position.lever,
       liquidationPrice: +okxClient.position.liqPrice,
     }
+
+    //TODO: add proper type
+    // @ts-ignore
+    if (savedPos && savedPos.profitUSD) this.profitUSD = savedPos.profitUSD
     return this.position
   }
 
