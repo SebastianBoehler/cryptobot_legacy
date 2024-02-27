@@ -1,4 +1,13 @@
-import { DefaultLogger, WebsocketClient, WsDataEvent, WsEvent, RestClient, InstrumentType, PositionSide } from 'okx-api'
+import {
+  DefaultLogger,
+  WebsocketClient,
+  WsDataEvent,
+  WsEvent,
+  RestClient,
+  InstrumentType,
+  PositionSide,
+  MarginMode,
+} from 'okx-api'
 import { createUniqueId, logger } from '../utils'
 import { differenceInMinutes, subMinutes } from 'date-fns'
 import {
@@ -215,6 +224,27 @@ class OkxClient {
       amt,
     })
     return resp
+  }
+
+  async getAdjustLeverageInfo(
+    instType: InstrumentType,
+    mgnMode: MarginMode,
+    lever: string,
+    posSide: PositionSide,
+    instId: string
+  ) {
+    if (!config.IS_HEDGE) {
+      posSide = 'net'
+    }
+    const resp = await this.restClient.getLeverageEstimatedInfo({
+      instType,
+      instId,
+      mgnMode,
+      lever,
+      posSide,
+    })
+
+    return resp[0]
   }
 
   async getAccountBalance() {

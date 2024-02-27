@@ -3,8 +3,6 @@ import MongoWrapper from './mongodb'
 import { OkxClient } from './okx/utils'
 import { createUniqueId, logger, sleep } from './utils'
 import { omit } from 'lodash'
-import config from './config/config'
-
 const okxClient = new OkxClient()
 const mongo = new MongoWrapper('backtests')
 export class OrderHelper {
@@ -295,35 +293,25 @@ export class LiveOrderHelper {
     okxClient.subsribeToOrderData(symbol)
   }
 
-  //TODO: return gained margin
-  public async setLeverage(leverage: number, posSide?: 'long' | 'short') {
+  public async setLeverage(leverage: number, type?: 'long' | 'short') {
     const maxLever = this.maxLever || 100
     if (leverage > maxLever) {
       logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
       return
     }
 
-    if (config.IS_HEDGE) {
-      posSide = 'long'
-    }
-
     const prevLeverage = this.leverage
-    await okxClient.setLeverage(this.symbol, leverage, 'isolated', posSide)
+    await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
     this.leverage = leverage
 
-    //INCREMENT LEVERAGE
     if (!this.position) return
     if (leverage > prevLeverage && okxClient.position) {
-      const ratio = leverage / prevLeverage
-      const margin = this.position.margin || 0
+      const posSide = okxClient.position?.posSide || this.position.type
+      const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', `${leverage}`, posSide, this.symbol)
 
-      const marginLeft = margin / ratio
-      //0.95 to be safe
-      const reduceBy = (margin - marginLeft) * 0.95
+      const margin = this.position.margin
+      const reduceBy = (margin - +marginInfo.estMgn) * 0.99
 
-      //TODO: integrate https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-leverage-estimated-info
-
-      console.log('new margin', reduceBy, this.symbol)
       await this.reduceMargin(reduceBy.toString())
 
       await sleep(1_000)
@@ -341,7 +329,6 @@ export class LiveOrderHelper {
     if (!this.position) throw new Error('[orderHelper > reduceMargin] No position found')
     const posSide = okxClient.position?.posSide || this.position.type
     await okxClient.reduceMargin(this.symbol, posSide, amount)
-    //catch and decrease amount, try again
   }
 
   public async getContractInfo() {

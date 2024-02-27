@@ -94,6 +94,9 @@ class MongoWrapper {
   }
 
   async writePosition<T extends ClosedPosition>(data: T, database?: string) {
+    //@ts-ignore
+    if (data._id) delete data._id
+
     const db = client.db(database || this.db)
     const collection = db.collection('positions')
     await collection.insertOne(data)
@@ -503,7 +506,11 @@ class MongoWrapper {
     if (result.length > 1) {
       logger.error(`More than one live position found for ${posId}`)
     }
-    return result[0]
+    const position = result[0]
+
+    //@ts-ignore
+    delete position._id
+    return position
   }
 
   async getLiveOrders(posId: string) {
