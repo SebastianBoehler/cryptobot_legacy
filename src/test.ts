@@ -1,22 +1,15 @@
-import { LiveOrderHelper } from './orderHelper'
-import { sleep } from './utils'
+import { RestClient } from 'okx-api'
+import config from './config/config'
 
-const symbol = 'UNI-USDT-SWAP'
-const orderHelper = new LiveOrderHelper(symbol)
+const okxClient = new RestClient({
+  apiKey: config.OKX_KEY,
+  apiSecret: config.OKX_SECRET,
+  apiPass: config.OKX_PASS,
+})
 
 async function main() {
-  await orderHelper.getContractInfo()
-  await orderHelper.setLeverage(2, 'long')
-  await sleep(1000 * 10)
-  await orderHelper.update(0, new Date())
-  console.log('price', orderHelper.price)
-
-  await orderHelper.openOrder('long', 10)
-
-  await sleep(1000 * 10)
-
-  await orderHelper.setLeverage(6, 'long')
-
+  const resp = await okxClient.getAccountConfiguration()
+  console.log(resp)
   process.exit(0)
 }
 

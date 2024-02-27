@@ -36,7 +36,6 @@ const config = {
   OKX_SECRET: parsedConfig.OKX_SECRET as string,
   OKX_PASS: parsedConfig.OKX_PASS as string,
   OKX_ENABLED_PAIRS: parsedConfig.OKX_ENABLED_PAIRS as string[],
-  IS_HEDGE: parsedConfig.IS_HEDGE as boolean,
 
   //TRADING
   STRATEGY: parsedConfig.STRATEGY as 'BUILD_SCALP' | 'BUILD_SCALP_FAST' | 'SCALP_INDICATORS' | 'FAST_V2' | undefined,

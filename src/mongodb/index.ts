@@ -95,7 +95,11 @@ class MongoWrapper {
 
   async writePosition<T extends ClosedPosition>(data: T, database?: string) {
     //@ts-ignore
-    if (data._id) delete data._id
+    if (data._id) {
+      logger.warn(`_id field is not allowed in writePosition`)
+      //@ts-ignore
+      delete data._id
+    }
 
     const db = client.db(database || this.db)
     const collection = db.collection('positions')
@@ -220,6 +224,7 @@ class MongoWrapper {
     const collection = db.collection(collectionName)
 
     projection = {
+      _id: 0,
       ...projection,
       start: 1,
     }
@@ -498,8 +503,11 @@ class MongoWrapper {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection
-      .find<T>({
+      .find({
         posId,
+      })
+      .project<T>({
+        _id: 0,
       })
       .toArray()
 
@@ -507,9 +515,6 @@ class MongoWrapper {
       logger.error(`More than one live position found for ${posId}`)
     }
     const position = result[0]
-
-    //@ts-ignore
-    delete position._id
     return position
   }
 
@@ -517,8 +522,11 @@ class MongoWrapper {
     const db = client.db('trader')
     const collection = db.collection('orders')
     const result = await collection
-      .find<CloseOrder>({
+      .find({
         posId,
+      })
+      .project<CloseOrder>({
+        _id: 0,
       })
       .toArray()
     return result
@@ -528,10 +536,11 @@ class MongoWrapper {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection
-      .find<LivePosition>({
+      .find({
         env,
       })
-      .project({
+      .project<LivePosition>({
+        _id: 0,
         orders: 0,
       })
       .toArray()

@@ -7,6 +7,7 @@ import {
   InstrumentType,
   PositionSide,
   MarginMode,
+  AccountConfiguration,
 } from 'okx-api'
 import { createUniqueId, logger } from '../utils'
 import { differenceInMinutes, subMinutes } from 'date-fns'
@@ -23,6 +24,10 @@ const credentials = {
   apiKey: config.OKX_KEY,
   apiSecret: config.OKX_SECRET,
   apiPass: config.OKX_PASS,
+}
+
+type ModifiedAccountConfiguration = Omit<AccountConfiguration, 'posMode'> & {
+  posMode: 'net_mode' | 'long_short_mode'
 }
 
 export interface LivePosition {
@@ -47,6 +52,7 @@ export interface LivePosition {
 class OkxClient {
   private wsClient: WebsocketClient
   private restClient: RestClient
+  private accConfig: ModifiedAccountConfiguration | null = null
   public lastTicker: TickerUpdateData | null = null
   public subscriptions: { channel: string; instId: string }[] = []
   public position: LivePosition | null = null
@@ -265,10 +271,11 @@ class OkxClient {
       slOrdPx: string
     }
   ) {
-    if (!config.IS_HEDGE) {
+    if (!this.accConfig) await this.getAccountConfiguration()
+    if (this.accConfig!.posMode === 'net_mode') {
       posSide = 'net'
     }
-    logger.debug('Hedge mode enabled', posSide)
+
     if (clOrdId.length > 32) throw new Error(`clOrdId too long: ${side} ${clOrdId}`)
     const resp = await this.restClient
       .submitOrder({
@@ -378,7 +385,8 @@ class OkxClient {
     mgnMode: 'cross' | 'isolated' = 'isolated',
     posSide?: 'long' | 'short'
   ) {
-    if (!config.IS_HEDGE) {
+    if (!this.accConfig) await this.getAccountConfiguration()
+    if (this.accConfig!.posMode === 'net_mode') {
       posSide = undefined
     }
     logger.warn(`Setting leverage to ${leverage} for ${symbol} and side ${posSide}`)
@@ -399,6 +407,14 @@ class OkxClient {
   async getInstruments(instType: InstrumentType = 'SWAP') {
     const resp = await this.restClient.getInstruments(instType)
     return resp
+  }
+
+  async getAccountConfiguration() {
+    if (!this.accConfig) {
+      const resp = await this.restClient.getAccountConfiguration()
+      this.accConfig = resp[0] as ModifiedAccountConfiguration
+    }
+    return this.accConfig
   }
 }
 
