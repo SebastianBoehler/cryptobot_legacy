@@ -307,6 +307,7 @@ export class LiveOrderHelper {
     if (!this.position) return
     if (leverage > prevLeverage && okxClient.position) {
       const posSide = okxClient.position?.posSide || this.position.type
+      logger.debug('leverage changed', posSide, okxClient.position?.posSide)
       const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', `${leverage}`, posSide, this.symbol)
 
       const margin = this.position.margin
