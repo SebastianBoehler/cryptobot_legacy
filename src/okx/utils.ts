@@ -378,6 +378,9 @@ class OkxClient {
     mgnMode: 'cross' | 'isolated' = 'isolated',
     posSide?: 'long' | 'short'
   ) {
+    if (!config.IS_HEDGE) {
+      posSide = undefined
+    }
     logger.warn(`Setting leverage to ${leverage} for ${symbol} and side ${posSide}`)
     const resp = await this.restClient.setLeverage({
       instId: symbol,
