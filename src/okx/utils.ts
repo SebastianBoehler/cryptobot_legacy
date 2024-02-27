@@ -233,9 +233,6 @@ class OkxClient {
     posSide: PositionSide,
     instId: string
   ) {
-    if (!config.IS_HEDGE) {
-      posSide = 'net'
-    }
     const resp = await this.restClient.getLeverageEstimatedInfo({
       instType,
       instId,

@@ -154,6 +154,7 @@ export class OrderHelper {
     this.position = {
       symbol: this.symbol,
       type,
+      posSide: 'net',
       ctSize,
       margin: (avgEntryPrice * this.ctVal * this.ctMult * ctSize) / this.leverage,
       leverage: this.leverage,
@@ -293,7 +294,7 @@ export class LiveOrderHelper {
     okxClient.subsribeToOrderData(symbol)
   }
 
-  public async setLeverage(leverage: number, type?: 'long' | 'short') {
+  public async setLeverage(leverage: number, type: 'long' | 'short') {
     const maxLever = this.maxLever || 100
     if (leverage > maxLever) {
       logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
@@ -307,7 +308,6 @@ export class LiveOrderHelper {
     if (!this.position) return
     if (leverage > prevLeverage && okxClient.position) {
       const posSide = okxClient.position?.posSide || this.position.type
-      logger.debug('leverage changed', posSide, okxClient.position?.posSide)
       const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', `${leverage}`, posSide, this.symbol)
 
       const margin = this.position.margin
@@ -328,7 +328,7 @@ export class LiveOrderHelper {
 
   private async reduceMargin(amount: string) {
     if (!this.position) throw new Error('[orderHelper > reduceMargin] No position found')
-    const posSide = okxClient.position?.posSide || this.position.type
+    const posSide = okxClient.position?.posSide || this.position.posSide
     await okxClient.reduceMargin(this.symbol, posSide, amount)
   }
 
@@ -411,6 +411,7 @@ export class LiveOrderHelper {
       ...this.position,
       //everything that MUST be updated after ...this.position
       type: okxClient.position.type,
+      posSide: okxClient.position.posSide,
       avgEntryPrice: +okxClient.position.avgEntryPrice,
       fee: +okxClient.position.fee,
       realizedPnlUSD: +okxClient.position.realizedPnlUsd,
@@ -481,6 +482,7 @@ export class LiveOrderHelper {
       symbol: this.symbol,
       posId,
       type,
+      posSide: okxClient.position.posSide,
       ctSize: okxClient.position.ctSize,
       margin: +okxClient.position.margin,
       leverage: +okxClient.position.lever,

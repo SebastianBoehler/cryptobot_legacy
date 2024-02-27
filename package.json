@@ -18,6 +18,7 @@
     "nodemon:server": "export NODE_ENV=dev && nodemon src/server.ts",
     "nodemon:backtester": "export NODE_ENV=dev && nodemon src/backtester.ts",
     "testing": "export NODE_ENV=dev && ts-node src/test.ts",
+    "trader:test": "export NODE_ENV=dev && ts-node src/okx/trader.ts",
     "pm2:start": "pm2 start ecosystem.config.js --env prod",
     "pm2:stop": "pm2 stop ecosystem.config.js",
     "pm2:restart": "pm2 restart ecosystem.config.js --env prod"

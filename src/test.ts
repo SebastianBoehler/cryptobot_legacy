@@ -6,7 +6,7 @@ const orderHelper = new LiveOrderHelper(symbol)
 
 async function main() {
   await orderHelper.getContractInfo()
-  await orderHelper.setLeverage(2)
+  await orderHelper.setLeverage(2, 'long')
   await sleep(1000 * 10)
   await orderHelper.update(0, new Date())
   console.log('price', orderHelper.price)
@@ -15,7 +15,7 @@ async function main() {
 
   await sleep(1000 * 10)
 
-  await orderHelper.setLeverage(6)
+  await orderHelper.setLeverage(6, 'long')
 
   process.exit(0)
 }

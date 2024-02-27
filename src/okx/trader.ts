@@ -7,6 +7,7 @@ import { LivePosition } from '../orderHelper'
 import { livePositionMetrics } from '../pm2'
 import config from '../config/config'
 import { BUILD_FAST } from '../strategies/build_fast'
+import { TESTING } from '../strategies/testing'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -18,10 +19,11 @@ const symbol = process.env.SYMBOL
 const strategies = {
   BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
+  TESTING: new TESTING(),
 }
 
 const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]
-if (!strategy) throw new Error('no strategy')
+if (!strategy) throw new Error(`no strategy found for ${process.env.STRATEGY}`)
 logger.info(`Using strategy: ${strategy.name}`)
 strategy.startCapital = +process.env.START_CAPITAL
 
