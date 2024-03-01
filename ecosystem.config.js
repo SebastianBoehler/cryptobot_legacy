@@ -88,6 +88,32 @@ module.exports = {
       },
       watch: false
     },
+    {
+      name: 'okx_trader_fet',
+      script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'FET-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'okx_trader_rndr',
+      script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'RNDR-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
     //HB CAPITAL
     {
       name: 'hb_trader_ordi',
@@ -109,6 +135,19 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95,
+      },
+      watch: false
+    },
+    {
+      name: 'hb_trader_fet',
+      script: './build/okx/trader.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "hb",
+        SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
