@@ -115,8 +115,9 @@ export class BUILD_FAST extends Base implements Strategy {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
     const { position } = this.orderHelper
     const inPosition = position ? position.margin : 0
-    const profit = this.orderHelper?.profitUSD
-    const portfolio = this.startCapital + profit - inPosition
+    const profit = this.orderHelper.profitUSD
+    const realizedProfits = position && 'realizedPnlUSD' in position ? position.realizedPnlUSD : 0
+    const portfolio = this.startCapital + profit - inPosition + realizedProfits
 
     const entrySizeUSD = portfolio / steps
 

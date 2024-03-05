@@ -39,6 +39,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
 
     const { orders, avgEntryPrice, leverage, highestPrice, ctSize, unrealizedPnlPcnt, margin } = position
     if (!highestPrice) throw new Error(`[${this.name}] Extreme prices not set`)
+    //May happen due to restart
     if (!initialSizeInCts) {
       logger.debug('initialSizeInCts not set')
       initialSizeInCts = orders[0].size
@@ -66,18 +67,9 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       }
     }
 
-    //TAKE PROFITS
-    logger.debug(
-      'tp',
-      unrealizedPnlPcnt,
-      price > lastOrder.avgPrice * 1.07 * this.multiplier,
-      lastOrder.avgPrice,
-      1.07 * this.multiplier
-    )
     if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
-      logger.debug('tp 2', reduceBy, reduceByMax, ctSize, initialSizeInCts, typeof ctSize, typeof initialSizeInCts)
       if (reduceBy > 1) {
         const ordId = 'tp' + createUniqueId(10)
         await this.orderHelper.closeOrder(reduceBy, ordId)
@@ -138,8 +130,9 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
     const { position } = this.orderHelper
     const inPosition = position ? position.margin : 0
-    const profit = this.orderHelper?.profitUSD
-    const portfolio = this.startCapital + profit - inPosition
+    const profit = this.orderHelper.profitUSD
+    const realizedProfits = position && 'realizedPnlUSD' in position ? position.realizedPnlUSD : 0
+    const portfolio = this.startCapital + profit - inPosition + realizedProfits
 
     const entrySizeUSD = portfolio / steps
 

@@ -470,7 +470,8 @@ export class LiveOrderHelper {
       time: new Date(+details.cTime),
     }
 
-    this.profitUSD += orderObj.fee
+    //use pos.reliazedPnlUSD + closed pos profits
+    //this.profitUSD += orderObj.fee
 
     const orders = this.position?.orders || []
     orders.push(orderObj)
@@ -549,7 +550,7 @@ export class LiveOrderHelper {
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + (this.position.fee + orderFee)
 
-    this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
+    //this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
 
     if (!okxClient.position) {
       this.positionId = `TT${createUniqueId(5)}TT`
@@ -568,6 +569,7 @@ export class LiveOrderHelper {
       }
       this.position = null
       this.lastPosition = closedPos
+      this.profitUSD += closedPos.realizedPnlUSD
 
       await mongo.writeOrder(orderObj)
       await mongo.writePosition(closedPos, 'trader')
@@ -582,7 +584,7 @@ export class LiveOrderHelper {
       orders,
       fee,
       margin: +okxClient.position.margin,
-      realizedPnlUSD: okxClient.position.realizedPnlUsd + fee,
+      realizedPnlUSD: okxClient.position.realizedPnlUsd,
     }
     await mongo.writeOrder(orderObj)
 
