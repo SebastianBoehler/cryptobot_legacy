@@ -73,6 +73,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
+      logger.debug('tp 2', reduceBy, reduceByMax)
       if (reduceBy > 1) {
         const ordId = 'tp' + createUniqueId(10)
         await this.orderHelper.closeOrder(reduceBy, ordId)
