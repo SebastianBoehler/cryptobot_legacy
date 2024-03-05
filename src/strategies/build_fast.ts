@@ -1,6 +1,6 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
-import { createUniqueId } from '../utils'
+import { createUniqueId, logger } from '../utils'
 
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
@@ -38,6 +38,11 @@ export class BUILD_FAST extends Base implements Strategy {
 
     const { orders, avgEntryPrice, leverage, highestPrice, ctSize, unrealizedPnlPcnt, margin } = position
     if (!highestPrice) throw new Error(`[${this.name}] Extreme prices not set`)
+    //May happen due to restart
+    if (!initialSizeInCts) {
+      logger.debug('initialSizeInCts not set')
+      initialSizeInCts = orders[0].size
+    }
     const lastOrder = orders[orders.length - 1]
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE

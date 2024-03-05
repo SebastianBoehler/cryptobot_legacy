@@ -350,6 +350,7 @@ export class LiveOrderHelper {
 
     if (!okxClient.position && this.position) {
       logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
+      await sleep(1_000)
       const closedPos = okxClient.closedPositions.reverse().find((pos) => pos.posId === this.position!.posId)
       if (closedPos) {
         const margin = +closedPos.margin
@@ -368,6 +369,8 @@ export class LiveOrderHelper {
           time: new Date(),
           bruttoPnlUSD: -margin,
         }
+
+        this.profitUSD += orderObj.bruttoPnlUSD
 
         //@ts-ignore
         const closedPosObj: ClosedPosition = {

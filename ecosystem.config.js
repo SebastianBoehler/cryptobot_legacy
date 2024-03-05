@@ -26,7 +26,7 @@ module.exports = {
     {
       name: 'okx_trader_sol',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
@@ -39,7 +39,7 @@ module.exports = {
     {
       name: 'okx_trader_tia',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
@@ -52,7 +52,7 @@ module.exports = {
     {
       name: 'okx_trader_ordi',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
@@ -65,7 +65,7 @@ module.exports = {
     {
       name: 'okx_trader_op',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'OP-USDT-SWAP',
@@ -78,7 +78,7 @@ module.exports = {
     {
       name: 'okx_trader_ar',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
@@ -91,7 +91,7 @@ module.exports = {
     {
       name: 'okx_trader_fet',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
@@ -104,7 +104,7 @@ module.exports = {
     {
       name: 'okx_trader_rndr',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'RNDR-USDT-SWAP',
@@ -117,7 +117,7 @@ module.exports = {
     {
       name: 'okx_trader_jup',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
@@ -131,7 +131,7 @@ module.exports = {
     {
       name: 'hb_trader_ordi',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'ORDI-USDT-SWAP',
@@ -144,7 +144,7 @@ module.exports = {
     {
       name: 'hb_trader_tia',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
@@ -157,7 +157,7 @@ module.exports = {
     {
       name: 'hb_trader_fet',
       script: './build/okx/trader.js',
-      out_file: "/dev/null", //disable logs from being written to file
+      //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'FET-USDT-SWAP',

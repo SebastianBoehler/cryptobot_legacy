@@ -155,7 +155,7 @@ class OkxClient {
       const data = event.data[0]
       const posId = data.posData.posId
       if (posId === this.position?.posId) {
-        logger.debug('[OKX] position update', data.eventType)
+        logger.warn('[OKX] position update', data.eventType)
         if (data.eventType === 'liquidation') {
           this.position.gotLiquidated = true
         }
@@ -163,7 +163,7 @@ class OkxClient {
 
       const closedPosIndex = this.closedPositions.findIndex((p) => p.posId === posId)
       if (closedPosIndex > 0) {
-        logger.debug('[OKX] closed position update', data.eventType)
+        logger.warn('[OKX] closed position update', data.eventType)
         if (data.eventType === 'liquidation') {
           this.closedPositions[closedPosIndex].gotLiquidated = true
         }
