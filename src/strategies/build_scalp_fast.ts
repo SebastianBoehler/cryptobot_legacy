@@ -39,6 +39,10 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
 
     const { orders, avgEntryPrice, leverage, highestPrice, ctSize, unrealizedPnlPcnt, margin } = position
     if (!highestPrice) throw new Error(`[${this.name}] Extreme prices not set`)
+    if (!initialSizeInCts) {
+      logger.debug('initialSizeInCts not set')
+      initialSizeInCts = orders[0].size
+    }
     const lastOrder = orders[orders.length - 1]
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
