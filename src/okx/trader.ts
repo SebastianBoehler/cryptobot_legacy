@@ -80,7 +80,7 @@ async function main() {
 
     livePositionMetrics(pos)
 
-    await sleep(1000 * 5)
+    await sleep(1000 * 3)
     index++
   }
 }
