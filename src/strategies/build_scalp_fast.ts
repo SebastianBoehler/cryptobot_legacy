@@ -1,6 +1,6 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
-import { createUniqueId } from '../utils'
+import { createUniqueId, logger } from '../utils'
 
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
@@ -63,6 +63,13 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     //TAKE PROFITS
+    logger.debug(
+      'tp',
+      unrealizedPnlPcnt,
+      price > lastOrder.avgPrice * 1.07 * this.multiplier,
+      lastOrder.avgPrice,
+      1.07 * this.multiplier
+    )
     if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
