@@ -83,7 +83,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 80,
+        START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
       watch: false
@@ -96,7 +96,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 80,
+        START_CAPITAL: 120,
         MULTIPLIER: 0.95
       },
       watch: false
@@ -121,6 +121,19 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'okx_trader_pepe',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'PEPE-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
