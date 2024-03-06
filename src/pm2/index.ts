@@ -14,7 +14,7 @@ const margin = io.metric({
   name: 'margin',
 })
 
-export const livePositionMetrics = (pos: LivePosition) => {
+export const livePositionMetrics = (pos: LivePosition | null) => {
   if (!pos) {
     uPNL.set(undefined)
     PNL.set(undefined)

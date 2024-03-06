@@ -57,15 +57,15 @@ async function main() {
     //TODO: continue while no incoming ticker stream received yet
     await strategy.update(price, indicatorsLoaded, new Date())
 
-    const pos = strategy.orderHelper.position as LivePosition
+    const pos = strategy.orderHelper.position as LivePosition | null
     const profitUSD = strategy.orderHelper.profitUSD
     logger.debug('pos', {
       ...pos,
-      orders: pos.orders.map((o) => ({ ordId: o.ordId })),
+      orders: pos?.orders.map((o) => ({ ordId: o.ordId })),
       profitUSD,
     })
 
-    if (index % 15 === 0) {
+    if (index % 15 === 0 && pos) {
       await mongo
         .saveLivePosition({
           ...pos,
