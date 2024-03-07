@@ -122,7 +122,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 80,
+        START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
       watch: false
@@ -135,6 +135,19 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'AGIX-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'okx_trader_bonk',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'BONK-USDT-SWAP',
+        STRATEGY: 'INDICATORS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },

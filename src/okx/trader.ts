@@ -8,6 +8,7 @@ import { livePositionMetrics } from '../pm2'
 import config from '../config/config'
 import { BUILD_FAST } from '../strategies/build_fast'
 import { TESTING } from '../strategies/testing'
+import { BUILD_SCALP_FAST_INDICATORS } from '../strategies/scalp_indicators'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -19,6 +20,7 @@ const symbol = process.env.SYMBOL
 const strategies = {
   BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
+  INDICATORS: new BUILD_SCALP_FAST_INDICATORS(),
   TESTING: new TESTING(),
 }
 
