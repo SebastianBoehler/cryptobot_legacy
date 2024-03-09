@@ -7,8 +7,8 @@ import { LivePosition } from '../orderHelper'
 import { livePositionMetrics } from '../pm2'
 import config from '../config/config'
 import { BUILD_FAST } from '../strategies/build_fast'
-import { TESTING } from '../strategies/testing'
 import { BUILD_SCALP_FAST_INDICATORS } from '../strategies/scalp_indicators'
+import { BUILD_SCALP_FAST_ALTS } from '../strategies/scalp_fast_alts'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -21,7 +21,7 @@ const strategies = {
   BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   INDICATORS: new BUILD_SCALP_FAST_INDICATORS(),
-  TESTING: new TESTING(),
+  SCALP_ALTS: new BUILD_SCALP_FAST_ALTS(),
 }
 
 const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]
@@ -72,6 +72,11 @@ async function main() {
         .saveLivePosition({
           ...pos,
           env: config.NODE_ENV,
+          strategy: {
+            name: strategy.name,
+            startCapital: strategy.startCapital,
+            multiplier: strategy.multiplier,
+          },
           profitUSD,
         })
         .catch((e) => {
@@ -82,7 +87,7 @@ async function main() {
 
     livePositionMetrics(pos)
 
-    await sleep(1000 * 5)
+    await sleep(1000 * 3)
     index++
   }
 }

@@ -56,7 +56,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -69,7 +69,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'OP-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -82,7 +82,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
@@ -95,7 +95,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 120,
         MULTIPLIER: 0.95
       },
@@ -108,7 +108,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'RNDR-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -121,7 +121,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
@@ -134,7 +134,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AGIX-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'INDICATORS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -161,7 +161,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'ORDI-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
       },
@@ -187,7 +187,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'FET-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
       },

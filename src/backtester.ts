@@ -4,8 +4,8 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 120
-const startDate = subDays(new Date(), 30 * 2)
+const startCapital = 300
+const startDate = subDays(new Date(), 30 * 5)
 
 ;(async () => {
   const symbols = await mongo.symbolsSortedByVolume('okx') //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume('okx') //

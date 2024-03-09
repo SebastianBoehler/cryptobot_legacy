@@ -5,8 +5,8 @@ import { createUniqueId, logger } from '../utils'
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
-export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
-  public readonly name = 'indicators'
+export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
+  public readonly name = 'scalp-fast-alts'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -27,8 +27,6 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
     const { position } = this.orderHelper
 
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
-    const mappedIndicators = this.mapIndicators(indicators)
-    const indicators5min = mappedIndicators[5]
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
@@ -50,7 +48,7 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
-    if (buyingPowerInCts > 1 && indicators5min?.RSI < 40) {
+    if (buyingPowerInCts > 1) {
       if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
@@ -69,7 +67,6 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
       }
     }
 
-    //TAKE PROFITS
     if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
