@@ -193,5 +193,18 @@ module.exports = {
       },
       watch: false
     },
+    {
+      name: 'hb_trader_ar',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "hb",
+        SYMBOL: 'AR-USDT-SWAP',
+        STRATEGY: 'SCALP_ALTS',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
   ],
 }
