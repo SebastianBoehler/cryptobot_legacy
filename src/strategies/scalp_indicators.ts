@@ -50,6 +50,7 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
+    logger.debug('5min RSI', indicators5min?.RSI)
     if (buyingPowerInCts > 1 && indicators5min?.RSI < 40) {
       if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
