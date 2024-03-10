@@ -75,7 +75,8 @@ export async function backtest(
     const orders = positions.map((pos) => pos.orders).flat()
     const liquidations = orders.filter((o) => o.ordId.slice(0, 4) === 'loss').length
 
-    const hodl_pct = ((+history[history.length - 1].close - +history[0].close) / +history[0].close) * 100
+    const firstCandle = history.find((c) => c.start >= (start || new Date(0))) || history[0]
+    const hodl_pct = ((+history[history.length - 1].close - +firstCandle.close) / +firstCandle.close) * 100
 
     results.push({
       trades: positions.length,

@@ -30,7 +30,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
-        STRATEGY: 'BUILD_FAST',
+        STRATEGY: 'BUILD_SCALP_FAST',
         MULTIPLIER: 0.95,
         START_CAPITAL: 400,
       },
@@ -82,7 +82,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
@@ -200,7 +200,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'AR-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
