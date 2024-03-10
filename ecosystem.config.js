@@ -30,7 +30,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'BUILD_FAST',
         MULTIPLIER: 0.95,
         START_CAPITAL: 400,
       },
@@ -43,7 +43,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -56,7 +56,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -69,7 +69,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'OP-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
@@ -121,7 +121,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 100,
         MULTIPLIER: 0.95
       },
@@ -161,7 +161,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'ORDI-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
+        STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
       },
@@ -174,7 +174,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'TIA-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
       },

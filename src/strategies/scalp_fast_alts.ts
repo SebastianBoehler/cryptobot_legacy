@@ -59,7 +59,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
         let buyAmountUSD = entrySizeUSD
         const ratio = 1 - margin / buyAmountUSD
         if (ratio > 0.85) {
-          buyAmountUSD = margin * 16.5
+          buyAmountUSD = margin * 5
         }
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
