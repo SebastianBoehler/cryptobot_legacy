@@ -1,8 +1,10 @@
 import { Indicators } from 'cryptobot-types'
 import { LiveOrderHelper, OrderHelper } from '../orderHelper'
+import { createUniqueId } from '../utils'
 
 export class Base {
   public orderHelper: OrderHelper | LiveOrderHelper | undefined
+  public readonly name: string = 'base'
   public symbol: string | undefined
   public multiplier = 1
   public requiresIndicators = false
@@ -36,13 +38,15 @@ export class Base {
   }
 
   public calculateEntrySizeUSD() {
-    if (!this.orderHelper?.lastPosition) return
-    const { lastPosition } = this.orderHelper
-
-    const { realizedPnlUSD, amountUSD } = lastPosition
-
-    return amountUSD + realizedPnlUSD
+    throw new Error('Method not implemented.')
   }
 
-  public end() {}
+  async end() {
+    if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
+    const { position } = this.orderHelper
+    if (position) {
+      const ordId = 'end' + createUniqueId(10)
+      await this.orderHelper.closeOrder(position.ctSize, ordId)
+    }
+  }
 }

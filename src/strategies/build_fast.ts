@@ -67,7 +67,7 @@ export class BUILD_FAST extends Base implements Strategy {
     }
 
     //TAKE PROFITS
-    if (price > avgEntryPrice * 1.1 && ctSize > initialSizeInCts && price > lastOrder.avgPrice * 1.1) {
+    if (unrealizedPnlPcnt > 80 && price > lastOrder.avgPrice * 1.1) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
       if (reduceBy > 1) {
@@ -78,7 +78,7 @@ export class BUILD_FAST extends Base implements Strategy {
     }
 
     //LEVERAGE INCREASE
-    if (price > avgEntryPrice * 1.2 && leverage < 40 && (!lastLeverIncrease || price > lastLeverIncrease * 1.05)) {
+    if (price > avgEntryPrice * 1.2 && leverage < 37 && (!lastLeverIncrease || price > lastLeverIncrease * 1.05)) {
       const marginPre = margin
       await this.orderHelper.setLeverage(leverage + 3, 'long')
       lastLeverIncrease = price
@@ -127,14 +127,5 @@ export class BUILD_FAST extends Base implements Strategy {
     const entrySizeUSD = portfolio / steps
 
     return { entrySizeUSD, portfolio } as T
-  }
-
-  async end() {
-    if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
-    const { position } = this.orderHelper
-    if (position) {
-      const ordId = 'end' + createUniqueId(10)
-      await this.orderHelper.closeOrder(position.ctSize, ordId)
-    }
   }
 }

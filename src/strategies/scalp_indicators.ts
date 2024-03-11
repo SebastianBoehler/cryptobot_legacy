@@ -142,13 +142,4 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
 
     return { entrySizeUSD, portfolio } as T
   }
-
-  async end() {
-    if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
-    const { position } = this.orderHelper
-    if (position) {
-      const ordId = 'end' + createUniqueId(10)
-      await this.orderHelper.closeOrder(position.ctSize, ordId)
-    }
-  }
 }

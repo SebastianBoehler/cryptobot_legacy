@@ -32,7 +32,7 @@ module.exports = {
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         MULTIPLIER: 0.95,
-        START_CAPITAL: 400,
+        START_CAPITAL: 410,
       },
       watch: false
     },
@@ -153,6 +153,19 @@ module.exports = {
       },
       watch: false
     },
+    {
+      name: 'okx_trader_avax',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'AVAX-USDT-SWAP',
+        STRATEGY: 'SCALP_ALTS',
+        START_CAPITAL: 180,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
     //HB CAPITAL
     {
       name: 'hb_trader_ordi',
@@ -201,6 +214,19 @@ module.exports = {
         NODE_ENV: "hb",
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 80,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
+    {
+      name: 'hb_trader_rndr',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "hb",
+        SYMBOL: 'RNDR-USDT-SWAP',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95
       },
