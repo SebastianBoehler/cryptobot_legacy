@@ -253,7 +253,7 @@ module.exports = {
         NODE_ENV: "hb",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 400,
+        START_CAPITAL: 500,
         MULTIPLIER: 0.95
       },
       watch: false
