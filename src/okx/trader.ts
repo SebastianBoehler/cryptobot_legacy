@@ -9,6 +9,7 @@ import config from '../config/config'
 import { BUILD_FAST } from '../strategies/build_fast'
 import { BUILD_SCALP_FAST_INDICATORS } from '../strategies/scalp_indicators'
 import { BUILD_SCALP_FAST_ALTS } from '../strategies/scalp_fast_alts'
+import { TESTING } from '../strategies/testing'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -22,6 +23,7 @@ const strategies = {
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   INDICATORS: new BUILD_SCALP_FAST_INDICATORS(),
   SCALP_ALTS: new BUILD_SCALP_FAST_ALTS(),
+  TESTING: new TESTING(),
 }
 
 const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]

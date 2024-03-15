@@ -4,7 +4,15 @@ import config from '../config/config'
 import { createChunks, logger } from '../utils'
 import fs from 'fs'
 import path from 'path'
-import { Candle, CloseOrder, ClosedPosition, DatabaseType, GeneratedCandle, Order } from 'cryptobot-types'
+import {
+  Candle,
+  CloseOrder,
+  ClosedPosition,
+  DatabaseType,
+  GeneratedCandle,
+  Order,
+  ExtendedOrder,
+} from 'cryptobot-types'
 import { LivePosition } from '../orderHelper'
 
 //const FIVE_MINUTES = 1000 * 60 * 5
@@ -137,7 +145,7 @@ class MongoWrapper {
     return { start, end } as unknown as { start: Date; end: Date }
   }
 
-  async writeOrder(order: Order | CloseOrder, database: string = 'trader') {
+  async writeOrder(order: ExtendedOrder<Order | CloseOrder>, database: string = 'trader') {
     const db = client.db(database)
     const collection = db.collection('orders')
     await collection.insertOne(order)

@@ -140,10 +140,7 @@ class OkxClient {
           ctSize: +data.pos,
           type: +data.pos > 0 ? 'long' : 'short',
           posSide: data.posSide as PositionSide,
-          //TODO: update types
-          //@ts-ignore
           realizedPnlUsd: realizedPnl, //l + fudingFee,
-          //@ts-ignore
           fee: fee + fudingFee,
         }
       }
@@ -415,6 +412,15 @@ class OkxClient {
       this.accConfig = resp[0] as ModifiedAccountConfiguration
     }
     return this.accConfig
+  }
+
+  async getPositionHistory(posId: string, instId?: string, instType: InstrumentType = 'SWAP') {
+    const resp = await this.restClient.getPositionsHistory({
+      instType,
+      instId,
+      posId,
+    })
+    return resp
   }
 }
 

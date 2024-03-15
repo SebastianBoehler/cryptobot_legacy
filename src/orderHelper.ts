@@ -370,7 +370,8 @@ export class LiveOrderHelper {
           bruttoPnlUSD: -margin,
         }
 
-        this.profitUSD += orderObj.bruttoPnlUSD
+        this.profitUSD += orderObj.bruttoPnlUSD + this.position.fee
+        const realizedFee = this.position.fee
 
         //@ts-ignore
         const closedPosObj: ClosedPosition = {
@@ -388,7 +389,11 @@ export class LiveOrderHelper {
         this.lastPosition = closedPosObj
 
         this.positionId = `TT${createUniqueId(5)}TT`
-        await mongo.writeOrder(orderObj)
+        await mongo.writeOrder({
+          ...orderObj,
+          realizedFee,
+          realizedPnlUSD: this.profitUSD,
+        })
         await mongo.writePosition(closedPosObj, 'trader')
       }
     }
@@ -501,7 +506,11 @@ export class LiveOrderHelper {
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
     }
 
-    await mongo.writeOrder(orderObj)
+    await mongo.writeOrder({
+      ...orderObj,
+      realizedFee: this.position.fee,
+      realizedPnlUSD: this.profitUSD + this.position.realizedPnlUSD,
+    })
 
     return orderObj
   }
@@ -551,13 +560,12 @@ export class LiveOrderHelper {
 
     const closeOrders = orders.filter((order) => order.action === 'close') as CloseOrder[]
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
-    const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + (this.position.fee + orderFee)
+    const realizedFee = this.position.fee + orderFee
+    const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + realizedFee
 
     //this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
 
     if (!okxClient.position) {
-      this.positionId = `TT${createUniqueId(5)}TT`
-
       //@ts-ignore
       const closedPos: ClosedPosition = {
         ...this.position,
@@ -574,7 +582,13 @@ export class LiveOrderHelper {
       this.lastPosition = closedPos
       this.profitUSD += closedPos.realizedPnlUSD
 
-      await mongo.writeOrder(orderObj)
+      this.positionId = `TT${createUniqueId(5)}TT`
+
+      await mongo.writeOrder({
+        ...orderObj,
+        realizedFee,
+        realizedPnlUSD: this.profitUSD,
+      })
       await mongo.writePosition(closedPos, 'trader')
       return closedPos
     }
@@ -589,7 +603,11 @@ export class LiveOrderHelper {
       margin: +okxClient.position.margin,
       realizedPnlUSD: okxClient.position.realizedPnlUsd,
     }
-    await mongo.writeOrder(orderObj)
+    await mongo.writeOrder({
+      ...orderObj,
+      realizedFee,
+      realizedPnlUSD: this.profitUSD + realizedPnlUSD,
+    })
 
     return order
   }
