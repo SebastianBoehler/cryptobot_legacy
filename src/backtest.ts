@@ -16,7 +16,11 @@ export async function backtest(
   steps?: number,
   multiplier?: number
 ) {
-  const history = await mongo.getHistory<{ close: string; start: Date }>('okx', symbol, { close: 1 })
+  const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>('okx', symbol, {
+    close: 1,
+    high: 1,
+    low: 1,
+  })
   const indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
 
   //returns & deletes first 5k candles
@@ -44,6 +48,8 @@ export async function backtest(
 
     for (const strategy of strategyArray) {
       await strategy.update(price, indicatorsLoaded, date)
+      //await strategy.update(high, indicatorsLoaded, date)
+      //await strategy.update(low, indicatorsLoaded, date)
       //if (strategy.orderHelper?.position && strategy.orderHelper.position.orders.length >= 4) break outer
     }
   }
