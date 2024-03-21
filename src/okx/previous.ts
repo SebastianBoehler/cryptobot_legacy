@@ -3,6 +3,7 @@ import { createChunks, logger, sleep } from '../utils'
 import Mongo from '../mongodb/index'
 import { DatabaseType } from 'cryptobot-types'
 import config from '../config/config'
+import { subDays } from 'date-fns'
 
 const mongo = new Mongo('okx')
 const okxClient = new RestClient({
@@ -11,10 +12,13 @@ const okxClient = new RestClient({
   apiPass: config.OKX_PASS,
 })
 
+const until = subDays(new Date(), 31 * 12 * 3)
+
 async function processSymbol(symbol: string) {
   const firstCandle = await mongo.readFirstCandle(symbol)
   if (!firstCandle) return
   const firstCandleTime = firstCandle.start
+  if (firstCandleTime.getTime() < until.getTime()) return
 
   //logger.info(`Loading candles since ${lastCandleTime} for ${symbol}`);
   const candles = await okxClient.getHistoricCandles(symbol, '1m', {
@@ -63,7 +67,7 @@ async function main() {
         logger.error(e)
         await sleep(1000 * 30)
       } finally {
-        await sleep(1_300)
+        await sleep(1000)
       }
     }
 

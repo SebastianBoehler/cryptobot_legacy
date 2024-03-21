@@ -21,7 +21,10 @@ export async function backtest(
     high: 1,
     low: 1,
   })
-  const indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
+  const indicators: GenerateIndicators[] = [
+    new GenerateIndicators('okx', symbol, 5),
+    new GenerateIndicators('okx', symbol, 60 * 8),
+  ]
 
   //returns & deletes first 5k candles
   history.splice(0, 10_000)
@@ -98,7 +101,7 @@ export async function backtest(
       winRatio,
       stringifiedFunc,
       time: new Date(),
-      start: start || history[0].start,
+      start: history[0].start,
       end: history[history.length - 1].start,
       pnl_pct,
       hodl_pct,

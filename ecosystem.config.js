@@ -205,6 +205,19 @@ module.exports = {
       },
       watch: false
     },
+    {
+      name: 'okx_trader_link',
+      script: './build/okx/trader.js',
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'LINK-USDT-SWAP',
+        STRATEGY: 'SCALP_ALTS',
+        START_CAPITAL: 140,
+        MULTIPLIER: 0.95
+      },
+      watch: false
+    },
     //HB CAPITAL
     {
       name: 'hb_trader_ordi',

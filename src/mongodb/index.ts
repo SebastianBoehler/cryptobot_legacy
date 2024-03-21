@@ -177,6 +177,11 @@ class MongoWrapper {
         },
       },
       {
+        $sort: {
+          start: 1,
+        },
+      },
+      {
         $group: {
           _id: null,
           open: { $first: '$open' },
@@ -411,6 +416,11 @@ class MongoWrapper {
   async loadHistoricCandles(granularity: number, symbol: string, afterTimestamp?: Date, exchange?: string) {
     const pipeline: Document[] = [
       {
+        $sort: {
+          start: 1,
+        },
+      },
+      {
         $group: {
           _id: {
             bucket: {
@@ -427,7 +437,7 @@ class MongoWrapper {
                           {
                             $toLong: {
                               $dateFromString: {
-                                dateString: '1970-01-01T00:00:00',
+                                dateString: '1970-01-01T00:00:00Z',
                                 timezone: 'UTC',
                               },
                             },

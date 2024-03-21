@@ -1,11 +1,10 @@
-import { subDays } from 'date-fns'
 import { backtest } from './backtest'
 import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 100
-const startDate = subDays(new Date(), 30 * 3)
+const startCapital = 800
+const startDate = new Date('2021-08-01')
 
 ;(async () => {
   const symbols = await mongo.symbolsSortedByVolume('okx') //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume('okx') //
