@@ -473,7 +473,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const order = await client.placeMarketOrder(this.symbol, 'Buy', baseAmount, clOrdId)
 
     await sleep(1_000)
-    const details = await client.getOrderDetails(order.orderId)
+    const details = await client.getOrderDetails(order.orderLinkId)
 
     while (!client.position || client.position.margin === positionPre?.margin) {
       await sleep(100)
@@ -484,7 +484,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const fee = -+details.cumExecFee
     const orderObj: Order = {
-      ordId: order.orderId,
+      ordId: order.orderLinkId,
       posId,
       avgPrice: +details.avgPrice,
       posAvgEntryPrice: client.position.avgEntryPrice,
@@ -546,7 +546,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
     const order = await client.placeMarketOrder(this.symbol, 'Sell', amountCts, clOrdId)
     await sleep(1_000)
-    const details = await client.getOrderDetails(order.orderId)
+    const details = await client.getOrderDetails(order.orderLinkId)
 
     while (realizedProfitPre === client.position?.realizedPnlUsd) {
       //logger.debug('waiting for position update', realizedProfitPre, client.position?.realizedPnlUsd)
@@ -560,7 +560,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const withdrawnMargin = marginPre - marginPost
 
     const orderObj: CloseOrder = {
-      ordId: order.orderId,
+      ordId: order.orderLinkId,
       posId,
       avgPrice: +details.avgPrice,
       posAvgEntryPrice: this.position.avgEntryPrice,

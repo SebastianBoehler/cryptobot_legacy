@@ -108,10 +108,10 @@ export class BybitClient {
     return response.result
   }
 
-  async getOrderDetails(orderId: string) {
+  async getOrderDetails(orderLinkId: string) {
     const response = await this.restClient.getHistoricOrders({
       category: 'linear',
-      orderId,
+      orderLinkId,
     })
 
     return response.result.list[0]
