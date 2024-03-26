@@ -53,7 +53,7 @@ export class BybitClient {
       this.position = {
         uplUsd,
         profit: (uplUsd / margin).toString(),
-        posId: data.createdTime,
+        posId: data.createdTime + data.symbol,
         liqPrice: +data.liqPrice,
         avgEntryPrice: +data.entryPrice,
         margin,

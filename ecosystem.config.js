@@ -14,6 +14,16 @@ module.exports = {
       watch: true
     },
     {
+      name: 'bybit_database',
+      script: './build/bybit/database.js',
+      out_file: "/dev/null", //disable logs from being written to file
+      //error_file: "/dev/null"
+      env_prod: {
+        NODE_ENV: "prod"
+      },
+      watch: true
+    },
+    {
       name: 'server',
       script: './build/server.js',
       out_file: "/dev/null", //disable logs from being written to file
@@ -31,6 +41,19 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ONDOUSDT',
+        STRATEGY: 'SCALP_ALTS',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 80,
+        EXCHANGE: 'bybit',
+      },
+      watch: false
+    },
+    {
+      name: 'bybit_trader_myro',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'MYROUSDT',
         STRATEGY: 'SCALP_ALTS',
         MULTIPLIER: 0.95,
         START_CAPITAL: 80,

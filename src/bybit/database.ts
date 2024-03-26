@@ -3,6 +3,7 @@ import { createChunks, logger, sleep } from '../utils'
 import Mongo from '../mongodb/index'
 import { RestClientV5 } from 'bybit-api'
 import { DatabaseType } from 'cryptobot-types'
+import config from '../config/config'
 const startTime = subMonths(new Date(), 6).getTime()
 const mongo = new Mongo('bybit')
 const client = new RestClientV5()
@@ -11,7 +12,10 @@ async function main() {
   const response = await client.getTickers({
     category: 'linear',
   })
-  const ticker = response.result.list.map((item) => item.symbol).filter((symbol) => symbol.endsWith('USDT'))
+  let ticker = response.result.list.map((item) => item.symbol).filter((symbol) => symbol.endsWith('USDT'))
+  if (config.BYBIT_ENABLED_PAIRS.length) {
+    ticker = ticker.filter((symbol) => config.BYBIT_ENABLED_PAIRS.includes(symbol))
+  }
 
   const chunks = createChunks(ticker, 10)
 

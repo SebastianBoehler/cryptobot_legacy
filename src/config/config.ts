@@ -39,6 +39,7 @@ const config = {
   //BYBIT
   BYBIT_KEY: parsedConfig.BYBIT_KEY as string,
   BYBIT_SECRET: parsedConfig.BYBIT_SECRET as string,
+  BYBIT_ENABLED_PAIRS: parsedConfig.BYBIT_ENABLED_PAIRS as string[],
 
   //TRADING
   STRATEGY: parsedConfig.STRATEGY as 'BUILD_SCALP' | 'BUILD_SCALP_FAST' | 'SCALP_INDICATORS' | 'FAST_V2' | undefined,
