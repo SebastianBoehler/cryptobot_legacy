@@ -1,4 +1,6 @@
-import { OrderHelper } from '../orderHelper'
+import { OrderHelper } from '../okx/orderHelper'
+
+//!IMPORTANT: will fail with updated fees, data from base fee tier
 
 describe('run orderHelper tests', () => {
   //test are based on REAL okx trading data

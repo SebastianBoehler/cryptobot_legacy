@@ -1,3 +1,4 @@
+import config from '../config/config'
 import {
   DefaultLogger,
   WebsocketClient,
@@ -18,7 +19,6 @@ import {
   TickerUpdateData,
   TickerUpdateEvent,
 } from 'cryptobot-types'
-import config from '../config/config'
 
 const credentials = {
   apiKey: config.OKX_KEY,
@@ -171,7 +171,7 @@ class OkxClient {
   }
 
   //subscribe / unsubscribe events
-  async onResponse({ event, arg }: WsEvent) {
+  private async onResponse({ event, arg }: WsEvent) {
     if (event === 'unsubscribe') {
       logger.debug('[OKX] Unsubscribed', arg)
       this.lastTicker = null

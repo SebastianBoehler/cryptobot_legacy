@@ -5,8 +5,8 @@ import { createUniqueId, logger } from '../utils'
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
-export class BUILD_SCALP_FAST extends Base implements Strategy {
-  public readonly name = 'build-scalp-fast'
+export class SCALP_FAST_TEST extends Base implements Strategy {
+  public readonly name = 'scalp-fast-test'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -49,7 +49,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > this.orderHelper.minSize) {
-      if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
+      if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.96 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -58,8 +58,8 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
         let buyAmountUSD = entrySizeUSD
         const ratio = 1 - margin / buyAmountUSD
-        if (ratio > 0.95) {
-          buyAmountUSD = margin * 16.5
+        if (ratio > 0.85) {
+          buyAmountUSD = margin * 6
         }
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
@@ -88,7 +88,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost
-      const entrySizeUSD = gainedCapital / 12
+      const entrySizeUSD = gainedCapital / 6
       const ordId = 'lev' + createUniqueId(10)
       await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
       return
@@ -112,7 +112,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -80) {
+    if (unrealizedPnlPcnt < -75) {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return

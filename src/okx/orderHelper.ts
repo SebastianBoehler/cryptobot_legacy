@@ -1,16 +1,19 @@
 import { CloseOrder, ClosedPosition, Indicators, Order, Position } from 'cryptobot-types'
-import MongoWrapper from './mongodb'
-import { OkxClient } from './okx/utils'
-import { createUniqueId, logger, sleep } from './utils'
+import MongoWrapper from '../mongodb'
+import { OkxClient } from './utils'
+import { createUniqueId, logger, sleep } from '../utils'
 import { omit } from 'lodash'
+import { ILiveOrderHelper, IOrderHelper, LivePosition } from '../types'
 const okxClient = new OkxClient()
 const mongo = new MongoWrapper('backtests')
-export class OrderHelper {
+
+export class OrderHelper implements IOrderHelper {
   private symbol: string
   private ctVal: number | null = null
   private ctMult: number | null = null
   private maxLever: number | null = null
   public leverage: number = 0
+  public minSize: number = 0
   public position: Position | null = null
   private time: Date = new Date(0)
   public price: number = 0
@@ -24,9 +27,9 @@ export class OrderHelper {
     this.saveToMongo = saveToMongo || false
   }
 
-  //TODO: return gained margin
   public setLeverage(leverage: number) {
     const maxLever = this.maxLever || 100
+    if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
       logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
       return
@@ -65,6 +68,7 @@ export class OrderHelper {
     this.ctVal = +instrument.ctVal
     this.ctMult = +instrument.ctMult
     this.maxLever = +instrument.lever
+    this.minSize = +instrument.minSz
   }
 
   private calculateAvgEntryPrice(orders: (Order | CloseOrder)[]) {
@@ -270,17 +274,14 @@ export class OrderHelper {
   }
 }
 
-export interface LivePosition extends Position {
-  realizedPnlUSD: number
-  posId: string
-}
-export class LiveOrderHelper {
+export class LiveOrderHelper implements ILiveOrderHelper {
   private symbol: string
   private ctVal: number | null = null
   private ctMult: number | null = null
   private maxLever: number | null = null
   public position: LivePosition | null = null
   public leverage: number = 0
+  public minSize: number = 0
   public price: number = 0
   public identifier: string | undefined
   public profitUSD = 0
@@ -296,6 +297,7 @@ export class LiveOrderHelper {
 
   public async setLeverage(leverage: number, type: 'long' | 'short') {
     const maxLever = this.maxLever || 100
+    if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
       logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
       return
@@ -342,6 +344,7 @@ export class LiveOrderHelper {
     this.ctVal = +instrument.ctVal
     this.ctMult = +instrument.ctMult
     this.maxLever = +instrument.lever
+    this.minSize = +instrument.minSz
   }
 
   public async update(_price: number, _time: Date, indicators?: Indicators[]) {

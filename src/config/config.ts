@@ -37,6 +37,10 @@ const config = {
   OKX_PASS: parsedConfig.OKX_PASS as string,
   OKX_ENABLED_PAIRS: parsedConfig.OKX_ENABLED_PAIRS as string[],
 
+  //BYBIT
+  BYBIT_KEY: parsedConfig.BYBIT_KEY as string,
+  BYBIT_SECRET: parsedConfig.BYBIT_SECRET as string,
+
   //TRADING
   STRATEGY: parsedConfig.STRATEGY as 'BUILD_SCALP' | 'BUILD_SCALP_FAST' | 'SCALP_INDICATORS' | 'FAST_V2' | undefined,
   START_CAPITAL: parsedConfig.START_CAPITAL as number | undefined,

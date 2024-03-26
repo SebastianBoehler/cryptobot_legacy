@@ -1,5 +1,5 @@
 import io from '@pm2/io'
-import { LivePosition } from '../orderHelper'
+import { LivePosition } from '../types'
 
 const uPNL = io.metric({
   name: 'uPNL USD',

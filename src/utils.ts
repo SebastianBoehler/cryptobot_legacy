@@ -14,6 +14,9 @@ export const logger = {
   warn: (...params: any) => console.warn(`[WARN](${new Date().toLocaleTimeString()})`, ...params),
   http: (...params: any) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, ...params),
   debug: (...params: any) => console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, ...params),
+  silly: (...params: any) => console.log(`[SILLY](${new Date().toLocaleTimeString()})`, ...params),
+  notice: (...params: any) => console.log(`[NOTICE](${new Date().toLocaleTimeString()})`, ...params),
+  warning: (...params: any) => console.log(`[WARNING](${new Date().toLocaleTimeString()})`, ...params),
   //silly: (...params: any) =>
   //console.log(`[SILLY](${new Date().toLocaleTimeString()})`, ...params),
 }

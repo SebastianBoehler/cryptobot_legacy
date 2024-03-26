@@ -13,7 +13,7 @@ import {
   Order,
   ExtendedOrder,
 } from 'cryptobot-types'
-import { LivePosition } from '../orderHelper'
+import { LivePosition } from '../types'
 
 //const FIVE_MINUTES = 1000 * 60 * 5
 const client = new MongoClient(config.MONGO_URL, {

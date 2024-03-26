@@ -70,7 +70,7 @@ server.use('/mongodb', mongoRoutes)
 
 server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
   const symbol = req.params.symbol
-  const { start, amount, strategy, steps, multiplier } = req.body
+  const { start, amount, strategy, steps, multiplier, exchange = 'okx' } = req.body
   const id = 'site-' + createUniqueId(8)
   if (!symbol) {
     res.status(400).send({
@@ -85,7 +85,7 @@ server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => 
     return
   }
 
-  backtest(symbol, new Date(start), id, amount, strategy, steps, multiplier)
+  backtest(symbol, exchange, new Date(start), id, amount, strategy, steps, multiplier)
 
   res.status(200).send({
     message: 'Backtest triggered',

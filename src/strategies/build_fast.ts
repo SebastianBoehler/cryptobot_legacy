@@ -47,7 +47,7 @@ export class BUILD_FAST extends Base implements Strategy {
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
-    if (buyingPowerInCts > 1) {
+    if (buyingPowerInCts > this.orderHelper.minSize) {
       if (price < avgEntryPrice * 0.95 && price < lastOrder.avgPrice * 0.95) {
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
@@ -70,7 +70,7 @@ export class BUILD_FAST extends Base implements Strategy {
     if (unrealizedPnlPcnt > 80 && price > lastOrder.avgPrice * 1.1) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
-      if (reduceBy > 1) {
+      if (reduceBy > this.orderHelper.minSize) {
         const ordId = 'tp' + createUniqueId(10)
         await this.orderHelper.closeOrder(reduceBy, ordId)
         return

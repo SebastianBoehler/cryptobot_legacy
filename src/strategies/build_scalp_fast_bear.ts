@@ -50,7 +50,7 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
-    if (buyingPowerInCts > 1) {
+    if (buyingPowerInCts > this.orderHelper.minSize) {
       if (
         price < avgEntryPrice * 0.975 * this.multiplier &&
         price < lastOrder.avgPrice * 0.975 * this.multiplier &&
@@ -86,7 +86,7 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
     if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
-      if (reduceBy > 1) {
+      if (reduceBy > this.orderHelper.minSize) {
         const ordId = 'tp' + createUniqueId(10)
         await this.orderHelper.closeOrder(reduceBy, ordId)
         return

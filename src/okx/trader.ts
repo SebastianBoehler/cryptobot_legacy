@@ -3,13 +3,13 @@ import { GenerateIndicators } from '../indicators'
 import { logger, sleep } from '../utils'
 import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
 import MongoWrapper from '../mongodb'
-import { LivePosition } from '../orderHelper'
 import { livePositionMetrics } from '../pm2'
 import config from '../config/config'
 import { BUILD_FAST } from '../strategies/build_fast'
 import { BUILD_SCALP_FAST_INDICATORS } from '../strategies/scalp_indicators'
 import { BUILD_SCALP_FAST_ALTS } from '../strategies/scalp_fast_alts'
 import { TESTING } from '../strategies/testing'
+import { LivePosition } from '../types'
 
 if (!process.env.SYMBOL) throw new Error('no symbol')
 if (!process.env.START_CAPITAL) throw new Error('no start capital')
@@ -37,7 +37,7 @@ if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multipl
 let indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
 
 async function main() {
-  await strategy.initalize(symbol, true, true)
+  await strategy.initalize(symbol, 'okx', true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   if (!strategy.requiresIndicators) indicators = []

@@ -96,7 +96,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 120,
+        START_CAPITAL: 140,
         MULTIPLIER: 0.95
       },
       watch: false
@@ -174,7 +174,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 80,
+        START_CAPITAL: 90,
         MULTIPLIER: 0.95
       },
       watch: false

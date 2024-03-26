@@ -9,6 +9,7 @@ const saveToMongo = true
 
 export async function backtest(
   symbol: string,
+  exchange = 'okx',
   start?: Date, // = new Date('2024-01-10'),
   identifier?: string,
   amount?: number,
@@ -16,14 +17,15 @@ export async function backtest(
   steps?: number,
   multiplier?: number
 ) {
-  const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>('okx', symbol, {
+  const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>(exchange, symbol, {
     close: 1,
     high: 1,
     low: 1,
   })
   const indicators: GenerateIndicators[] = [
-    new GenerateIndicators('okx', symbol, 5),
-    new GenerateIndicators('okx', symbol, 60 * 8),
+    new GenerateIndicators(exchange, symbol, 5),
+    new GenerateIndicators(exchange, symbol, 60),
+    new GenerateIndicators(exchange, symbol, 60 * 8),
   ]
 
   //returns & deletes first 5k candles
@@ -34,7 +36,7 @@ export async function backtest(
   const strategyArray = strategyName ? [strategies[strategyName]] : Object.values(strategies)
   for (const strategy of strategyArray) {
     logger.debug('initalizing', strategy.name)
-    await strategy.initalize(symbol, saveToMongo, false)
+    await strategy.initalize(symbol, exchange, saveToMongo, false)
     if (strategy.orderHelper) strategy.orderHelper.identifier = identifier || `${strategy.name}-${symbol}-${rndStr}`
     if (amount) strategy.startCapital = amount
     if (steps) strategy.steps = steps
