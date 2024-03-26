@@ -39,6 +39,9 @@ export class BybitClient {
       const data = event.data[0]
       const ctSize = +data.size
 
+      const posId = data.createdTime + data.symbol
+      if (this.position && this.position.posId !== posId) return
+
       if (ctSize === 0) {
         logger.debug('position closed', data)
         if (this.position) this.closedPositions.push(this.position)

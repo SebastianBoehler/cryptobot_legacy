@@ -13,7 +13,7 @@ async function main() {
     category: 'linear',
   })
   let ticker = response.result.list.map((item) => item.symbol).filter((symbol) => symbol.endsWith('USDT'))
-  if (config.BYBIT_ENABLED_PAIRS.length) {
+  if (config.BYBIT_ENABLED_PAIRS) {
     ticker = ticker.filter((symbol) => config.BYBIT_ENABLED_PAIRS.includes(symbol))
   }
 
