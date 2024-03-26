@@ -41,8 +41,8 @@ const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
 
 let indicators: GenerateIndicators[] = [
-  new GenerateIndicators('okx', symbol, 5),
-  new GenerateIndicators('okx', symbol, 60 * 8),
+  new GenerateIndicators(exchange, symbol, 5),
+  new GenerateIndicators(exchange, symbol, 60 * 8),
 ]
 
 async function main() {
