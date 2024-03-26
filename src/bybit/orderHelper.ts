@@ -442,7 +442,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: orders.reduce((acc, curr) => acc + curr.fee, 0),
       realizedPnlUSD: +client.position.realizedPnlUsd,
       unrealizedPnlUSD,
-      posId: client.position.posId || this.positionId,
+      posId: client.position.posId,
       ctSize: +client.position.ctSize,
       amountUSD: +client.position.margin,
       unrealizedPnlPcnt,
@@ -480,7 +480,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     //logger.debug('position', client.position)
-    const posId = client.position.posId || this.positionId
+    const posId = client.position.posId
 
     const fee = -+details.cumExecFee
     const orderObj: Order = {
@@ -539,7 +539,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!this.leverage) throw new Error('[orderHelper] Leverage not set')
     if (amountCts > this.position.ctSize) throw new Error('[orderHelper] Cannot close more contracts than open')
 
-    const posId = client.position.posId || this.positionId
+    const posId = client.position.posId
     const realizedProfitPre = this.position.realizedPnlUSD
     const positionsPre = client.position
     const marginPre = +positionsPre.margin
