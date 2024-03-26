@@ -40,7 +40,10 @@ strategy.startCapital = +config.START_CAPITAL
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
 
-let indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
+let indicators: GenerateIndicators[] = [
+  new GenerateIndicators('okx', symbol, 5),
+  new GenerateIndicators('okx', symbol, 60 * 8),
+]
 
 async function main() {
   await strategy.initalize(symbol, exchange, true, true)
