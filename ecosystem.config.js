@@ -61,6 +61,19 @@ module.exports = {
       },
       watch: false
     },
+    {
+      name: 'bybit_trader_inj',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'INJUSDT',
+        STRATEGY: 'SCALP_BEAR',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 60,
+        EXCHANGE: 'bybit',
+      },
+      watch: false
+    },
     //PERSONAL OKX SUB ACC
     {
       name: 'okx_trader_sol',

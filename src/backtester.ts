@@ -5,10 +5,10 @@ import { logger } from './utils'
 const mongo = new MongoWrapper('backtests')
 const startCapital = 80
 const startDate = new Date('2023-02-01')
-const exchange = 'bybit'
+const exchange = 'okx'
 
 ;(async () => {
-  const symbols = await mongo.symbolsSortedByVolume(exchange) //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
+  const symbols = [{ symbol: 'INJ-USDT-SWAP' }] //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
   for (const { symbol } of symbols.filter((s) => s.symbol.includes('USDT'))) {
     const pairs = symbol.split('-')
     if (pairs[1] === 'USD') continue
