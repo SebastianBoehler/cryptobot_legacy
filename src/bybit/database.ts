@@ -4,7 +4,7 @@ import Mongo from '../mongodb/index'
 import { RestClientV5 } from 'bybit-api'
 import { DatabaseType } from 'cryptobot-types'
 import config from '../config/config'
-const startTime = subMonths(new Date(), 6).getTime()
+const startTime = config.NODE_ENV === 'prod' ? subMonths(new Date(), 1).getTime() : subMonths(new Date(), 6).getTime()
 const mongo = new Mongo('bybit')
 const client = new RestClientV5()
 
