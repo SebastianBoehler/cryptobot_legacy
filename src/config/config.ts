@@ -25,7 +25,6 @@ const config = {
   MONGO_URL: parsedConfig.MONGO_URL as string,
   //NODE defaults
   NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb' | undefined,
-  LOG_LEVEL: parsedConfig.LOG_LEVEL as string,
 
   //API
   API_SECRET: parsedConfig.API_SECRET as string,
@@ -45,6 +44,7 @@ const config = {
   STRATEGY: parsedConfig.STRATEGY as 'BUILD_SCALP' | 'BUILD_SCALP_FAST' | 'SCALP_INDICATORS' | 'FAST_V2' | undefined,
   START_CAPITAL: parsedConfig.START_CAPITAL as number | undefined,
   SYMBOL: parsedConfig.SYMBOL as string | undefined,
+  EXCHANGE: parsedConfig.EXCHANGE as 'bybit' | 'okx' | undefined,
   MULTIPLIER: parsedConfig.MULTIPLIER as number | undefined,
 }
 

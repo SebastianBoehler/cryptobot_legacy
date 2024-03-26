@@ -1,7 +1,8 @@
+import { OrderResultV5 } from 'bybit-api'
 import { CloseOrder, ClosedPosition, Indicators, Order, Position } from 'cryptobot-types'
-import { OrderResult } from 'okx-api'
+import { OrderResult, PositionSide } from 'okx-api'
 
-export interface LivePosition extends Position {
+export interface IOrderHelperPos extends Position {
   realizedPnlUSD: number
   posId: string
 }
@@ -25,7 +26,26 @@ export interface IOrderHelper {
 }
 
 export interface ILiveOrderHelper extends Omit<IOrderHelper, 'position' | 'setLeverage' | 'closeOrder'> {
-  position: LivePosition | null
+  position: IOrderHelperPos | null
   setLeverage(leverage: number, type: 'long' | 'short'): void
-  closeOrder(amountCts: number, ordId?: string): Promise<ClosedPosition | OrderResult>
+  closeOrder(amountCts: number, ordId?: string): Promise<ClosedPosition | OrderResult | OrderResultV5>
+}
+
+export interface LivePosition {
+  uplUsd: string
+  profit: string
+  //tradeId: string
+  posId: string
+  liqPrice: number
+  avgEntryPrice: number
+  //closeOrderAlgo: string[]
+  margin: string
+  lever: string
+  creationTime: string
+  ctSize: number
+  fee: number
+  realizedPnlUsd: number
+  type: 'long' | 'short'
+  posSide: PositionSide
+  gotLiquidated?: boolean
 }

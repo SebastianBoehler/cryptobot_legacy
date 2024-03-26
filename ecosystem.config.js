@@ -1,3 +1,5 @@
+
+const traderPath = './build/trader.js'
 module.exports = {
   apps: [
     //SYSTEM
@@ -22,219 +24,241 @@ module.exports = {
       },
       watch: true
     },
+    //PERSOANL BYBIT ACC
+    {
+      name: 'bybit_trader_ondo',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'ONDOUSDT',
+        STRATEGY: 'SCALP_ALTS',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 80,
+        EXCHANGE: 'bybit',
+      },
+      watch: false
+    },
     //PERSONAL OKX SUB ACC
     {
       name: 'okx_trader_sol',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         MULTIPLIER: 0.95,
         START_CAPITAL: 410,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_tia',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_ordi',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_op',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'OP-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_ar',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 100,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_fet',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 140,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_rndr',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'RNDR-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 100,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_jup',
-      script: './build/okx/trader.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 100,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_agix',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AGIX-USDT-SWAP',
         STRATEGY: 'INDICATORS',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_bonk',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'BONK-USDT-SWAP',
         STRATEGY: 'INDICATORS',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_avax',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'AVAX-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 180,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_pyth',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 90,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_front',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FRONT-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_id',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'ID-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_link',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'LINK-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 140,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'okx_trader_ftm',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FTM-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     //HB CAPITAL
     {
       name: 'hb_trader_ordi',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
@@ -242,12 +266,13 @@ module.exports = {
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'hb_trader_tia',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
@@ -255,12 +280,13 @@ module.exports = {
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'hb_trader_fet',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
@@ -268,45 +294,49 @@ module.exports = {
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
         MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'hb_trader_ar',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'hb_trader_rndr',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'RNDR-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 80,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },
     {
       name: 'hb_trader_sol',
-      script: './build/okx/trader.js',
+      script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "hb",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 600,
-        MULTIPLIER: 0.95
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
       },
       watch: false
     },

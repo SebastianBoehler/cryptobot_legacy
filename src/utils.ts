@@ -8,17 +8,31 @@ export const createChunks = <T>(array: T[], chunkSize: number): T[][] => {
   return chunks
 }
 
+const levels = {
+  error: 0,
+  warn: 1,
+  notice: 2,
+  http: 3,
+  info: 4,
+  debug: 5,
+  silly: 6,
+}
+
 export const logger = {
-  info: (...params: any) => console.log(`[INFO](${new Date().toLocaleTimeString()})`, ...params),
-  error: (...params: any) => console.error(`[ERROR](${new Date().toLocaleTimeString()})`, ...params),
-  warn: (...params: any) => console.warn(`[WARN](${new Date().toLocaleTimeString()})`, ...params),
-  http: (...params: any) => console.log(`[HTTP](${new Date().toLocaleTimeString()})`, ...params),
-  debug: (...params: any) => console.log(`[DEBUG](${new Date().toLocaleTimeString()})`, ...params),
-  silly: (...params: any) => console.log(`[SILLY](${new Date().toLocaleTimeString()})`, ...params),
-  notice: (...params: any) => console.log(`[NOTICE](${new Date().toLocaleTimeString()})`, ...params),
-  warning: (...params: any) => console.log(`[WARNING](${new Date().toLocaleTimeString()})`, ...params),
-  //silly: (...params: any) =>
-  //console.log(`[SILLY](${new Date().toLocaleTimeString()})`, ...params),
+  info: (...params: any) => log('INFO', ...params),
+  error: (...params: any) => log('ERROR', ...params),
+  warn: (...params: any) => log('WARN', ...params),
+  http: (...params: any) => log('HTTP', ...params),
+  debug: (...params: any) => log('DEBUG', ...params),
+  silly: (...params: any) => log('SILLY', ...params),
+  notice: (...params: any) => log('NOTICE', ...params),
+  warning: (...params: any) => log('WARNING', ...params),
+}
+
+const log = (level: string, ...params: any) => {
+  // @ts-ignore
+  if (levels[level.toLowerCase()] > levels['info']) return
+  console.log(`[${level}](${new Date().toLocaleTimeString()})`, ...params)
 }
 
 export function createUniqueId(length: number) {

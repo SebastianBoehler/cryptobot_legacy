@@ -1,22 +1,26 @@
 import { Indicators } from 'cryptobot-types'
-import { GenerateIndicators } from '../indicators'
-import { logger, sleep } from '../utils'
-import { BUILD_SCALP_FAST } from '../strategies/build_scalp_fast'
-import MongoWrapper from '../mongodb'
-import { livePositionMetrics } from '../pm2'
-import config from '../config/config'
-import { BUILD_FAST } from '../strategies/build_fast'
-import { BUILD_SCALP_FAST_INDICATORS } from '../strategies/scalp_indicators'
-import { BUILD_SCALP_FAST_ALTS } from '../strategies/scalp_fast_alts'
-import { TESTING } from '../strategies/testing'
-import { LivePosition } from '../types'
+import { GenerateIndicators } from './indicators'
+import { logger, sleep } from './utils'
+import { BUILD_SCALP_FAST } from './strategies/build_scalp_fast'
+import MongoWrapper from './mongodb'
+import { livePositionMetrics } from './pm2'
+import config from './config/config'
+import { BUILD_FAST } from './strategies/build_fast'
+import { BUILD_SCALP_FAST_INDICATORS } from './strategies/scalp_indicators'
+import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
+import { TESTING } from './strategies/testing'
+import { IOrderHelperPos } from './types'
 
-if (!process.env.SYMBOL) throw new Error('no symbol')
-if (!process.env.START_CAPITAL) throw new Error('no start capital')
+if (!config.SYMBOL) throw new Error('no symbol')
+if (!config.START_CAPITAL) throw new Error('no start capital')
+if (!config.EXCHANGE) throw new Error('no exchange')
+
 const mongo = new MongoWrapper('backtests')
 
 //set by env variable
-const symbol = process.env.SYMBOL
+const symbol = config.SYMBOL
+const exchange = config.EXCHANGE
+const strategyName = config.STRATEGY
 
 const strategies = {
   BUILD_FAST: new BUILD_FAST(),
@@ -26,10 +30,10 @@ const strategies = {
   TESTING: new TESTING(),
 }
 
-const strategy = strategies[process.env.STRATEGY as keyof typeof strategies]
-if (!strategy) throw new Error(`no strategy found for ${process.env.STRATEGY}`)
+const strategy = strategies[strategyName as keyof typeof strategies]
+if (!strategy) throw new Error(`no strategy found for ${strategyName}`)
 logger.info(`Using strategy: ${strategy.name}`)
-strategy.startCapital = +process.env.START_CAPITAL
+strategy.startCapital = +config.START_CAPITAL
 
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
@@ -37,7 +41,7 @@ if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multipl
 let indicators: GenerateIndicators[] = [new GenerateIndicators('okx', symbol, 5)]
 
 async function main() {
-  await strategy.initalize(symbol, 'okx', true, true)
+  await strategy.initalize(symbol, exchange, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   if (!strategy.requiresIndicators) indicators = []
@@ -61,9 +65,9 @@ async function main() {
     //TODO: continue while no incoming ticker stream received yet
     await strategy.update(price, indicatorsLoaded, new Date())
 
-    const pos = strategy.orderHelper.position as LivePosition | null
+    const pos = strategy.orderHelper.position as IOrderHelperPos | null
     const profitUSD = strategy.orderHelper.profitUSD
-    logger.debug('pos', {
+    logger.info('pos', {
       ...pos,
       orders: pos?.orders.map((o) => ({ ordId: o.ordId })),
       profitUSD,

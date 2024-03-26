@@ -2,7 +2,7 @@ import { Indicators } from 'cryptobot-types'
 import { createUniqueId } from '../utils'
 import { ILiveOrderHelper, IOrderHelper } from '../types'
 import { LiveOrderHelper as OkxLiveOrderHelper, OrderHelper as OkxOrderHelper } from '../okx/orderHelper'
-import { OrderHelper as BybitOrderHelper } from '../bybit/orderHelper'
+import { OrderHelper as BybitOrderHelper, LiveOrderHelper as BybitLiveOrderHelper } from '../bybit/orderHelper'
 
 export class Base {
   public orderHelper: IOrderHelper | ILiveOrderHelper | undefined
@@ -59,7 +59,7 @@ const getOrderHelper = (live: boolean, exchange: string, symbol: string, saveToM
     else return new OkxOrderHelper(symbol, saveToMongo)
   }
   if (exchange.toLowerCase() === 'bybit') {
-    if (live) throw new Error('Bybit live not implemented')
+    if (live) return new BybitLiveOrderHelper(symbol)
     else return new BybitOrderHelper(symbol, saveToMongo)
   }
 

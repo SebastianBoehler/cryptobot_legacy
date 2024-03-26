@@ -3,7 +3,7 @@ import MongoWrapper from '../mongodb'
 import { OkxClient } from './utils'
 import { createUniqueId, logger, sleep } from '../utils'
 import { omit } from 'lodash'
-import { ILiveOrderHelper, IOrderHelper, LivePosition } from '../types'
+import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 const okxClient = new OkxClient()
 const mongo = new MongoWrapper('backtests')
 
@@ -279,7 +279,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   private ctVal: number | null = null
   private ctMult: number | null = null
   private maxLever: number | null = null
-  public position: LivePosition | null = null
+  public position: IOrderHelperPos | null = null
   public leverage: number = 0
   public minSize: number = 0
   public price: number = 0

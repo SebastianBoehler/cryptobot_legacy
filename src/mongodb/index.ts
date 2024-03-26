@@ -13,7 +13,7 @@ import {
   Order,
   ExtendedOrder,
 } from 'cryptobot-types'
-import { LivePosition } from '../types'
+import { IOrderHelperPos, LivePosition } from '../types'
 
 //const FIVE_MINUTES = 1000 * 60 * 5
 const client = new MongoClient(config.MONGO_URL, {
@@ -500,7 +500,7 @@ class MongoWrapper {
     return candles
   }
 
-  async saveLivePosition<T extends LivePosition>(position: T) {
+  async saveLivePosition<T extends IOrderHelperPos>(position: T) {
     if (!position.posId) return
     const db = client.db('trader')
     const collection = db.collection('livePositions')
@@ -517,7 +517,7 @@ class MongoWrapper {
     )
   }
 
-  async getLivePosition<T extends LivePosition>(posId: string) {
+  async getLivePosition<T extends IOrderHelperPos>(posId: string) {
     const db = client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection

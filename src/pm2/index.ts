@@ -1,5 +1,5 @@
 import io from '@pm2/io'
-import { LivePosition } from '../types'
+import { IOrderHelperPos } from '../types'
 
 const uPNL = io.metric({
   name: 'uPNL USD',
@@ -14,7 +14,7 @@ const margin = io.metric({
   name: 'margin',
 })
 
-export const livePositionMetrics = (pos: LivePosition | null) => {
+export const livePositionMetrics = (pos: IOrderHelperPos | null) => {
   if (!pos) {
     uPNL.set(undefined)
     PNL.set(undefined)

@@ -11,7 +11,6 @@ import {
   AccountConfiguration,
 } from 'okx-api'
 import { createUniqueId, logger } from '../utils'
-import { differenceInMinutes, subMinutes } from 'date-fns'
 import {
   BalanceAndPositionUpdateEvent,
   OrderUpdateEvent,
@@ -19,6 +18,7 @@ import {
   TickerUpdateData,
   TickerUpdateEvent,
 } from 'cryptobot-types'
+import { LivePosition } from '../types'
 
 const credentials = {
   apiKey: config.OKX_KEY,
@@ -30,25 +30,6 @@ type ModifiedAccountConfiguration = Omit<AccountConfiguration, 'posMode'> & {
   posMode: 'net_mode' | 'long_short_mode'
 }
 
-export interface LivePosition {
-  uplUsd: string
-  profit: string
-  tradeId: string
-  posId: string
-  liqPrice: number
-  avgEntryPrice: number
-  closeOrderAlgo: string[]
-  margin: string
-  lever: string
-  creationTime: string
-  ctSize: number
-  fee: number
-  realizedPnlUsd: number
-  type: 'long' | 'short'
-  posSide: PositionSide
-  gotLiquidated?: boolean
-}
-
 class OkxClient {
   private wsClient: WebsocketClient
   private restClient: RestClient
@@ -57,7 +38,6 @@ class OkxClient {
   public subscriptions: { channel: string; instId: string }[] = []
   public position: LivePosition | null = null
   public closedPositions: LivePosition[] = []
-  public candel1m: { close: string; start: Date }[] = []
 
   constructor() {
     this.restClient = new RestClient(credentials)
@@ -83,29 +63,6 @@ class OkxClient {
   private async onUpdate(event: TickerUpdateEvent | WsDataEvent) {
     if (isTickerUpdateEvent(event)) {
       this.lastTicker = event.data[0]
-
-      const lastCandle = this.candel1m[this.candel1m.length - 1]
-      if (!lastCandle) {
-        const start = subMinutes(new Date(), 1)
-        start.setSeconds(0, 0)
-        this.candel1m.push({
-          close: this.lastTicker.last,
-          start,
-        })
-      }
-      if (lastCandle) {
-        const start = subMinutes(new Date(), 1)
-        start.setSeconds(0, 0)
-        const diff = differenceInMinutes(start, lastCandle.start)
-        if (diff < 1) return
-        this.candel1m.push({
-          close: this.lastTicker.last,
-          start,
-        })
-
-        //keep max 10 candles
-        if (this.candel1m.length > 10) this.candel1m.shift()
-      }
     } else if (isPositionUpdateEvent(event)) {
       //no extra event, values just set to ""
       if (event.data.length > 0) {
@@ -129,11 +86,11 @@ class OkxClient {
         this.position = {
           uplUsd: data.upl,
           profit: data.uplRatio,
-          tradeId: data.tradeId,
+          //tradeId: data.tradeId,
           posId: data.posId,
           liqPrice: +data.liqPx,
           avgEntryPrice: +data.avgPx,
-          closeOrderAlgo: data.closeOrderAlgo,
+          //closeOrderAlgo: data.closeOrderAlgo,
           margin: data.margin,
           lever: data.lever,
           creationTime: data.cTime,
