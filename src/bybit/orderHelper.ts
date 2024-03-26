@@ -442,7 +442,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: orders.reduce((acc, curr) => acc + curr.fee, 0),
       realizedPnlUSD: +client.position.realizedPnlUsd,
       unrealizedPnlUSD,
-      posId: client.position.posId,
+      posId: client.position.posId || this.positionId,
       ctSize: +client.position.ctSize,
       amountUSD: +client.position.margin,
       unrealizedPnlPcnt,
