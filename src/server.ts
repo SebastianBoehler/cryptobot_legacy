@@ -14,6 +14,7 @@ const server = express()
 const port = process.env.PORT || 3001
 
 import mongoRoutes from './mongodb/routes'
+import pm2Routes from './pm2/routes'
 import { createUniqueId, logger } from './utils'
 import config from './config/config'
 import { backtest } from './backtest'
@@ -67,6 +68,7 @@ const limiter = rateLimit({
 server.use(limiter)
 
 server.use('/mongodb', mongoRoutes)
+server.use('/pm2', pm2Routes)
 
 server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
   const symbol = req.params.symbol

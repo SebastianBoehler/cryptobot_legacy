@@ -1,7 +1,7 @@
 import { OrderHelper } from '../bybit/orderHelper'
 //!IMPORTANT: will fail with updated fees, data from base fee tier
 
-describe.only('run orderHelper tests', () => {
+describe('run orderHelper tests', () => {
   //test are based on REAL okx trading data
   test('check margin & fee calculation', async () => {
     const symbol = '10000WENUSDT'
