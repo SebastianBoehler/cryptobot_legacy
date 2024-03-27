@@ -381,6 +381,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       this.leverage = +client.position.lever
       this.position = savedPos
     }
+    if (!this.position) return
 
     const unrealizedPnlUSD = this.calculateProfit(this.price, client.position.ctSize, client.position.type)
     const unrealizedPnlPcnt = (unrealizedPnlUSD / +client.position.margin) * 100
