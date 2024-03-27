@@ -30,8 +30,6 @@ export class BybitClient {
     this.wsClient.on('error', (error) => {
       logger.error('[ws err]', error)
     })
-
-    this.wsClient.subscribeV5(['order', 'position', 'execution'], 'linear')
   }
 
   private async onUpdate(event: unknown) {
@@ -81,6 +79,41 @@ export class BybitClient {
 
   subscribeToTicker(symbol: string) {
     this.wsClient.subscribeV5([`tickers.${symbol}`], 'linear')
+  }
+
+  subscribeToOrder() {
+    this.wsClient.subscribeV5('order', 'linear')
+  }
+
+  subscribeToPosition() {
+    this.wsClient.subscribeV5('position', 'linear')
+  }
+
+  async loadLivePosition(symbol: string) {
+    const pos = await this.getPositionInfo(symbol)
+    if (!pos) return
+
+    const uplUsd = pos.unrealisedPnl
+    const margin = pos.positionIM!
+    const data = pos
+    const ctSize = +data.size
+    const realizedPnlUsd = +data.cumRealisedPnl
+
+    this.position = {
+      uplUsd,
+      profit: (+uplUsd / +margin).toString(),
+      posId: data.createdTime + data.symbol,
+      liqPrice: +data.liqPrice,
+      avgEntryPrice: +data.avgPrice,
+      margin,
+      lever: data.leverage!,
+      creationTime: data.createdTime,
+      ctSize,
+      type: data.side === 'Buy' ? 'long' : 'short',
+      posSide: 'net',
+      realizedPnlUsd,
+      fee: 0,
+    }
   }
 
   async placeMarketOrder(
@@ -140,6 +173,17 @@ export class BybitClient {
     })
 
     return response
+  }
+
+  async getPositionInfo(symbol: string) {
+    const response = await this.restClient.getPositionInfo({
+      category: 'linear',
+      symbol,
+    })
+    const data = response.result.list
+    if (data.length > 1) throw new Error('More than one position found')
+
+    return response.result.list[0]
   }
 
   async getInstruments() {

@@ -62,6 +62,19 @@ module.exports = {
       watch: false
     },
     {
+      name: 'bybit_trader_wen',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: '10000WENUSDT',
+        STRATEGY: 'INDICATORS',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 60,
+        EXCHANGE: 'bybit',
+      },
+      watch: false
+    },
+    {
       name: 'bybit_trader_inj',
       script: traderPath,
       env_prod: {

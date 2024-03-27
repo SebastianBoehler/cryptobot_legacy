@@ -299,6 +299,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   constructor(symbol: string) {
     this.symbol = symbol
     client.subscribeToTicker(symbol)
+    client.subscribeToPosition()
+    //client.subscribeToOrder()
+    client.loadLivePosition(symbol)
   }
 
   private trimToStep(value: number, step: number) {
@@ -366,74 +369,26 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     this.price = +client.lastTicker.lastPrice
 
     if (!client.position && this.position) {
-      logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
-      await sleep(1_000)
-      const closedPos = client.closedPositions.reverse().find((pos) => pos.posId === this.position!.posId)
-      if (closedPos) {
-        const margin = +closedPos.margin
-        const ordId = closedPos.gotLiquidated ? 'liq-unknown' : 'unknown'
-        const orderObj: CloseOrder = {
-          ordId,
-          posId: closedPos.posId,
-          avgPrice: closedPos.liqPrice,
-          posAvgEntryPrice: closedPos.avgEntryPrice,
-          size: closedPos.ctSize,
-          action: 'close',
-          margin,
-          lever: +closedPos.lever,
-          //TODO: get fee from liq event
-          fee: 0,
-          time: new Date(),
-          bruttoPnlUSD: -margin,
-        }
-
-        this.profitUSD += orderObj.bruttoPnlUSD + this.position.fee
-        const realizedFee = this.position.fee
-
-        //@ts-ignore
-        const closedPosObj: ClosedPosition = {
-          ...this.position,
-          realizedPnlUSD: -margin + this.position.fee,
-          orders: [...this.position.orders, orderObj],
-          symbol: this.symbol,
-          type: this.position.type,
-          ctSize: 0,
-          margin: 0,
-          leverage: this.leverage,
-          identifier: this.identifier || 'unknown',
-        }
-        this.position = null
-        this.lastPosition = closedPosObj
-
-        this.positionId = `TT${createUniqueId(5)}TT`
-        await mongo.writeOrder({
-          ...orderObj,
-          realizedFee,
-          realizedPnlUSD: this.profitUSD,
-        })
-        await mongo.writePosition(closedPosObj, 'trader')
-      }
+      throw new Error('[orderHelper > update] Position not found, but position existing in orderHelper')
     }
 
     if (!client.position) return
     let orders = this.position?.orders || []
     let savedPos = this.position
-    if (orders.length === 0) {
+    if (!this.position || orders.length === 0) {
       savedPos = await mongo.getLivePosition(client.position.posId)
       orders = savedPos?.orders || []
       this.leverage = +client.position.lever
+      this.position = savedPos
     }
 
     const unrealizedPnlUSD = this.calculateProfit(this.price, client.position.ctSize, client.position.type)
     const unrealizedPnlPcnt = (unrealizedPnlUSD / +client.position.margin) * 100
 
     this.position = {
-      symbol: this.symbol,
-      orders,
       //use if no position existing otherwise overwrite with proper values
       highestPrice: client.position.avgEntryPrice,
       lowestPrice: client.position.avgEntryPrice,
-      ...savedPos,
       ...this.position,
       //everything that MUST be updated after ...this.position
       type: client.position.type,
