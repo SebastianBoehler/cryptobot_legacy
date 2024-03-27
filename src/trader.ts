@@ -34,7 +34,7 @@ const strategies = {
 
 const strategy = strategies[strategyName as keyof typeof strategies]
 if (!strategy) throw new Error(`no strategy found for ${strategyName}`)
-logger.info(`Using strategy: ${strategy.name}`)
+logger.info(`Using strategy: ${strategy.name} on ${symbol} on ${exchange}`)
 strategy.startCapital = +config.START_CAPITAL
 
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
