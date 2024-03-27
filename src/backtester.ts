@@ -3,12 +3,12 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 80
-const startDate = new Date('2023-02-01')
+const startCapital = 400
+const startDate = new Date('2024-02-01')
 const exchange = 'bybit'
 
 ;(async () => {
-  const symbols = [{ symbol: '10000WENUSDT' }] //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
+  const symbols = [{ symbol: 'ETHFIUSDT' }] //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
   for (const { symbol } of symbols.filter((s) => s.symbol.includes('USDT'))) {
     const pairs = symbol.split('-')
     if (pairs[1] === 'USD') continue

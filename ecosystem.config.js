@@ -1,5 +1,6 @@
 
 const traderPath = './build/trader.js'
+const log_date_format = 'YYYY-MM-DD HH:mm:ss'
 module.exports = {
   apps: [
     //SYSTEM
@@ -32,7 +33,8 @@ module.exports = {
         NODE_ENV: "prod",
         PORT: 443
       },
-      watch: true
+      watch: true,
+      log_date_format,
     },
     //PERSOANL BYBIT ACC
     {
@@ -46,7 +48,8 @@ module.exports = {
         START_CAPITAL: 80,
         EXCHANGE: 'bybit',
       },
-      watch: false
+      watch: false,
+      log_date_format
     },
     {
       name: 'bybit_trader_myro',
@@ -59,7 +62,8 @@ module.exports = {
         START_CAPITAL: 60,
         EXCHANGE: 'bybit',
       },
-      watch: false
+      watch: false,
+      log_date_format
     },
     {
       name: 'bybit_trader_wen',
@@ -72,7 +76,8 @@ module.exports = {
         START_CAPITAL: 60,
         EXCHANGE: 'bybit',
       },
-      watch: false
+      watch: false,
+      log_date_format
     },
     {
       name: 'bybit_trader_inj',
@@ -85,7 +90,8 @@ module.exports = {
         START_CAPITAL: 60,
         EXCHANGE: 'bybit',
       },
-      watch: false
+      watch: false,
+      log_date_format
     },
     //PERSONAL OKX SUB ACC
     {

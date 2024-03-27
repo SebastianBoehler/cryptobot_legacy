@@ -25,7 +25,6 @@ router.get('/status', async (req: Request, res: Response) => {
       cpu: item.monit?.cpu,
     }))
     res.status(200).send({
-      message: 'Server is running',
       data: mapped,
     })
   })
