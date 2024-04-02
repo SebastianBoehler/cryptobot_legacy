@@ -52,6 +52,20 @@ module.exports = {
       log_date_format
     },
     {
+      name: 'bybit_trader_wif',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'WIFUSDT',
+        STRATEGY: 'SCALP_TEST',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 100,
+        EXCHANGE: 'bybit',
+      },
+      watch: false,
+      log_date_format
+    },
+    {
       name: 'bybit_trader_myro',
       script: traderPath,
       env_prod: {
