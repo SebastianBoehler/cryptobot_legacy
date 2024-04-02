@@ -77,7 +77,7 @@ async function main() {
         logger.error(e)
         await sleep(1000 * 30)
       } finally {
-        await sleep(1_300)
+        await sleep(1_000)
       }
     }
 

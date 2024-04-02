@@ -11,6 +11,7 @@ import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
 import { TESTING } from './strategies/testing'
 import { IOrderHelperPos } from './types'
 import { BUILD_SCALP_FAST_BEAR } from './strategies/build_scalp_fast_bear'
+import { SCALP_FAST_TEST } from './strategies/scalp_fast_test'
 
 if (!config.SYMBOL) throw new Error('no symbol')
 if (!config.START_CAPITAL) throw new Error('no start capital')
@@ -29,6 +30,7 @@ const strategies = {
   INDICATORS: new BUILD_SCALP_FAST_INDICATORS(),
   SCALP_ALTS: new BUILD_SCALP_FAST_ALTS(),
   SCALP_BEAR: new BUILD_SCALP_FAST_BEAR(),
+  SCALP_TEST: new SCALP_FAST_TEST(),
   TESTING: new TESTING(),
 }
 
