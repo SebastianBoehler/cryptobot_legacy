@@ -267,7 +267,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "prod",
+        NODE_ENV: "hb",
         SYMBOL: 'LINK-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 350,
