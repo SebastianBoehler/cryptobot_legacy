@@ -35,13 +35,14 @@ export class BybitClient {
   private async onUpdate(event: unknown) {
     if (isPositionUpdateEvent(event)) {
       const data = event.data[0]
+      if (event.data.length > 1) throw new Error('[bybit > pos update] More than one position found')
       const ctSize = +data.size
-
       const posId = data.createdTime + data.symbol
+
       if (this.position && this.position.posId !== posId) return
 
       if (ctSize === 0) {
-        logger.debug('position closed', data)
+        logger.warn('position closed', data)
         if (this.position) this.closedPositions.push(this.position)
         this.position = null
         return
