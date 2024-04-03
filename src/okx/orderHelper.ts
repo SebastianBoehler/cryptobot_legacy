@@ -141,6 +141,7 @@ export class OrderHelper implements IOrderHelper {
       margin,
       fee: this.calculateFee(amountContracts * contractValue),
       time: this.time,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []
@@ -197,6 +198,7 @@ export class OrderHelper implements IOrderHelper {
       time: this.time,
       bruttoPnlUSD: pnl,
       posAvgEntryPrice: this.position.avgEntryPrice,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []
@@ -371,6 +373,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
           fee: 0,
           time: new Date(),
           bruttoPnlUSD: -margin,
+          symbol: this.symbol,
         }
 
         this.profitUSD += orderObj.bruttoPnlUSD + this.position.fee
@@ -479,6 +482,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       lever: this.leverage,
       fee,
       time: new Date(+details.cTime),
+      symbol: this.symbol,
     }
 
     //use pos.reliazedPnlUSD + closed pos profits
@@ -556,6 +560,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: orderFee,
       time: new Date(+details.cTime),
       bruttoPnlUSD: pnl,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []

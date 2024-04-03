@@ -33,6 +33,7 @@ export class OrderHelper implements IOrderHelper {
   constructor(symbol: string, saveToMongo?: boolean) {
     this.symbol = symbol
     this.saveToMongo = saveToMongo || false
+    client.setSymbol(symbol)
   }
 
   public setLeverage(leverage: number) {
@@ -154,6 +155,7 @@ export class OrderHelper implements IOrderHelper {
       margin,
       fee,
       time: this.time,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []
@@ -207,6 +209,7 @@ export class OrderHelper implements IOrderHelper {
       time: this.time,
       bruttoPnlUSD: pnl,
       posAvgEntryPrice: this.position.avgEntryPrice,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []
@@ -369,7 +372,54 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     this.price = +client.lastTicker.lastPrice
 
     if (!client.position && this.position) {
-      throw new Error('[orderHelper > update] Position not found, but position existing in orderHelper')
+      logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
+      await sleep(1_000)
+      const closedPos = client.closedPositions.find((pos) => pos.posId === this.position!.posId)
+      if (closedPos) {
+        const margin = +closedPos.margin
+        const ordId = closedPos.gotLiquidated ? 'liq-unknown' : 'unknown'
+        const orderObj: CloseOrder = {
+          ordId,
+          posId: closedPos.posId,
+          avgPrice: closedPos.liqPrice,
+          posAvgEntryPrice: closedPos.avgEntryPrice,
+          size: closedPos.ctSize,
+          action: 'close',
+          margin,
+          lever: +closedPos.lever,
+          //TODO: get fee from liq event
+          fee: 0,
+          time: new Date(),
+          bruttoPnlUSD: -margin,
+          symbol: this.symbol,
+        }
+
+        this.profitUSD += orderObj.bruttoPnlUSD + this.position.fee
+        const realizedFee = this.position.fee
+
+        //@ts-ignore
+        const closedPosObj: ClosedPosition = {
+          ...this.position,
+          realizedPnlUSD: -margin + this.position.fee,
+          orders: [...this.position.orders, orderObj],
+          symbol: this.symbol,
+          type: this.position.type,
+          ctSize: 0,
+          margin: 0,
+          leverage: this.leverage,
+          identifier: this.identifier || 'unknown',
+        }
+        this.position = null
+        this.lastPosition = closedPosObj
+
+        this.positionId = `TT${createUniqueId(5)}TT`
+        await mongo.writeOrder({
+          ...orderObj,
+          realizedFee,
+          realizedPnlUSD: this.profitUSD,
+        })
+        await mongo.writePosition(closedPosObj, 'trader')
+      }
     }
 
     if (!client.position) return
@@ -450,6 +500,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       lever: this.leverage,
       fee,
       time: new Date(+details.createdTime),
+      symbol: this.symbol,
     }
 
     //use pos.reliazedPnlUSD + closed pos profits
@@ -527,6 +578,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: orderFee,
       time: new Date(+details.createdTime),
       bruttoPnlUSD: pnl,
+      symbol: this.symbol,
     }
 
     const orders = this.position?.orders || []

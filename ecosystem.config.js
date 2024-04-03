@@ -47,6 +47,7 @@ module.exports = {
         MULTIPLIER: 0.95,
         START_CAPITAL: 120,
         EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
       },
       watch: false,
       log_date_format
@@ -61,6 +62,7 @@ module.exports = {
         MULTIPLIER: 0.95,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
       },
       watch: false,
       log_date_format
@@ -75,6 +77,7 @@ module.exports = {
         MULTIPLIER: 0.95,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
       },
       watch: false,
       log_date_format
@@ -89,6 +92,7 @@ module.exports = {
         MULTIPLIER: 0.95,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
       },
       watch: false,
       log_date_format

@@ -9,6 +9,7 @@ export class BybitClient {
   public position: LivePosition | null = null
   public closedPositions: LivePosition[] = []
   public lastTicker: Ticker | null = null
+  symbol: string | null = null
 
   constructor(apiKey: string, apiSecret: string) {
     this.restClient = new RestClientV5({
@@ -32,10 +33,14 @@ export class BybitClient {
     })
   }
 
+  setSymbol(symbol: string) {
+    this.symbol = symbol
+  }
+
   private async onUpdate(event: unknown) {
     if (isPositionUpdateEvent(event)) {
-      const data = event.data[0]
-      if (event.data.length > 1) throw new Error('[bybit > pos update] More than one position found')
+      const data = event.data.find((d) => d.symbol === this.symbol)
+      if (!data) return
       const ctSize = +data.size
       const posId = data.createdTime + data.symbol
 
