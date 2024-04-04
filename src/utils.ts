@@ -29,9 +29,12 @@ export const logger = {
   warning: (...params: any) => log('WARNING', ...params),
 }
 
+const logLevel = process.env.LOG_LEVEL || 'info'
+console.log('Log level:', logLevel)
+
 const log = (level: string, ...params: any) => {
   // @ts-ignore
-  if (levels[level.toLowerCase()] > levels[process.env.LOG_LEVEL || 'info']) return
+  if (levels[level.toLowerCase()] > levels[logLevel]) return
   console.log(`[${level}](${new Date().toLocaleTimeString()})`, ...params)
 }
 

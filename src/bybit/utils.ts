@@ -76,7 +76,9 @@ export class BybitClient {
       if (event.data.lastPrice) {
         this.lastTicker = event.data
       }
-    } else logger.debug('unknown', event)
+    } else if (isOrderUpdateEvent(event)) {
+      logger.debug('ws order event', event)
+    } else logger.debug('ws unknown', event)
   }
 
   private async onResponse(response: unknown) {
@@ -93,6 +95,10 @@ export class BybitClient {
 
   subscribeToPosition() {
     this.wsClient.subscribeV5('position', 'linear')
+  }
+
+  subscribeToExecution() {
+    this.wsClient.subscribeV5('execution', 'linear')
   }
 
   async loadLivePosition(symbol: string) {
@@ -243,4 +249,45 @@ const isPositionUpdateEvent = (event: any): event is PositionUpdateEvent => {
 
 const isTickerUpdateEvent = (event: any): event is TickerUpdateEvent => {
   return event.topic.startsWith('tickers.')
+}
+
+interface OrderUpdateEvent {
+  id: string
+  topic: string
+  creationTime: string
+  data: {
+    symbol: string
+    orderId: string
+    side: string
+    orderType: string
+    cancelType: string
+    price: string
+    qty: string
+    orderIv: string
+    timeInForce: string
+    orderStatus: string
+    orderLinkId: string
+    lastPriceOnCreated: string
+    reduceOnly: boolean
+    leavesQty: string
+    leavesValue: string
+    cumExecQty: string
+    cumExecValue: string
+    avgPrice: string
+    blockTradeId: string
+    positionIdx: number
+    cumExecFee: string
+    createdTime: string
+    updatedTime: string
+    rejectReason: string
+    stopOrderType: string
+    tpslMode: string
+    triggerPrice: string
+    takeProfit: string
+    stopLoss: string
+  }[]
+}
+
+const isOrderUpdateEvent = (event: any): event is OrderUpdateEvent => {
+  return event.topic === 'order'
 }

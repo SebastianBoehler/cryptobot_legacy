@@ -303,7 +303,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     this.symbol = symbol
     client.subscribeToTicker(symbol)
     client.subscribeToPosition()
-    //client.subscribeToOrder()
+    client.subscribeToOrder()
+    client.subscribeToExecution()
     client.loadLivePosition(symbol)
   }
 
