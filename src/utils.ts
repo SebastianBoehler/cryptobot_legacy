@@ -39,7 +39,7 @@ export const changeLogLevel = (level: string) => {
     return
   }
   logLevel = level
-  console.log('Log level:', logLevel)
+  console.log('Change Log level:', logLevel)
 }
 
 const log = (level: string, ...params: any) => {
