@@ -18,6 +18,9 @@ const levels = {
   silly: 6,
 }
 
+let logLevel = 'info'
+console.log('Log level:', logLevel)
+
 export const logger = {
   info: (...params: any) => log('INFO', ...params),
   error: (...params: any) => log('ERROR', ...params),
@@ -29,8 +32,15 @@ export const logger = {
   warning: (...params: any) => log('WARNING', ...params),
 }
 
-const logLevel = process.env.LOG_LEVEL || 'info'
-console.log('Log level:', logLevel)
+export const changeLogLevel = (level: string) => {
+  // @ts-ignore
+  if (levels[level] === undefined) {
+    logger.error('Invalid log level:', level)
+    return
+  }
+  logLevel = level
+  console.log('Log level:', logLevel)
+}
 
 const log = (level: string, ...params: any) => {
   // @ts-ignore

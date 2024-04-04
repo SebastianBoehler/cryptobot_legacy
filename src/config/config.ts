@@ -1,6 +1,6 @@
 import extendedEnv from 'dotenv-extended'
 import dotenvParseVariables from 'dotenv-parse-variables'
-import { logger } from '../utils'
+import { changeLogLevel, logger } from '../utils'
 
 const envName = process.env.NODE_ENV?.split(' ').join('')
 const options = {
@@ -17,6 +17,12 @@ logger.debug('loading environment', envName)
 const env = extendedEnv.load(options)
 const parsedConfig = dotenvParseVariables(env)
 
+const LOG_LEVEL = parsedConfig.LOG_LEVEL as string
+
+if (LOG_LEVEL) {
+  changeLogLevel(LOG_LEVEL)
+}
+
 const config = {
   //DYDX
   DYDX_ENABLED_PAIRS: parsedConfig.DYDX_ENABLED_PAIRS as string[],
@@ -25,6 +31,7 @@ const config = {
   MONGO_URL: parsedConfig.MONGO_URL as string,
   //NODE defaults
   NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb' | undefined,
+  LOG_LEVEL,
 
   //API
   API_SECRET: parsedConfig.API_SECRET as string,
