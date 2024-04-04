@@ -91,6 +91,7 @@ async function main() {
             multiplier: strategy.multiplier,
           },
           profitUSD,
+          timestamp: new Date(),
         })
         .catch((e) => {
           logger.error('[mongodb] saving live position', e)

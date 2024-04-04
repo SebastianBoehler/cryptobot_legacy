@@ -301,6 +301,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
   constructor(symbol: string) {
     this.symbol = symbol
+    client.setSymbol(symbol)
     client.subscribeToTicker(symbol)
     client.subscribeToPosition()
     client.subscribeToOrder()
