@@ -39,6 +39,7 @@ export class BybitClient {
 
   private async onUpdate(event: unknown) {
     if (isPositionUpdateEvent(event)) {
+      if (!this.symbol) throw new Error('[bybit client] Symbol not set')
       const data = event.data.find((d) => d.symbol === this.symbol)
       if (!data) return
       const ctSize = +data.size

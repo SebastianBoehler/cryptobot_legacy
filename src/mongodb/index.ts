@@ -15,41 +15,33 @@ import {
 } from 'cryptobot-types'
 import { IOrderHelperPos, LivePosition } from '../types'
 
-//const FIVE_MINUTES = 1000 * 60 * 5
-const client = new MongoClient(config.MONGO_URL, {
-  appName: `cryptobot-${config.NODE_ENV} ${config.SYMBOL}`,
-  //heartbeatFrequencyMS: FIVE_MINUTES,
-  //socketTimeoutMS: FIVE_MINUTES,
-})
-
-process.on('exit', async () => {
-  await client.close()
-})
-
-client.on('error', (err) => {
-  logger.error('[mongodb] error', err)
-})
-client.on('open', () => {
-  logger.info(`[mongodb] connected to ${config.MONGO_URL}`)
-})
-
 class MongoWrapper {
   private db: string
-  constructor(db: string) {
+  private client: MongoClient
+  constructor(db: string, url?: string) {
     this.db = db
+    this.client = new MongoClient(url || config.MONGO_URL, {
+      appName: `cryptobot-${config.NODE_ENV} ${config.SYMBOL}`,
+      //heartbeatFrequencyMS: FIVE_MINUTES,
+      //socketTimeoutMS: FIVE_MINUTES,
+    })
+
+    this.client.on('error', (err) => {
+      logger.error('[mongodb] error', err)
+    })
   }
 
   async close() {
-    await client.close()
+    await this.client.close()
   }
 
   async connect() {
-    await client.connect()
-    logger.info('Connected to MongoDB')
+    await this.client.connect()
+    logger.info(`[mongodb] connected to ${this.client.options}`)
   }
 
   async aggregate<T extends Document>(pipeline: Document[], collectionName: string, database?: string) {
-    const db = client.db(database || this.db)
+    const db = this.client.db(database || this.db)
     const collection = db.collection(collectionName)
     const cursor = await collection.aggregate<T>(pipeline, {
       allowDiskUse: true,
@@ -58,44 +50,47 @@ class MongoWrapper {
   }
 
   async existingCollections(database?: string) {
-    const db = client.db(database || this.db)
+    const db = this.client.db(database || this.db)
     const collections = await db.listCollections().toArray()
     return collections.map((collection) => collection.name)
   }
 
-  async getBacktestingResult<T>(identifier: string) {
-    const db = client.db('backtests')
+  async getBacktestingResults<T extends Document>($match?: Record<string, any>) {
+    const db = this.client.db('backtests')
     const collection = db.collection('results')
-    const result = await collection.findOne({ identifier })
+    const pipeline = []
+    if ($match) pipeline.push({ $match })
+    const cursor = collection.aggregate<T>(pipeline)
 
-    return result as T
+    const results = []
+    while (await cursor.hasNext()) {
+      const result = await cursor.next()
+      if (result) results.push(result)
+    }
+
+    return results
   }
 
   async listDatabases() {
-    const databases = await client.db().admin().listDatabases()
+    const databases = await this.client.db().admin().listDatabases()
     return databases
   }
 
   async createUniqueIndex(collectionName: string, key: string, database?: string) {
-    const db = client.db(database || this.db)
+    const db = this.client.db(database || this.db)
     const collection = db.collection(collectionName)
     await collection.createIndex({ [key]: 1 }, { unique: true })
   }
 
-  async writeBacktestResults(collectionName: string, data: any[]) {
-    const db = client.db(this.db)
-    const collection = db.collection(collectionName)
-    await collection.insertMany(data)
-  }
-
   async writeMany(collectionName: string, data: any[], database?: string) {
-    const db = client.db(database || this.db)
+    if (!data.length) return
+    const db = this.client.db(database || this.db)
     const collection = db.collection(collectionName)
     await collection.insertMany(data)
   }
 
   async read(key: string, value: string, collectionName: string) {
-    const db = client.db(this.db)
+    const db = this.client.db(this.db)
     const collection = db.collection(collectionName)
     const result = await collection.findOne({ [key]: value })
     return result
@@ -109,27 +104,27 @@ class MongoWrapper {
       delete data._id
     }
 
-    const db = client.db(database || this.db)
+    const db = this.client.db(database || this.db)
     const collection = db.collection('positions')
     await collection.insertOne(data)
   }
 
   async readLastCandle(collectionName: string) {
-    const db = client.db(this.db)
+    const db = this.client.db(this.db)
     const collection = db.collection(collectionName)
     const result = await collection.find<DatabaseType>({}).sort({ start: -1 }).limit(1).toArray()
     return result[0] || null
   }
 
   async readFirstCandle(collectionName: string) {
-    const db = client.db(this.db)
+    const db = this.client.db(this.db)
     const collection = db.collection(collectionName)
     const result = await collection.find<DatabaseType>({}).sort({ start: 1 }).limit(1).toArray()
     return result[0] || null
   }
 
   async getStartAndEndDates(database: string, collectionName: string) {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collection = db.collection(collectionName)
     const [startResult, endResult] = await Promise.all([
       collection.find().sort({ start: 1 }).limit(1).toArray(),
@@ -146,20 +141,20 @@ class MongoWrapper {
   }
 
   async writeOrder(order: ExtendedOrder<Order | CloseOrder>, database: string = 'trader') {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collection = db.collection('orders')
     await collection.insertOne(order)
   }
 
   async getOrders<T>(posId: string, database: string = 'trader') {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collection = db.collection('orders')
     const result = await collection.find({ posId }).sort({ time: 1 }).toArray()
     return result as T[]
   }
 
   async getCount(collectionName: string, database?: string) {
-    const db = client.db(database || this.db)
+    const db = this.client.db(database || this.db)
     const collection = db.collection(collectionName)
     const count = await collection.countDocuments()
     return count
@@ -199,7 +194,7 @@ class MongoWrapper {
         },
       },
     ]
-    const db = client.db(this.db)
+    const db = this.client.db(this.db)
     const collection = db.collection(symbol)
     const result = await collection.aggregate<GeneratedCandle>(pipeline)
     const data = await result.toArray()
@@ -233,7 +228,7 @@ class MongoWrapper {
   ) {
     const values: any[] = []
 
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collection = db.collection(collectionName)
 
     projection = {
@@ -272,7 +267,7 @@ class MongoWrapper {
       },
     ]
 
-    const db = client.db(databse)
+    const db = this.client.db(databse)
     const collection = db.collection(symbol)
     const result = await collection.aggregate<{ avgVolume: number }>(pipeline)
     const data = await result.toArray()
@@ -286,7 +281,7 @@ class MongoWrapper {
   }
 
   async getLatestEntry(database: string, collection: string, key: string = 'start', query: Record<string, any> = {}) {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collectionName = db.collection(collection)
     const result = await collectionName
       .find(query)
@@ -297,7 +292,7 @@ class MongoWrapper {
   }
 
   async getFirstEntry(database: string, collection: string, key: string = 'start', query: Record<string, any> = {}) {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collectionName = db.collection(collection)
     const result = await collectionName
       .find(query)
@@ -308,7 +303,7 @@ class MongoWrapper {
   }
 
   async getSetOfRules(exchange: string, symbol: string) {
-    const db = client.db('backtests')
+    const db = this.client.db('backtests')
     const collectionName = db.collection(exchange)
     const cursor = await collectionName.aggregate<{ _id: string[] }>([
       {
@@ -329,7 +324,7 @@ class MongoWrapper {
   }
 
   async loadAllPositions(identifier: string) {
-    const db = client.db('backtests')
+    const db = this.client.db('backtests')
     const collectionName = db.collection('positions')
     const cursor = collectionName.find<ClosedPosition>({ identifier })
 
@@ -344,7 +339,7 @@ class MongoWrapper {
   }
 
   async getSetOfField(database: string, collection: string, field: string | number) {
-    const db = client.db(database)
+    const db = this.client.db(database)
     const collectionName = db.collection(collection)
     const cursor = await collectionName.aggregate<{ _id: string }>([
       {
@@ -370,7 +365,7 @@ class MongoWrapper {
     }
     const symbols = await this.existingCollections(database)
     const chunkedSymbols = createChunks(symbols, 4)
-    const db = client.db(database)
+    const db = this.client.db(database)
 
     const pipeline = [
       {
@@ -502,7 +497,7 @@ class MongoWrapper {
 
   async saveLivePosition<T extends IOrderHelperPos>(position: T) {
     if (!position.posId) return
-    const db = client.db('trader')
+    const db = this.client.db('trader')
     const collection = db.collection('livePositions')
     await collection.updateOne(
       {
@@ -518,7 +513,7 @@ class MongoWrapper {
   }
 
   async getLivePosition<T extends IOrderHelperPos>(posId: string) {
-    const db = client.db('trader')
+    const db = this.client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection
       .find({
@@ -537,7 +532,7 @@ class MongoWrapper {
   }
 
   async getLiveOrders(posId: string) {
-    const db = client.db('trader')
+    const db = this.client.db('trader')
     const collection = db.collection('orders')
     const result = await collection
       .find({
@@ -550,19 +545,31 @@ class MongoWrapper {
     return result
   }
 
-  async getLivePositions(env: string) {
-    const db = client.db('trader')
+  async getLivePositions(ids: string[]) {
+    const db = this.client.db('trader')
     const collection = db.collection('livePositions')
-    const result = await collection
-      .find({
-        env,
-      })
-      .project<LivePosition>({
-        _id: 0,
-        orders: 0,
-      })
-      .toArray()
-    return result
+    const cursor = collection.aggregate<LivePosition>([
+      {
+        $match: {
+          posId: {
+            $in: ids,
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+    ])
+
+    const positions: LivePosition[] = []
+    while (await cursor.hasNext()) {
+      const position = await cursor.next()
+      if (position) positions.push(position)
+    }
+
+    return positions
   }
 }
 

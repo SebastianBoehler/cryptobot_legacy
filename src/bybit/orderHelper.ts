@@ -429,6 +429,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     let savedPos = this.position
     if (!this.position || orders.length === 0) {
       savedPos = await mongo.getLivePosition(client.position.posId)
+
+      // @ts-ignore
+      delete savedPos?.timestamp
+
       orders = savedPos?.orders || []
       this.leverage = +client.position.lever
       this.position = savedPos

@@ -92,6 +92,7 @@ async function main() {
           },
           profitUSD,
           timestamp: new Date(),
+          exchange,
         })
         .catch((e) => {
           logger.error('[mongodb] saving live position', e)

@@ -5,6 +5,11 @@ import strategies from './strategies'
 import { createUniqueId, logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
+const prodMongo = new MongoWrapper(
+  'backtests',
+  'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
+)
+
 const saveToMongo = true
 
 export async function backtest(
@@ -68,15 +73,8 @@ export async function backtest(
     await strategy.end()
 
     const positions = await mongo.loadAllPositions(identifier)
-    if (!positions.length) {
-      results.push({
-        identifier,
-        name: strategy.name,
-        pnl: 0,
-        winRatio: 0,
-      })
-      continue
-    }
+    if (!positions.length) continue
+    await prodMongo.writeMany('positions', positions)
 
     const winRatio = positions.filter((pos) => pos.realizedPnlUSD > 0).length / positions.length
     const pnl = strategy.orderHelper.profitUSD || 0
@@ -103,14 +101,14 @@ export async function backtest(
       winRatio,
       stringifiedFunc,
       time: new Date(),
-      start: history[0].start,
+      start: start || history[0].start,
       end: history[history.length - 1].start,
       pnl_pct,
       hodl_pct,
       liquidations,
-      hodl_ratio: hodl_pct < 0 && pnl_pct > 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
+      hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
     })
   }
 
-  await mongo.writeBacktestResults('results', results)
+  await prodMongo.writeMany('results', results)
 }

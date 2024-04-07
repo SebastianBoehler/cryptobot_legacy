@@ -5,8 +5,8 @@ import { createUniqueId, logger } from '../utils'
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
-export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
-  public readonly name = 'scalp-fast-alts'
+export class SCALP_FAST_NEW extends Base implements Strategy {
+  public readonly name = 'scalp-fast-alts-new'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -15,15 +15,17 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
     if (!this.orderHelper.identifier) this.orderHelper.identifier = `${this.name}-${this.symbol}-${createUniqueId(10)}`
 
-    await this.orderHelper.update(price, time, indicators)
+    await this.orderHelper.update(price, time)
     if (price === 0) return
     this.addOptionalPositionInfo(price)
 
-    //TODO: try with more steps as leverage increased
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<{
+    interface EntrySizeReturnObj {
       entrySizeUSD: number
       portfolio: number
-    }>()
+    }
+
+    const { entrySizeUSD: buyLowEntrySizeUSD } = this.calculateEntrySizeUSD<EntrySizeReturnObj>(this.steps * 2)
+    const { entrySizeUSD } = this.calculateEntrySizeUSD<EntrySizeReturnObj>()
     const { position } = this.orderHelper
 
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
@@ -47,11 +49,12 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     const lastOrder = orders[orders.length - 1]
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
+    //0.92625 0.963125
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > this.orderHelper.minSize) {
-      if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
+      if (price < avgEntryPrice * 0.963125 && price < lastOrder.avgPrice * 0.963125) {
         const ordId = 'buylow' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+        await this.orderHelper.openOrder('long', buyLowEntrySizeUSD, ordId)
         return
       }
 

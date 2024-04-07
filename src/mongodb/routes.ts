@@ -65,14 +65,10 @@ router.get('/indicators/:exchange/:symbol/:granularity', async (req: Request, re
   })
 })
 
-router.get('/backtest', async (req: Request, res: Response) => {
-  const { identifier } = req.query
-  if (!identifier) {
-    res.status(400).send('identifier params parameter is required')
-    return
-  }
+router.post('/backtest', async (req: Request, res: Response) => {
+  const { $match } = req.body
 
-  const result = await client.getBacktestingResult(identifier as string)
+  const result = await client.getBacktestingResults($match)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
@@ -101,14 +97,14 @@ router.get('/trader/orders', async (req: Request, res: Response) => {
   res.json(result)
 })
 
-router.get('/trader/positions', async (req: Request, res: Response) => {
-  const { env } = req.query
-  if (!env) {
-    res.status(400).send('env params parameter is required')
+router.post('/trader/positions', async (req: Request, res: Response) => {
+  const { ids } = req.body
+  if (!ids) {
+    res.status(400).send('ids params parameter is required')
     return
   }
 
-  const result = await client.getLivePositions(env as string)
+  const result = await client.getLivePositions(ids)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })

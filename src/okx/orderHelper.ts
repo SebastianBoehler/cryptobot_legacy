@@ -21,6 +21,7 @@ export class OrderHelper implements IOrderHelper {
   public identifier: string | undefined
   public lastPosition: ClosedPosition | null = null
   public profitUSD = 0
+  //private indicators: Indicators[] = []
 
   constructor(symbol: string, saveToMongo?: boolean) {
     this.symbol = symbol
@@ -101,6 +102,7 @@ export class OrderHelper implements IOrderHelper {
   public update(price: number, time: Date, indicators?: Indicators[]) {
     this.price = price
     this.time = time
+    //this.indicators = indicators || []
     if (!this.position) return
     const { type } = this.position
 
