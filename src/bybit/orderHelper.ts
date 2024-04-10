@@ -37,7 +37,7 @@ export class OrderHelper implements IOrderHelper {
     client.setSymbol(symbol)
   }
 
-  public setLeverage(leverage: number) {
+  public setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -55,13 +55,27 @@ export class OrderHelper implements IOrderHelper {
       if (margin > 100_000 && leverage > 6) return
       if (margin > 200_000 && leverage > 4) return
 
-      const marginLeft = margin / ratio
-      //0.95 to be safe
-      const reduceBy = (margin - marginLeft) * 0.95
+      let updatedMargin: number
+
+      if (ratio > 1) {
+        const marginLeft = margin / ratio
+        //0.95 to be safe
+        const reducedBy = (margin - marginLeft) * 0.95
+        updatedMargin = margin - reducedBy
+      } else {
+        //increase margin
+        const marginRequired = margin / ratio
+        const increaseBy = (marginRequired - margin) * 1.05
+        if (increaseBy > availCapital) {
+          logger.debug(`[orderHelper > setLeverage] Not enough capital to increase margin`)
+          return
+        }
+        updatedMargin = margin + increaseBy
+      }
 
       this.position = {
         ...this.position,
-        margin: margin - reduceBy,
+        margin: updatedMargin,
         leverage,
         liquidationPrice: this.calculateLiquidationPrice(),
       }
@@ -319,12 +333,34 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     return Math.floor(value * inverse) / inverse
   }
 
-  public async setLeverage(leverage: number, type: 'long' | 'short') {
+  public async setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
+    if (!this.position) {
+      logger.warn('[orderHelper > setLeverage] No position found')
+      return
+    }
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
       logger.debug(`[orderHelper > setLeverage] Leverage cannot be higher than ${maxLever}`)
       return
+    }
+
+    const ratio = leverage / this.leverage
+    const margin = this.position.margin
+
+    if (margin > 100_000 && leverage > 6) return
+    if (margin > 200_000 && leverage > 4) return
+
+    if (ratio > 1) {
+      //decrease margin all good
+    } else {
+      //increase margin
+      const marginRequired = margin / ratio
+      const increaseBy = marginRequired - margin
+      if (increaseBy > availCapital) {
+        logger.debug(`[orderHelper > setLeverage] Not enough capital to increase margin`)
+        return
+      }
     }
 
     await client.setLeverage(this.symbol, leverage)

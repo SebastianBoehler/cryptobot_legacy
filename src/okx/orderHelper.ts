@@ -35,7 +35,7 @@ export class OrderHelper implements IOrderHelper {
     this.saveToMongo = saveToMongo || false
   }
 
-  public setLeverage(leverage: number) {
+  public setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -53,13 +53,27 @@ export class OrderHelper implements IOrderHelper {
       if (margin > 100_000 && leverage > 6) return
       if (margin > 200_000 && leverage > 4) return
 
-      const marginLeft = margin / ratio
-      //0.95 to be safe
-      const reduceBy = (margin - marginLeft) * 0.95
+      let updatedMargin: number
+
+      if (ratio > 1) {
+        const marginLeft = margin / ratio
+        //0.95 to be safe
+        const reducedBy = (margin - marginLeft) * 0.95
+        updatedMargin = margin - reducedBy
+      } else {
+        //increase margin
+        const marginRequired = margin / ratio
+        const increaseBy = (marginRequired - margin) * 1.05
+        if (increaseBy > availCapital) {
+          logger.debug(`[orderHelper > setLeverage] Not enough capital to increase margin`)
+          return
+        }
+        updatedMargin = margin + increaseBy
+      }
 
       this.position = {
         ...this.position,
-        margin: margin - reduceBy,
+        margin: updatedMargin,
         leverage,
         liquidationPrice: this.calculateLiquidationPrice(),
       }
@@ -310,7 +324,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     okxClient.subsribeToOrderData(symbol)
   }
 
-  public async setLeverage(leverage: number, type: 'long' | 'short') {
+  public async setLeverage(leverage: number, type: 'long' | 'short', availCapital: number) {
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -322,25 +336,46 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
     this.leverage = leverage
 
-    if (!this.position) return
-    if (leverage > prevLeverage && okxClient.position) {
-      logger.debug('[orderHelper > setLeverage] Adjust margin to new leverage')
+    if (!this.position || !okxClient.position) return
+    const margin = this.position.margin
+    if (leverage > prevLeverage) {
+      logger.debug('[orderHelper > setLeverage] Reduce margin to new leverage')
       const posSide = okxClient.position?.posSide || this.position.type
-      const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', `${leverage}`, posSide, this.symbol)
+      const marginInfo = await okxClient.getAdjustLeverageInfo(
+        'SWAP',
+        'isolated',
+        leverage.toString(),
+        posSide,
+        this.symbol
+      )
 
-      const margin = this.position.margin
       const reduceBy = (margin - +marginInfo.estMgn) * 0.99
-
       await this.reduceMargin(reduceBy.toString())
+    } else {
+      logger.debug('[orderHelper > setLeverage] Increase margin to new leverage')
+      const posSide = okxClient.position?.posSide || this.position.type
+      const marginInfo = await okxClient.getAdjustLeverageInfo(
+        'SWAP',
+        'isolated',
+        leverage.toString(),
+        posSide,
+        this.symbol
+      )
 
-      await sleep(1_000)
-
-      this.position = {
-        ...this.position,
-        margin: +okxClient.position.margin,
-        liquidationPrice: okxClient.position.liqPrice,
-        leverage: +okxClient.position.lever,
+      const increaseBy = (+marginInfo.estMgn - margin) * 1.01
+      if (increaseBy > availCapital) {
+        logger.warn(`[orderHelper > setLeverage] Not enough capital to increase margin`)
+        return
       }
+      await this.increaseMargin(increaseBy.toString())
+    }
+
+    await sleep(1_000)
+    this.position = {
+      ...this.position,
+      margin: +okxClient.position.margin,
+      liquidationPrice: okxClient.position.liqPrice,
+      leverage: +okxClient.position.lever,
     }
   }
 
@@ -348,6 +383,12 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!this.position) throw new Error('[orderHelper > reduceMargin] No position found')
     const posSide = okxClient.position?.posSide || this.position.posSide
     await okxClient.reduceMargin(this.symbol, posSide, amount)
+  }
+
+  private increaseMargin(amount: string) {
+    if (!this.position) throw new Error('[orderHelper > increaseMargin] No position found')
+    const posSide = okxClient.position?.posSide || this.position.posSide
+    return okxClient.increaseMargin(this.symbol, posSide, amount)
   }
 
   public async getContractInfo() {

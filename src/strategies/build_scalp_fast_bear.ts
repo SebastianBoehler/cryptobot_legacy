@@ -20,8 +20,7 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
     if (price === 0) return
     this.addOptionalPositionInfo(price)
 
-    //TODO: try with more steps as leverage increased
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<{
+    const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
@@ -33,7 +32,7 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(2, 'long')
+      await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) initialSizeInCts = order.size
@@ -101,7 +100,7 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
-      await this.orderHelper.setLeverage(leverage + 3, 'long')
+      await this.orderHelper.setLeverage(leverage + 3, 'long', portfolio)
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost
@@ -119,7 +118,6 @@ export class BUILD_SCALP_FAST_BEAR extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)

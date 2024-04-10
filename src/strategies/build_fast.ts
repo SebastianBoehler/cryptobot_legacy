@@ -19,7 +19,7 @@ export class BUILD_FAST extends Base implements Strategy {
     this.addOptionalPositionInfo(price)
 
     //TODO: try with more steps as leverage increased
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<{
+    const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
@@ -29,7 +29,7 @@ export class BUILD_FAST extends Base implements Strategy {
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(2, 'long')
+      await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) initialSizeInCts = order.size
@@ -80,7 +80,7 @@ export class BUILD_FAST extends Base implements Strategy {
     //LEVERAGE INCREASE
     if (price > avgEntryPrice * 1.2 && leverage < 37 && (!lastLeverIncrease || price > lastLeverIncrease * 1.05)) {
       const marginPre = margin
-      await this.orderHelper.setLeverage(leverage + 3, 'long')
+      await this.orderHelper.setLeverage(leverage + 3, 'long', portfolio)
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost

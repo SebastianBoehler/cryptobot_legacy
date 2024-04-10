@@ -25,14 +25,14 @@ export class SCALP_FAST_NEW extends Base implements Strategy {
     }
 
     const { entrySizeUSD: buyLowEntrySizeUSD } = this.calculateEntrySizeUSD<EntrySizeReturnObj>(this.steps * 2)
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<EntrySizeReturnObj>()
+    const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<EntrySizeReturnObj>()
     const { position } = this.orderHelper
 
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(2, 'long')
+      await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) initialSizeInCts = order.size
@@ -87,7 +87,7 @@ export class SCALP_FAST_NEW extends Base implements Strategy {
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
-      await this.orderHelper.setLeverage(leverage + 3, 'long')
+      await this.orderHelper.setLeverage(leverage + 3, 'long', portfolio)
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost

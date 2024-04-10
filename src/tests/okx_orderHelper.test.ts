@@ -8,7 +8,7 @@ describe('run orderHelper tests', () => {
     const symbol = 'XRP-USDT-SWAP'
     const orderHelper = new OrderHelper(symbol, false)
     await orderHelper.getContractInfo()
-    orderHelper.setLeverage(5)
+    orderHelper.setLeverage(5, 'long', 1_000)
 
     const usdAmount = 45
     orderHelper.update(0.50172, new Date())
@@ -57,7 +57,7 @@ describe('run orderHelper tests', () => {
     const symbol = 'API3-USDT-SWAP'
     const orderHelper = new OrderHelper(symbol, false)
     await orderHelper.getContractInfo()
-    orderHelper.setLeverage(2)
+    orderHelper.setLeverage(2, 'long', 1_000)
 
     const usdAmount = 15
     orderHelper.update(2.021, new Date())
@@ -87,7 +87,7 @@ describe('run orderHelper tests', () => {
 
     const marginPre = orderHelper.position?.margin
     await orderHelper.update(2.017, new Date())
-    await orderHelper.setLeverage(4)
+    await orderHelper.setLeverage(4, 'long', 1_000)
     const marginPost = orderHelper.position?.margin
 
     const pos2 = orderHelper.position

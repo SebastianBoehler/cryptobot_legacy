@@ -16,7 +16,7 @@ export interface IOrderHelper {
   lastPosition: ClosedPosition | null
   profitUSD: number
 
-  setLeverage(leverage: number): void
+  setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number): void
   getContractInfo(): Promise<void>
   update(price: number, time: Date, indicators?: Indicators[]): void
   openOrder(type: 'long' | 'short', amountUSD: number, ordId?: string): Promise<Order | undefined>
@@ -28,7 +28,7 @@ export interface IOrderHelper {
 export interface ILiveOrderHelper extends Omit<IOrderHelper, 'position' | 'setLeverage' | 'closeOrder' | 'update'> {
   position: IOrderHelperPos | null
   accHash: string
-  setLeverage(leverage: number, type: 'long' | 'short'): Promise<void>
+  setLeverage(leverage: number, type: 'long' | 'short', availCapital: number): Promise<void>
   update(price: number, time: Date, indicators?: Indicators[]): Promise<IOrderHelperPos | undefined>
   closeOrder(amountCts: number, ordId?: string): Promise<ClosedPosition | OrderResult | OrderResultV5>
 }

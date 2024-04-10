@@ -179,6 +179,16 @@ class OkxClient {
     return resp
   }
 
+  async increaseMargin(instId: string, posSide: PositionSide, amt: string) {
+    const resp = await this.restClient.changePositionMargin({
+      instId,
+      posSide,
+      type: 'add',
+      amt,
+    })
+    return resp
+  }
+
   async getAdjustLeverageInfo(
     instType: InstrumentType,
     mgnMode: MarginMode,

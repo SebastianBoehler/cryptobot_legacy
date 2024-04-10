@@ -1,7 +1,7 @@
 import { BUILD_FAST } from './build_fast'
 import { BUILD_SCALP_FAST } from './build_scalp_fast'
 import { BUILD_SCALP_FAST_BEAR } from './build_scalp_fast_bear'
-import { SCALP_FAST_NEW } from './scalp_fast'
+import { SCALP_FAST_NEW } from './scalp_fast_new'
 import { BUILD_SCALP_FAST_ALTS } from './scalp_fast_alts'
 import { SCALP_FAST_TEST } from './scalp_fast_test'
 import { BUILD_SCALP_FAST_INDICATORS } from './scalp_indicators'

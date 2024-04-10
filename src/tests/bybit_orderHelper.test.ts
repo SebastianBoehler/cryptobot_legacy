@@ -7,7 +7,7 @@ describe('run orderHelper tests', () => {
     const symbol = '10000WENUSDT'
     const orderHelper = new OrderHelper(symbol, false)
     await orderHelper.getContractInfo()
-    orderHelper.setLeverage(2)
+    orderHelper.setLeverage(2, 'long', 1_000)
 
     const usdAmount = 10
     orderHelper.update(4.7882, new Date())

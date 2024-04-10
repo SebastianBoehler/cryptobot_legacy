@@ -16,7 +16,7 @@ export class TESTING extends Base implements Strategy {
     if (price === 0) return
     this.addOptionalPositionInfo(price)
 
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<{
+    const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
@@ -24,7 +24,7 @@ export class TESTING extends Base implements Strategy {
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(2, 'long')
+      await this.orderHelper.setLeverage(5, 'long', portfolio)
       await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       return
     }
@@ -33,7 +33,7 @@ export class TESTING extends Base implements Strategy {
     const lastOrder = orders[orders.length - 1]
 
     if (differenceInSeconds(time, lastOrder.time) > 30 && leverage < 3) {
-      await this.orderHelper.setLeverage(leverage + 4, 'long')
+      await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
     }
 
     if (differenceInSeconds(time, lastOrder.time) > 60) {

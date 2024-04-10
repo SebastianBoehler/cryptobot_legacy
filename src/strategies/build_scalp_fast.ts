@@ -20,17 +20,15 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     this.addOptionalPositionInfo(price)
 
     //TODO: try with more steps as leverage increased
-    const { entrySizeUSD } = this.calculateEntrySizeUSD<{
+    const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
     const { position } = this.orderHelper
 
-    //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
-
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(2, 'long')
+      await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) initialSizeInCts = order.size
@@ -84,7 +82,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
-      await this.orderHelper.setLeverage(leverage + 3, 'long')
+      await this.orderHelper.setLeverage(leverage + 3, position.type, portfolio)
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost
@@ -110,6 +108,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
         return
       }
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
     }
 
     if (unrealizedPnlPcnt < -80) {
