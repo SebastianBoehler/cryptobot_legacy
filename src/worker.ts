@@ -13,7 +13,6 @@ const accounts = [
 const mongo = new MongoWrapper('trader')
 
 async function main() {
-  logger.info(JSON.stringify(accounts))
   const array = []
   for (const account of accounts) {
     try {

@@ -109,6 +109,21 @@ module.exports = {
       watch: false,
       log_date_format
     },
+    {
+      name: 'bybit_trader_gpt',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'GPTUSDT',
+        STRATEGY: 'SCALP_ALTS',
+        MULTIPLIER: 0.95,
+        START_CAPITAL: 80,
+        EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false,
+      log_date_format
+    },
     //HB CAPITAL
     //INJECTIVE
     {
@@ -116,7 +131,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'ORDI-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 200,
@@ -130,7 +145,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 250,
@@ -144,7 +159,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 350,
@@ -158,7 +173,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 700,
@@ -172,7 +187,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'RNDR-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 1000,
@@ -186,7 +201,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 3500,
@@ -200,7 +215,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 250,
@@ -213,7 +228,7 @@ module.exports = {
       name: 'hb_trader_jup',
       script: traderPath,
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 700,
@@ -227,7 +242,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'BONK-USDT-SWAP',
         STRATEGY: 'INDICATORS',
         START_CAPITAL: 200,
@@ -241,7 +256,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'AVAX-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 200,
@@ -255,7 +270,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 450,
@@ -269,7 +284,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'FRONT-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 120,
@@ -283,7 +298,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'LINK-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 350,
@@ -297,7 +312,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'FTM-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 450,
@@ -311,7 +326,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'FLOKI-USDT-SWAP',
         STRATEGY: 'BUILD_FAST',
         START_CAPITAL: 150,
@@ -325,7 +340,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'RSR-USDT-SWAP',
         STRATEGY: 'SCALP_TEST',
         START_CAPITAL: 200,
@@ -339,7 +354,7 @@ module.exports = {
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
-        NODE_ENV: "hb",
+        NODE_ENV: "prod",
         SYMBOL: 'CORE-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 200,
