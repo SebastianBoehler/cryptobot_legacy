@@ -199,7 +199,7 @@ class OkxClient {
 
   async getAccountBalance() {
     const resp = await this.restClient.getBalance()
-    return resp[0].adjEq
+    return resp[0].totalEq
   }
 
   async placeMarketOrder(
