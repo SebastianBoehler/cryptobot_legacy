@@ -6,7 +6,7 @@ let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
-  public readonly name = 'scalp-fast-alts-t'
+  public readonly name = 'scalp-fast-alts'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
