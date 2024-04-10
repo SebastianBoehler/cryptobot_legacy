@@ -32,7 +32,7 @@ export class TESTING extends Base implements Strategy {
     const { orders, leverage, ctSize } = position
     const lastOrder = orders[orders.length - 1]
 
-    if (differenceInSeconds(time, lastOrder.time) > 30 && leverage < 3) {
+    if (differenceInSeconds(time, lastOrder.time) > 25) {
       await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
     }
 
