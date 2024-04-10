@@ -582,6 +582,78 @@ class MongoWrapper {
 
     return positions
   }
+
+  async getAccBalances(accHash: string, granularity: number) {
+    const db = this.client.db('trader')
+    const collection = db.collection('accountBalances')
+    //pipeline and buckets of granulartiy
+    const pipeline = [
+      {
+        $sort: {
+          time: 1,
+        },
+      },
+      {
+        $match: {
+          accHash,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            bucket: {
+              $toDate: {
+                $subtract: [
+                  {
+                    $toLong: '$time',
+                  },
+                  {
+                    $mod: [
+                      {
+                        $subtract: [
+                          { $toLong: '$time' },
+                          {
+                            $toLong: {
+                              $dateFromString: {
+                                dateString: '1970-01-01T00:00:00',
+                                timezone: 'UTC',
+                              },
+                            },
+                          },
+                        ],
+                      },
+                      1000 * 60 * granularity,
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          time: { $first: '$time' },
+          value: { $last: '$value' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: {
+          time: 1,
+        },
+      },
+    ]
+
+    const cursor = await collection.aggregate<{ time: Date; value: number }>(pipeline)
+    const values: { time: Date; value: number }[] = []
+    while (await cursor.hasNext()) {
+      const value = await cursor.next()
+      if (value) values.push(value)
+    }
+
+    return values
+  }
 }
 
 export default MongoWrapper

@@ -14,6 +14,7 @@ const mongo = new MongoWrapper('trader')
 
 async function main() {
   const array = []
+  const time = new Date()
   for (const account of accounts) {
     try {
       if (account.exchange === 'bybit') {
@@ -26,7 +27,7 @@ async function main() {
         array.push({
           accHash: createHash('sha256').update(account.apiKey).digest('hex'),
           value,
-          time: new Date(),
+          time,
         })
       } else if (account.exchange === 'okx') {
         const okx = new OkxClient({
@@ -42,7 +43,7 @@ async function main() {
         array.push({
           accHash: createHash('sha256').update(account.apiKey).digest('hex'),
           value,
-          time: new Date(),
+          time,
         })
       }
     } catch (error) {

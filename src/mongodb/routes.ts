@@ -128,6 +128,18 @@ router.post('/trader/positions', async (req: Request, res: Response) => {
   res.json(result)
 })
 
+router.get('/trader/accBalances', async (req: Request, res: Response) => {
+  const { accHash, granularity } = req.query
+  if (!accHash) {
+    res.status(400).send('accHash query parameter is required')
+    return
+  }
+
+  const result = await client.getAccBalances(accHash as string, +(granularity || 15))
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  res.json(result)
+})
+
 router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
   const { exchange } = req.params
   if (!exchange) {
