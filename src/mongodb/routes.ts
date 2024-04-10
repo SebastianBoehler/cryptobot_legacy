@@ -66,9 +66,17 @@ router.get('/indicators/:exchange/:symbol/:granularity', async (req: Request, re
 })
 
 router.post('/backtest', async (req: Request, res: Response) => {
-  const { $match } = req.body
+  const { $match, $sort, page } = req.body
+  if (!$sort || page === undefined) {
+    res.status(400).send('Body params not valid, missing data')
+    return
+  }
 
-  const result = await client.getBacktestingResults($match)
+  const limit = 30
+  const pipeline: any[] = [{ $sort }, { $skip: page * limit }, { $limit: limit }]
+  if ($match) pipeline.unshift({ $match })
+
+  const result = await client.getBacktestingResults(pipeline)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
   res.json(result)
 })
@@ -85,14 +93,25 @@ router.get('/backtest/positions', async (req: Request, res: Response) => {
   res.json(result)
 })
 
-router.get('/trader/orders', async (req: Request, res: Response) => {
-  const { posId } = req.query
-  if (!posId) {
-    res.status(400).send('posId params parameter is required')
+router.post('/backtest/delete', async (req: Request, res: Response) => {
+  const { query, password } = req.body
+  if (!query || !password) {
+    res.status(400).send('query and password params parameter is required')
+    return
+  }
+  if (password !== 'Anmeldedatum0702!') {
+    res.status(401).send('Unauthorized')
     return
   }
 
-  const result = await client.getLiveOrders(posId as string)
+  await Promise.all([client.delete(query, 'positions', 'backtests'), client.delete(query, 'results', 'backtests')])
+  res.status(200).json({ message: 'Deleted' })
+})
+
+router.post('/trader/orders', async (req: Request, res: Response) => {
+  const { query, page, sort } = req.body
+
+  const result = await client.getLiveOrders((query as Record<string, any>) || {}, page, sort)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })

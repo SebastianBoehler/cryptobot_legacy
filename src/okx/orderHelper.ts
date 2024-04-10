@@ -4,7 +4,14 @@ import { OkxClient } from './utils'
 import { createUniqueId, logger, sleep } from '../utils'
 import { omit } from 'lodash'
 import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
-const okxClient = new OkxClient()
+import { createHash } from 'node:crypto'
+import config from '../config/config'
+
+const okxClient = new OkxClient({
+  apiKey: config.OKX_KEY,
+  apiSecret: config.OKX_SECRET,
+  apiPass: config.OKX_PASS,
+})
 const mongo = new MongoWrapper('backtests')
 
 export class OrderHelper implements IOrderHelper {
@@ -144,6 +151,7 @@ export class OrderHelper implements IOrderHelper {
       fee: this.calculateFee(amountContracts * contractValue),
       time: this.time,
       symbol: this.symbol,
+      accHash: 'backtester',
     }
 
     const orders = this.position?.orders || []
@@ -172,6 +180,7 @@ export class OrderHelper implements IOrderHelper {
       orders,
       fee: (this.position?.fee || 0) + fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
+      accHash: 'backtester',
     }
 
     return order
@@ -201,6 +210,7 @@ export class OrderHelper implements IOrderHelper {
       bruttoPnlUSD: pnl,
       posAvgEntryPrice: this.position.avgEntryPrice,
       symbol: this.symbol,
+      accHash: 'backtester',
     }
 
     const orders = this.position?.orders || []
@@ -291,6 +301,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   public profitUSD = 0
   public lastPosition: ClosedPosition | null = null
   private positionId: string = `TT${createUniqueId(10)}TT`
+  accHash: string = createHash('sha256').update(config.OKX_KEY).digest('hex')
 
   constructor(symbol: string) {
     this.symbol = symbol
@@ -376,6 +387,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
           time: new Date(),
           bruttoPnlUSD: -margin,
           symbol: this.symbol,
+          accHash: this.accHash,
         }
 
         this.profitUSD += orderObj.bruttoPnlUSD + this.position.fee
@@ -440,6 +452,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       margin: +okxClient.position.margin,
       leverage: +okxClient.position.lever,
       liquidationPrice: +okxClient.position.liqPrice,
+      accHash: this.accHash,
     }
 
     //TODO: add proper type
@@ -485,6 +498,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee,
       time: new Date(+details.cTime),
       symbol: this.symbol,
+      accHash: this.accHash,
     }
 
     //use pos.reliazedPnlUSD + closed pos profits
@@ -513,6 +527,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       orders,
       fee: okxClient.position.fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
+      accHash: this.accHash,
     }
 
     await mongo.writeOrder({
@@ -563,6 +578,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       time: new Date(+details.cTime),
       bruttoPnlUSD: pnl,
       symbol: this.symbol,
+      accHash: this.accHash,
     }
 
     const orders = this.position?.orders || []

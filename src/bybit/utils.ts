@@ -206,6 +206,14 @@ export class BybitClient {
 
     return response.result.list
   }
+
+  async getAccountBalance() {
+    const { result } = await this.restClient.getWalletBalance({
+      accountType: 'UNIFIED',
+    })
+
+    return result.list[0].totalEquity
+  }
 }
 
 interface PositionUpdateEvent {

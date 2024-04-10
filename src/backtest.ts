@@ -1,4 +1,4 @@
-import { Indicators } from 'cryptobot-types'
+import { BacktestingResult, Indicators } from 'cryptobot-types'
 import { GenerateIndicators } from './indicators'
 import MongoWrapper from './mongodb'
 import strategies from './strategies'
@@ -64,7 +64,7 @@ export async function backtest(
     }
   }
 
-  const results = []
+  const results: BacktestingResult[] = []
   for (const strategy of strategyArray) {
     if (!strategy.orderHelper) throw new Error('no orderHelper')
     const identifier = strategy.orderHelper.identifier
@@ -93,10 +93,8 @@ export async function backtest(
       name: strategy.name,
       startCapital: strategy.startCapital,
       symbol,
-      //temp
       margin,
       orders,
-
       pnl,
       winRatio,
       stringifiedFunc,
@@ -106,6 +104,7 @@ export async function backtest(
       pnl_pct,
       hodl_pct,
       liquidations,
+      exchange,
       hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
     })
   }

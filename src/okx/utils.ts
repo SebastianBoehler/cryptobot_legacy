@@ -1,4 +1,3 @@
-import config from '../config/config'
 import {
   DefaultLogger,
   WebsocketClient,
@@ -20,12 +19,6 @@ import {
 } from 'cryptobot-types'
 import { LivePosition } from '../types'
 
-const credentials = {
-  apiKey: config.OKX_KEY,
-  apiSecret: config.OKX_SECRET,
-  apiPass: config.OKX_PASS,
-}
-
 type ModifiedAccountConfiguration = Omit<AccountConfiguration, 'posMode'> & {
   posMode: 'net_mode' | 'long_short_mode'
 }
@@ -39,7 +32,7 @@ class OkxClient {
   public position: LivePosition | null = null
   public closedPositions: LivePosition[] = []
 
-  constructor() {
+  constructor(credentials: { apiKey: string; apiSecret: string; apiPass: string }) {
     this.restClient = new RestClient(credentials)
 
     this.wsClient = new WebsocketClient(
@@ -206,7 +199,7 @@ class OkxClient {
 
   async getAccountBalance() {
     const resp = await this.restClient.getBalance()
-    return resp
+    return resp[0].adjEq
   }
 
   async placeMarketOrder(

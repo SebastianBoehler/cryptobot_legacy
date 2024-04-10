@@ -55,11 +55,10 @@ class MongoWrapper {
     return collections.map((collection) => collection.name)
   }
 
-  async getBacktestingResults<T extends Document>($match?: Record<string, any>) {
+  async getBacktestingResults<T extends Document>(stages: Document[] = []) {
     const db = this.client.db('backtests')
     const collection = db.collection('results')
-    const pipeline = []
-    if ($match) pipeline.push({ $match })
+    const pipeline = stages
     const cursor = collection.aggregate<T>(pipeline)
 
     const results = []
@@ -94,6 +93,12 @@ class MongoWrapper {
     const collection = db.collection(collectionName)
     const result = await collection.findOne({ [key]: value })
     return result
+  }
+
+  async delete(query: Record<string, any> = {}, collectionName: string, database?: string) {
+    const db = this.client.db(database || this.db)
+    const collection = db.collection(collectionName)
+    await collection.deleteMany(query)
   }
 
   async writePosition<T extends ClosedPosition>(data: T, database?: string) {
@@ -531,18 +536,24 @@ class MongoWrapper {
     return position
   }
 
-  async getLiveOrders(posId: string) {
+  async getLiveOrders(query: Record<string, any>, page?: number, sort: Record<string, 1 | -1> = { time: -1 }) {
     const db = this.client.db('trader')
     const collection = db.collection('orders')
-    const result = await collection
-      .find({
-        posId,
-      })
-      .project<CloseOrder>({
-        _id: 0,
-      })
-      .toArray()
-    return result
+    const cursor = collection.find(query).sort(sort).project<CloseOrder>({
+      _id: 0,
+    })
+
+    if (page !== undefined) {
+      cursor.skip(page * 30).limit(30)
+    }
+
+    const orders: CloseOrder[] = []
+    while (await cursor.hasNext()) {
+      const order = await cursor.next()
+      if (order) orders.push(order)
+    }
+
+    return orders
   }
 
   async getLivePositions(ids: string[]) {

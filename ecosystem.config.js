@@ -17,7 +17,7 @@ module.exports = {
     {
       name: 'bybit_database',
       script: './build/bybit/database.js',
-      //out_file: "/dev/null", //disable logs from being written to file
+      out_file: "/dev/null", //disable logs from being written to file
       //error_file: "/dev/null"
       env_prod: {
         NODE_ENV: "prod"
@@ -35,6 +35,18 @@ module.exports = {
       },
       watch: true,
       log_date_format,
+    },
+    {
+      name: 'worker',
+      script: './build/worker.js',
+      env_prod: {
+        NODE_ENV: "prod",
+      },
+      watch: true,
+      log_date_format,
+      autorestart: false,
+      //every 15min
+      cron_restart: "*/15 * * * *"
     },
     //PERSOANL BYBIT ACC
     {
