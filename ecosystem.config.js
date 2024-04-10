@@ -117,6 +117,21 @@ module.exports = {
         SYMBOL: 'GPTUSDT',
         STRATEGY: 'SCALP_ALTS',
         MULTIPLIER: 0.95,
+        START_CAPITAL: 70,
+        EXCHANGE: 'bybit',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false,
+      log_date_format
+    },
+    {
+      name: 'bybit_trader_arkm',
+      script: traderPath,
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'ARKMUSDT',
+        STRATEGY: 'SCALP_ALTS',
+        MULTIPLIER: 0.95,
         START_CAPITAL: 80,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'

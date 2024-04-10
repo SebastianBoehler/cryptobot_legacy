@@ -583,7 +583,7 @@ class MongoWrapper {
     return positions
   }
 
-  async getAccBalances(accHash: string, granularity: number) {
+  async getAccBalances(accHash: string, granularity: number, $limit: number = 50) {
     const db = this.client.db('trader')
     const collection = db.collection('accountBalances')
     //pipeline and buckets of granulartiy
@@ -642,6 +642,9 @@ class MongoWrapper {
         $sort: {
           time: 1,
         },
+      },
+      {
+        $limit,
       },
     ]
 
