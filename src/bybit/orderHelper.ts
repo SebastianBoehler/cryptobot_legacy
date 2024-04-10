@@ -38,6 +38,7 @@ export class OrderHelper implements IOrderHelper {
   }
 
   public setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
+    if (leverage < 1) return
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -334,10 +335,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
-    if (!this.position) {
-      logger.warn('[orderHelper > setLeverage] No position found')
-      return
-    }
+    if (leverage < 1) return
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -346,7 +344,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     const ratio = leverage / this.leverage
-    const margin = this.position.margin
+    const margin = this.position?.margin || 0
 
     if (margin > 100_000 && leverage > 6) return
     if (margin > 200_000 && leverage > 4) return

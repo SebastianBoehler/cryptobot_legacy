@@ -85,7 +85,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'MYROUSDT',
-        STRATEGY: 'SCALP_BEAR',
+        STRATEGY: 'BUILD_SCALP_FAST',
         MULTIPLIER: 0.95,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',

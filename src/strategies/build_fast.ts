@@ -102,6 +102,11 @@ export class BUILD_FAST extends Base implements Strategy {
       }
     }
 
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
+    }
+
     if (unrealizedPnlPcnt < -80) {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)

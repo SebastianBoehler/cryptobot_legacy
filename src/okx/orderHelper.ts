@@ -36,6 +36,7 @@ export class OrderHelper implements IOrderHelper {
   }
 
   public setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
+    if (leverage < 1) return
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {
@@ -325,6 +326,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async setLeverage(leverage: number, type: 'long' | 'short', availCapital: number) {
+    if (leverage < 1) return
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
     if (leverage > maxLever) {

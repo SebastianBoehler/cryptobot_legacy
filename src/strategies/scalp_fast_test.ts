@@ -112,6 +112,11 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       }
     }
 
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
+    }
+
     if (unrealizedPnlPcnt < -75) {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)

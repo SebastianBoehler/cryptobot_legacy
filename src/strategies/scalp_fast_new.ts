@@ -105,7 +105,6 @@ export class SCALP_FAST_NEW extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
@@ -113,6 +112,11 @@ export class SCALP_FAST_NEW extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
         return
       }
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
     }
 
     if (unrealizedPnlPcnt < -80) {

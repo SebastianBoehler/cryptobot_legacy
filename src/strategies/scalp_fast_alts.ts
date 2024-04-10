@@ -6,7 +6,7 @@ let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
-  public readonly name = 'scalp-fast-alts'
+  public readonly name = 'scalp-fast-alts-t'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -110,6 +110,11 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
         return
       }
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
     }
 
     if (unrealizedPnlPcnt < -80) {

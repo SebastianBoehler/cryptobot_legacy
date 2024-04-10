@@ -4,7 +4,7 @@ import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
 const startCapital = 300
-const startDate = new Date('2023-10-01')
+const startDate = new Date('2024-01-01')
 const exchange = 'okx'
 
 ;(async () => {
@@ -13,7 +13,7 @@ const exchange = 'okx'
     const pairs = symbol.split('-')
     if (pairs[1] === 'USD') continue
     logger.info('starting backtest for', symbol)
-    await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast')
+    await backtest(symbol, exchange, startDate, undefined, startCapital)
   }
 
   await mongo.close()

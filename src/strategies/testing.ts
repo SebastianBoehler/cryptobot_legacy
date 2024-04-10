@@ -6,7 +6,7 @@ import { differenceInSeconds } from 'date-fns'
 export class TESTING extends Base implements Strategy {
   public readonly name = 'testing'
   public startCapital = 80
-  public steps = 1
+  public steps = 3
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -32,7 +32,7 @@ export class TESTING extends Base implements Strategy {
     const { orders, leverage, ctSize } = position
     const lastOrder = orders[orders.length - 1]
 
-    if (differenceInSeconds(time, lastOrder.time) > 25) {
+    if (differenceInSeconds(time, lastOrder.time) > 25 && leverage > 1) {
       await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
     }
 

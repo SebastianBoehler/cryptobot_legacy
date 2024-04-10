@@ -20,14 +20,12 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
     if (price === 0) return
     this.addOptionalPositionInfo(price)
 
-    //TODO: try with more steps as leverage increased
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
     const { position } = this.orderHelper
 
-    //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
     const mappedIndicators = this.mapIndicators(indicators)
     const indicators5min = mappedIndicators[5]
 
@@ -106,7 +104,6 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
@@ -114,6 +111,11 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
         return
       }
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
     }
 
     if (unrealizedPnlPcnt < -80) {
