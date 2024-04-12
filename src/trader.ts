@@ -35,7 +35,8 @@ const strategies = {
 const strategy = strategies[strategyName as keyof typeof strategies]
 if (!strategy) throw new Error(`no strategy found for ${strategyName}`)
 logger.info(`Using strategy: ${strategy.name} on ${symbol} on ${exchange}`)
-strategy.startCapital = +config.START_CAPITAL
+strategy.startCapital = config.START_CAPITAL
+logger.debug(`Set start capital to ${strategy.startCapital}`)
 
 const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
 if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
@@ -85,8 +86,8 @@ async function main() {
           env: config.NODE_ENV,
           strategy: {
             name: strategy.name,
-            startCapital: strategy.startCapital,
-            multiplier: strategy.multiplier,
+            startCapital: config.START_CAPITAL,
+            multiplier: config.MULTIPLIER,
           },
           profitUSD,
           timestamp: new Date(),
