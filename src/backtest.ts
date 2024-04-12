@@ -29,7 +29,7 @@ export async function backtest(
   })
   const indicators: GenerateIndicators[] = [
     new GenerateIndicators(exchange, symbol, 5),
-    new GenerateIndicators(exchange, symbol, 60),
+    //new GenerateIndicators(exchange, symbol, 60),
     new GenerateIndicators(exchange, symbol, 60 * 8),
   ]
 

@@ -80,22 +80,21 @@ async function main() {
     })
 
     if (index % 15 === 0 && pos) {
-      await mongo
-        .saveLivePosition({
-          ...pos,
-          env: config.NODE_ENV,
-          strategy: {
-            name: strategy.name,
-            startCapital: config.START_CAPITAL,
-            multiplier: config.MULTIPLIER,
-          },
-          profitUSD,
-          timestamp: new Date(),
-          exchange,
-        })
-        .catch((e) => {
-          logger.error('[mongodb] saving live position', e)
-        })
+      const obj = {
+        ...pos,
+        env: config.NODE_ENV,
+        strategy: {
+          name: strategy.name,
+          startCapital: strategy.startCapital,
+          multiplier: strategy.multiplier,
+        },
+        profitUSD,
+        timestamp: new Date(),
+        exchange,
+      }
+      await mongo.saveLivePosition(obj).catch((e) => {
+        logger.error('[mongodb] saving live position', e)
+      })
       index = 0
     }
 
