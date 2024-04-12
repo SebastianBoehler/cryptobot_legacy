@@ -117,6 +117,7 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       return
     }
 
+    //LOWERED TO 75
     if (unrealizedPnlPcnt < -75) {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)

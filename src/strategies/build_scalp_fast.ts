@@ -19,12 +19,12 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (price === 0) return
     this.addOptionalPositionInfo(price)
 
-    //TODO: try with more steps as leverage increased
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
     const { position } = this.orderHelper
+    logger.debug({ entrySizeUSD, portfolio })
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
@@ -100,7 +100,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)
@@ -136,6 +135,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const profit = this.orderHelper.profitUSD
     const realizedProfits = position && 'realizedPnlUSD' in position ? position.realizedPnlUSD : 0
     const portfolio = this.startCapital + profit - inPosition + realizedProfits
+
+    //create a new veriable that tracks how much money has been withdrawn
+    //every 10_000 profit withdraw 1_000
+    // const withdraw = Math.floor(profit / 10_000) * 1_000
+    // const portfolioAfterWithdraw = portfolio - withdraw
 
     const entrySizeUSD = portfolio / steps
 

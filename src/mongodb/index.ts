@@ -590,7 +590,7 @@ class MongoWrapper {
     const pipeline = [
       {
         $sort: {
-          time: 1,
+          time: -1,
         },
       },
       {
@@ -639,12 +639,12 @@ class MongoWrapper {
         },
       },
       {
+        $limit,
+      },
+      {
         $sort: {
           time: 1,
         },
-      },
-      {
-        $limit,
       },
     ]
 

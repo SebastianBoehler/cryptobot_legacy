@@ -129,13 +129,14 @@ router.post('/trader/positions', async (req: Request, res: Response) => {
 })
 
 router.get('/trader/accBalances', async (req: Request, res: Response) => {
-  const { accHash, granularity } = req.query
+  const { accHash, granularity, limit } = req.query
   if (!accHash) {
     res.status(400).send('accHash query parameter is required')
     return
   }
+  const $limit = limit as number | undefined
 
-  const result = await client.getAccBalances(accHash as string, +(granularity || 15))
+  const result = await client.getAccBalances(accHash as string, +(granularity || 15), $limit)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })
