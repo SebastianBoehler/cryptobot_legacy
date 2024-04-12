@@ -531,7 +531,16 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const positionPre = okxClient.position
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
-    const order = await okxClient.placeMarketOrder(this.symbol, 'buy', amountContracts, clOrdId, false, type)
+    const order = await okxClient
+      .placeMarketOrder(this.symbol, 'buy', amountContracts, clOrdId, false, type)
+      .catch((e) => {
+        if (e.data[0].sMsg.includes('Insufficient USDT balance in account.')) {
+          logger.warn('Insufficient balance')
+          return
+        }
+        throw e
+      })
+    if (!order) return
 
     await sleep(1_000)
     const details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
