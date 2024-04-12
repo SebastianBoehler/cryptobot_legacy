@@ -368,6 +368,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         this.symbol
       )
 
+      logger.debug({ estMgn: +marginInfo.estMgn, margin })
       const increaseBy = (+marginInfo.estMgn - margin) * 1.01
       if (increaseBy > availCapital) {
         logger.warn(`[orderHelper > setLeverage] Not enough capital to increase margin`)

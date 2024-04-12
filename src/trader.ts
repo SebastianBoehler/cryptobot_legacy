@@ -80,6 +80,7 @@ async function main() {
     })
 
     if (index % 15 === 0 && pos) {
+      //prop comes from loading live position data on startup
       const obj = {
         ...pos,
         env: config.NODE_ENV,
