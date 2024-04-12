@@ -368,14 +368,21 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         this.symbol
       )
 
-      logger.debug({ estMgn: +marginInfo.estMgn, margin })
+      const estMgn = +marginInfo.estMgn
+      logger.debug({ estMgn, margin })
       const increaseBy = (+marginInfo.estMgn - margin) * 1.01
       if (increaseBy > availCapital) {
         logger.warn(`[orderHelper > setLeverage] Not enough capital to increase margin`)
         return
       }
       logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy.toFixed(2)}`)
-      await this.increaseMargin(increaseBy.toFixed(2))
+      if (increaseBy < 0) {
+        //for some reason less margin needed to maintain position
+        logger.debug(`[orderHelper > setLeverage] Less margin needed to maintain position`, {
+          decrease: (increaseBy * 0.95).toFixed(2),
+        })
+        await this.reduceMargin((increaseBy * 0.95).toFixed(2))
+      } else await this.increaseMargin(increaseBy.toFixed(2))
     }
 
     await sleep(1_000)
