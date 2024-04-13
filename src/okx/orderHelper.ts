@@ -401,11 +401,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     await okxClient.reduceMargin(this.symbol, posSide, amount)
   }
 
-  private increaseMargin(amount: string) {
+  private async increaseMargin(amount: string) {
     if (!this.position) throw new Error('[orderHelper > increaseMargin] No position found')
     const posSide = okxClient.position?.posSide || this.position.posSide
     logger.debug(`[orderHelper > increaseMargin] Increase margin by ${amount}`)
-    return okxClient.increaseMargin(this.symbol, posSide, amount)
+    await okxClient.increaseMargin(this.symbol, posSide, amount).catch((e) => {
+      logger.error(`[orderHelper > increaseMargin] Error increasing margin`, e)
+    })
   }
 
   public async getContractInfo() {
