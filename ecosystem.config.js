@@ -228,20 +228,20 @@ module.exports = {
       },
       watch: false
     },
-    {
-      name: 'hb_trader_op',
-      script: traderPath,
-      //out_file: "/dev/null", //disable logs from being written to file
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'SOL-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 250,
-        MULTIPLIER: 0.95,
-        EXCHANGE: 'okx',
-      },
-      watch: false
-    },
+    // {
+    //   name: 'hb_trader_op',
+    //   script: traderPath,
+    //   //out_file: "/dev/null", //disable logs from being written to file
+    //   env_prod: {
+    //     NODE_ENV: "prod",
+    //     SYMBOL: 'OP-USDT-SWAP',
+    //     STRATEGY: 'BUILD_SCALP_FAST',
+    //     START_CAPITAL: 250,
+    //     MULTIPLIER: 0.95,
+    //     EXCHANGE: 'okx',
+    //   },
+    //   watch: false
+    // },
     {
       name: 'hb_trader_jup',
       script: traderPath,
