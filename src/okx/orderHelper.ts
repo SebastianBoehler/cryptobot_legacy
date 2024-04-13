@@ -482,6 +482,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     if (!okxClient.position) return
+    logger.debug('loading orders with id', okxClient.position.posId)
     let orders = await mongo.getLiveOrders({ posId: okxClient.position.posId })
     let savedPos = this.position
     if (orders.length === 0) {
