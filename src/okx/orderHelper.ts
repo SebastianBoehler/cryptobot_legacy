@@ -335,12 +335,12 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     const prevLeverage = this.leverage
-    await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
-    this.leverage = leverage
-
     if (!this.position || !okxClient.position) return
     const margin = this.position.margin
+
     if (leverage > prevLeverage) {
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+      this.leverage = leverage
       logger.debug('[orderHelper > setLeverage] Reduce margin to new leverage')
       const posSide = okxClient.position?.posSide || this.position.type
       const marginInfo = await okxClient.getAdjustLeverageInfo(
@@ -383,6 +383,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         })
         await this.reduceMargin((increaseBy * 0.95).toFixed(2))
       } else await this.increaseMargin(increaseBy.toFixed(2))
+
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+      this.leverage = leverage
     }
 
     await sleep(1_000)

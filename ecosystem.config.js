@@ -152,6 +152,7 @@ module.exports = {
         START_CAPITAL: 200,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
