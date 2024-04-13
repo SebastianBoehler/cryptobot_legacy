@@ -222,7 +222,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 300,
+        START_CAPITAL: 700,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
