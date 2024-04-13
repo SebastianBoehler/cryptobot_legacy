@@ -381,7 +381,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         logger.debug(`[orderHelper > setLeverage] Less margin needed to maintain position`, {
           decrease: (increaseBy * 0.95).toFixed(2),
         })
-        await this.reduceMargin((increaseBy * 0.95).toFixed(2))
+        await this.reduceMargin((increaseBy * 0.95 * -1).toFixed(2))
       } else await this.increaseMargin(increaseBy.toFixed(2))
 
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
