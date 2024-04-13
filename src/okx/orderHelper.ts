@@ -492,6 +492,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         //@ts-ignore
         delete savedPos.strategy
         orders = savedPos.orders
+        orders = await mongo.getLiveOrders({ posId: okxClient.position.posId })
       }
       this.leverage = +okxClient.position.lever
     }
