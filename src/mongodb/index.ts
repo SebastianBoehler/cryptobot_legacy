@@ -547,7 +547,7 @@ class MongoWrapper {
       cursor.skip(page * 30).limit(30)
     }
 
-    const orders: CloseOrder[] = []
+    const orders: (Order | CloseOrder)[] = []
     while (await cursor.hasNext()) {
       const order = await cursor.next()
       if (order) orders.push(order)
