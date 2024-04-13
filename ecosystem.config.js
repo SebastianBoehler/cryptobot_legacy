@@ -207,7 +207,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'RNDR-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 1000,
+        START_CAPITAL: 600,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -222,7 +222,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 3500,
+        START_CAPITAL: 300,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -250,7 +250,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'JUP-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 700,
+        START_CAPITAL: 400,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -279,7 +279,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'AVAX-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 200,
+        START_CAPITAL: 100,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -294,7 +294,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'PYTH-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 450,
+        START_CAPITAL: 350,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -324,7 +324,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'LINK-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 350,
+        START_CAPITAL: 250,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
       },
@@ -338,7 +338,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'FTM-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 450,
+        START_CAPITAL: 350,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
