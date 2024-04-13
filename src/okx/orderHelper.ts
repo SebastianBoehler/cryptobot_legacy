@@ -494,12 +494,12 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         delete savedPos.strategy
         orders = savedPos.orders
       }
-      this.leverage = +okxClient.position.lever
     }
 
     const unrealizedPnlPcnt = +okxClient.position.profit * 100
     const unrealizedPnlUSD = +okxClient.position.uplUsd
 
+    this.leverage = +okxClient.position.lever
     this.position = {
       symbol: this.symbol,
       orders,
