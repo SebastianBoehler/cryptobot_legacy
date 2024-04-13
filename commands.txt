@@ -1,3 +1,7 @@
 Download log files
 
 scp -r root@157.230.22.214:/root/.pm2/logs ~/Downloads
+
+
+//clear log folder
+rm -rf /root/.pm2/logs/*

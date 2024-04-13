@@ -470,12 +470,16 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!this.position || orders.length === 0) {
       savedPos = await mongo.getLivePosition(client.position.posId)
 
-      // @ts-ignore
-      delete savedPos?.timestamp
+      if (savedPos) {
+        //@ts-ignore
+        delete savedPos.timestamp
+        //@ts-ignore
+        delete savedPos.strategy
+        orders = savedPos.orders
+        this.position = savedPos
+      }
 
-      orders = savedPos?.orders || []
       this.leverage = +client.position.lever
-      this.position = savedPos
     }
     if (!this.position) return
 
@@ -522,7 +526,14 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const positionPre = client.position
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
-    const order = await client.placeMarketOrder(this.symbol, 'Buy', baseAmount, clOrdId)
+    const order = await client.placeMarketOrder(this.symbol, 'Buy', baseAmount, clOrdId).catch((e) => {
+      if (e.message.includes('ab not enough for new order')) {
+        logger.error(`[orderHelper > openOrder] Insufficient balance for ${this.symbol}`)
+        return
+      }
+      throw e
+    })
+    if (!order) return
 
     await sleep(1_000)
     const details = await client.getOrderDetails(order.orderLinkId)

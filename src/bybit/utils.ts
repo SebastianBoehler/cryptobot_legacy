@@ -136,15 +136,20 @@ export class BybitClient {
     clOrdId: string = 'hb-' + createUniqueId(10)
   ) {
     if (clOrdId.length > 36) throw new Error('clOrdId must be less than 36 characters')
-    const response = await this.restClient.submitOrder({
-      category: 'linear',
-      symbol,
-      orderType: 'Market',
-      orderLinkId: clOrdId,
-      qty: qty.toString(),
-      side,
-      positionIdx: 0, // hedge mode disabled
-    })
+    const response = await this.restClient
+      .submitOrder({
+        category: 'linear',
+        symbol,
+        orderType: 'Market',
+        orderLinkId: clOrdId,
+        qty: qty.toString(),
+        side,
+        positionIdx: 0, // hedge mode disabled
+      })
+      .catch((e) => {
+        logger.error('Failed to place order', e)
+        throw e
+      })
 
     logger.debug(response)
 
