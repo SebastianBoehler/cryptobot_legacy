@@ -482,7 +482,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     if (!okxClient.position) return
-    let orders = this.position?.orders || []
+    let orders = this.position?.orders || (await mongo.getLiveOrders({ posId: okxClient.position.posId })) || []
     let savedPos = this.position
     if (orders.length === 0) {
       savedPos = await mongo.getLivePosition(okxClient.position.posId)
@@ -492,7 +492,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         //@ts-ignore
         delete savedPos.strategy
         orders = savedPos.orders
-        orders = await mongo.getLiveOrders({ posId: okxClient.position.posId })
       }
       this.leverage = +okxClient.position.lever
     }
