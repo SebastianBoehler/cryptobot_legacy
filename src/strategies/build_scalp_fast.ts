@@ -135,13 +135,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const profit = this.orderHelper.profitUSD
     const realizedProfits = position && 'realizedPnlUSD' in position ? position.realizedPnlUSD : 0
     const portfolio = this.startCapital + profit - inPosition + realizedProfits
-    logger.debug({
-      startCapital: this.startCapital,
-      profit,
-      inPosition,
-      realizedProfits,
-      portfolio,
-    })
 
     //create a new veriable that tracks how much money has been withdrawn
     //every 10_000 profit withdraw 1_000
