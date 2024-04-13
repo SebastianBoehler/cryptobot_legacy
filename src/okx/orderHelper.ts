@@ -335,7 +335,11 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     const prevLeverage = this.leverage
-    if (!this.position || !okxClient.position) return
+    if (!this.position || !okxClient.position) {
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+      this.leverage = leverage
+      return
+    }
     const margin = this.position.margin
 
     if (leverage > prevLeverage) {
