@@ -530,7 +530,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const amountContracts = Math.floor((amountUSD * this.leverage) / this.price / this.ctVal / this.ctMult)
     logger.debug('amountContracts', amountContracts, amountUSD, this.leverage, this.price, this.ctVal, this.ctMult)
-    logger.debug(Math.floor((((amountUSD * this.leverage) / this.price) * this.ctVal) / this.ctMult))
+    logger.debug((amountUSD * this.leverage) / this.price / this.ctVal / this.ctMult)
 
     if (amountContracts < 1) return
 
