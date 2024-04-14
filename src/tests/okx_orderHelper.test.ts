@@ -99,9 +99,9 @@ describe('run orderHelper tests', () => {
     const order3 = await orderHelper.openOrder('long', diff)
     if (!order3) throw new Error('no order')
 
-    expect(order3.size).toBe(26)
+    expect(order3.size).toBe(27)
     expect(order3.lever).toBe(4)
-    expect(order3.margin).toBe(13.1105)
+    expect(+order3.margin.toFixed(4)).toBe(13.6147)
 
     await orderHelper.update(2.016, new Date())
     const order4 = await orderHelper.closeOrder(27)
@@ -111,11 +111,66 @@ describe('run orderHelper tests', () => {
     expect(+order4.fee.toFixed(4)).toBe(-0.0272)
 
     await orderHelper.update(2.013, new Date())
-    await orderHelper.closeOrder(27)
+    await orderHelper.closeOrder(28)
 
     const pos3 = orderHelper.position
     expect(pos3).toBe(null)
   })
 
-  //check for profit calculation order.bruttoPnlUSD especially
+  test('increasing and decreasing lever & margin', async () => {
+    const symbol = 'FIL-USDT-SWAP'
+    const orderHelper = new OrderHelper(symbol, false)
+    await orderHelper.getContractInfo()
+    orderHelper.setLeverage(2, 'long', 60)
+
+    orderHelper.update(6.05, new Date())
+    const order = await orderHelper.openOrder('long', 20)
+    if (!order) throw new Error('no order')
+
+    expect(order.size).toBe(66)
+    expect(order.lever).toBe(2)
+    expect(+order.margin).toBe(19.965)
+    expect(+order.fee).toBe(-0.019965)
+
+    orderHelper.setLeverage(3, 'long', 40.015035)
+    orderHelper.setLeverage(4, 'long', 46.605035)
+
+    const pos = orderHelper.position
+    if (!pos) throw new Error('no position')
+    expect(pos.margin).toBeGreaterThan(10.085)
+
+    orderHelper.setLeverage(5, 'long', 49.895035)
+
+    const pos2 = orderHelper.position
+    if (!pos2) throw new Error('no position')
+    expect(pos2.leverage).toBe(5)
+
+    orderHelper.update(6.032, new Date())
+    const order2 = await orderHelper.openOrder('long', 17.265011666666666)
+    if (!order2) throw new Error('no order')
+
+    expect(order2.size).toBe(143)
+    expect(order2.lever).toBe(5)
+    expect(+order2.margin.toFixed(5)).toBe(17.25152)
+
+    orderHelper.setLeverage(4, 'long', 34.5003862)
+
+    const pos3 = orderHelper.position
+    if (!pos3) throw new Error('no position')
+
+    expect(pos3.margin).toBeGreaterThan(31.97652)
+
+    orderHelper.setLeverage(3, 'long', 27.9603862)
+
+    const pos4 = orderHelper.position
+    if (!pos4) throw new Error('no position')
+
+    orderHelper.setLeverage(2, 'long', 17.3403862)
+
+    const pos5 = orderHelper.position
+    if (!pos5) throw new Error('no position')
+
+    expect(pos5.margin).toBe(pos4.margin)
+    expect(pos5.leverage).toBe(3)
+  })
 })

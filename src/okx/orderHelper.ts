@@ -58,13 +58,13 @@ export class OrderHelper implements IOrderHelper {
 
       if (ratio > 1) {
         const marginLeft = margin / ratio
-        //0.95 to be safe
-        const reducedBy = (margin - marginLeft) * 0.95
+        //reduce to be safe
+        const reducedBy = (margin - marginLeft) * 0.98
         updatedMargin = margin - reducedBy
       } else {
         //increase margin
-        const marginRequired = margin / ratio
-        const increaseBy = (marginRequired - margin) * 1.05
+        const marginRequired = (margin / ratio) * 1.014
+        const increaseBy = marginRequired - margin
         if (increaseBy > availCapital) {
           logger.debug(`[orderHelper > setLeverage] Not enough capital to increase margin`)
           return
