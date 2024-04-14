@@ -382,10 +382,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy.toFixed(2)}`)
       if (increaseBy < 0) {
         //for some reason less margin needed to maintain position
-        logger.debug(`[orderHelper > setLeverage] Less margin needed to maintain position`, {
-          decrease: (increaseBy * 0.95).toFixed(2),
+        logger.warn(`[orderHelper > setLeverage] Less margin needed to maintain position`, {
+          decrease: (increaseBy * 0.98 * -1).toFixed(2),
         })
-        await this.reduceMargin((increaseBy * 0.95 * -1).toFixed(2))
+        await this.reduceMargin((increaseBy * 0.98 * -1).toFixed(2))
       } else await this.increaseMargin(increaseBy.toFixed(2))
 
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
@@ -489,7 +489,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug('loading orders with id', okxClient.position.posId)
     let orders = this.position?.orders || []
     let savedPos = this.position
-    if (orders.length === 0) {
+    if (orders.length < 1) {
       savedPos = await mongo.getLivePosition(okxClient.position.posId)
       if (savedPos) {
         //@ts-ignore
@@ -497,6 +497,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         //@ts-ignore
         delete savedPos.strategy
         orders = savedPos.orders
+      }
+      if (orders.length < 1) {
+        orders = await mongo.getLiveOrders({ posId: okxClient.position.posId }, undefined, { time: 1 })
       }
     }
 
