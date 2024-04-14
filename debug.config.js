@@ -10,7 +10,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'DOGE-USDT-SWAP',
         STRATEGY: 'TESTING',
-        START_CAPITAL: 50,
+        START_CAPITAL: 60,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'

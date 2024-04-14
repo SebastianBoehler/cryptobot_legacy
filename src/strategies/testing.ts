@@ -1,6 +1,6 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
-import { createUniqueId } from '../utils'
+import { createUniqueId, logger } from '../utils'
 import { differenceInSeconds } from 'date-fns'
 
 let action: number = 0
@@ -23,6 +23,7 @@ export class TESTING extends Base implements Strategy {
       portfolio: number
     }>()
     const { position } = this.orderHelper
+    logger.debug('[strategy > update]', { entrySizeUSD, portfolio })
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
