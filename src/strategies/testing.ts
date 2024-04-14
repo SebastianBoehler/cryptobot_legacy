@@ -40,14 +40,17 @@ export class TESTING extends Base implements Strategy {
       if (action < 3) {
         await this.orderHelper.setLeverage(leverage + 1, 'long', portfolio)
         action++
+        return
       }
       if (action === 3) {
         await this.orderHelper.openOrder('long', entrySizeUSD, 'add' + createUniqueId(10))
         action++
+        return
       }
       if (action > 3 && leverage > 1) {
         await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
         action++
+        return
       }
       if (action === 6) {
         await this.orderHelper.closeOrder(ctSize)

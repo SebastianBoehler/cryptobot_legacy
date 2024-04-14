@@ -351,11 +351,11 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     )
     const estMgn = +marginInfo.estMgn
 
-    const marginChange = estMgn - margin
+    const marginChange = +marginInfo.estAvailTrans * -1 // means how much margins to transfer out
+
     logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
-    logger.debug(`[orderHelper > setLeverage] estTrans ${marginInfo.estAvailTrans}`)
 
     await sendMail(
       `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`,
@@ -375,7 +375,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       this.leverage = leverage
     }
     if (marginChange < 0) {
-      const reducedBy = +marginInfo.estAvailTrans * 0.99
+      const reducedBy = marginChange * 0.99 * -1
       logger.debug(`[orderHelper > setLeverage] Reduce margin by ${reducedBy}`)
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
       this.leverage = leverage
@@ -388,7 +388,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       ...this.position,
       margin: +okxClient.position.margin,
       liquidationPrice: okxClient.position.liqPrice,
-      leverage: +okxClient.position.lever,
+      leverage,
     }
   }
 
@@ -475,7 +475,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     if (!okxClient.position) return
-    logger.debug('loading orders with id', okxClient.position.posId)
     let orders = this.position?.orders || []
     let savedPos = this.position
     if (orders.length < 1) {
@@ -490,6 +489,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         this.profitUSD = savedPos.profitUSD
       }
       if (orders.length < 1) {
+        logger.debug('loading orders with id', okxClient.position.posId)
         orders = await mongo.getLiveOrders({ posId: okxClient.position.posId }, undefined, { time: 1 })
       }
     }
