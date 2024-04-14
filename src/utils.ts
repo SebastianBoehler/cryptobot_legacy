@@ -1,3 +1,15 @@
+import nodemailer from 'nodemailer'
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com.',
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'admin@sebastian-boehler.com',
+    pass: 'pqfu kbyz ihln uaia',
+  },
+})
+
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const createChunks = <T>(array: T[], chunkSize: number): T[][] => {
@@ -60,4 +72,22 @@ export function toDecimals(value: number, decimals: number) {
     .toString()
     .match(new RegExp('^-?\\d+(?:.\\d{0,' + decimals + '})?'))!
   return +arr[0]
+}
+
+export const sendMail = async (text: string, subject: string = 'Cryptobot') => {
+  try {
+    await transporter.sendMail({
+      from: 'admin@sebastian-boehler.com',
+      to: 'basti.boehler@hotmail.de',
+      subject,
+      html: `
+            <div style="padding=25px"> 
+                <h1>${subject}</h1>
+                <p>${text}</p>
+            </div>
+        `,
+    })
+  } catch (error) {
+    logger.error('Error sending mail', error)
+  }
 }

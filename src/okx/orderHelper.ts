@@ -1,7 +1,7 @@
 import { CloseOrder, ClosedPosition, Indicators, Order, Position } from 'cryptobot-types'
 import MongoWrapper from '../mongodb'
 import { OkxClient } from './utils'
-import { createUniqueId, logger, sleep } from '../utils'
+import { createUniqueId, logger, sendMail, sleep } from '../utils'
 import { omit } from 'lodash'
 import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
@@ -386,6 +386,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
           decrease: (increaseBy * 0.98 * -1).toFixed(2),
         })
         await this.reduceMargin((increaseBy * 0.98 * -1).toFixed(2))
+        await sendMail(
+          `IncreaseBy value is negative on ${this.symbol}. Leverage adjusted from ${prevLeverage} to ${leverage}`,
+          `Less margin needed to maintain position`
+        )
       } else await this.increaseMargin(increaseBy.toFixed(2))
 
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
