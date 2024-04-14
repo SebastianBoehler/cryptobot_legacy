@@ -377,6 +377,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+    this.leverage = leverage
 
     await sleep(1_000)
     this.position = {
@@ -528,6 +529,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!this.leverage) throw new Error('[orderHelper] Leverage not set')
 
     const amountContracts = Math.floor((amountUSD * this.leverage) / this.price / this.ctVal / this.ctMult)
+    logger.debug('amountContracts', amountContracts, this.leverage)
 
     if (amountContracts < 1) return
 

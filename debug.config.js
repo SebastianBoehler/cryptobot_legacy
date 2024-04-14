@@ -15,7 +15,8 @@ module.exports = {
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },
-      watch: false
+      watch: false,
+      log_date_format,
     },
   ],
 }
