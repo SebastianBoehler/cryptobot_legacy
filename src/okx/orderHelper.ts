@@ -355,6 +355,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
+    logger.debug(
+      `[orderHelper > setLeverage] estTrans ${marginInfo.estAvailTrans} / estQuoteTrans ${marginInfo.estAvailQuoteTrans}`
+    )
 
     await sendMail(
       `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`,
@@ -369,6 +372,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }
       logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy}`)
       await this.increaseMargin(increaseBy.toFixed(2))
+      await sleep(1_000)
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
       this.leverage = leverage
     }
@@ -377,6 +381,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       logger.debug(`[orderHelper > setLeverage] Reduce margin by ${reducedBy}`)
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
       this.leverage = leverage
+      await sleep(1_000)
       await this.reduceMargin(reducedBy.toFixed(2))
     }
 
