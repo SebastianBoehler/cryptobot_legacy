@@ -529,7 +529,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!this.leverage) throw new Error('[orderHelper] Leverage not set')
 
     const amountContracts = Math.floor((amountUSD * this.leverage) / this.price / this.ctVal / this.ctMult)
-    logger.debug('amountContracts', amountContracts, this.leverage, amountUSD, this.price, this.ctVal, this.ctMult)
+    logger.debug('amountContracts', amountContracts, amountUSD, this.leverage, this.price, this.ctVal, this.ctMult)
+    logger.debug(Math.floor((((amountUSD * this.leverage) / this.price) * this.ctVal) / this.ctMult))
 
     if (amountContracts < 1) return
 
