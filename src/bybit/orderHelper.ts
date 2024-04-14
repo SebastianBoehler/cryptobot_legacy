@@ -477,10 +477,11 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         delete savedPos.strategy
         orders = savedPos.orders
         this.position = savedPos
+        //@ts-ignore
+        this.profitUSD = savedPos.profitUSD
       }
-
-      this.leverage = +client.position.lever
     }
+    this.leverage = +client.position.lever
     if (!this.position) return
 
     const unrealizedPnlUSD = this.calculateProfit(this.price, client.position.ctSize, client.position.type)
@@ -507,9 +508,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       liquidationPrice: +client.position.liqPrice,
     }
 
-    //TODO: add proper type
-    // @ts-ignore
-    if (savedPos && savedPos.profitUSD) this.profitUSD = savedPos.profitUSD
     return this.position
   }
 

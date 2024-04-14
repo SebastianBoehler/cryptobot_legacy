@@ -334,67 +334,49 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       return
     }
 
-    const prevLeverage = this.leverage
     if (!this.position || !okxClient.position) {
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
       this.leverage = leverage
       return
     }
+
     const margin = this.position.margin
+    const posSide = okxClient.position.posSide
+    const marginInfo = await okxClient.getAdjustLeverageInfo(
+      'SWAP',
+      'isolated',
+      leverage.toString(),
+      posSide,
+      this.symbol
+    )
+    const estMgn = +marginInfo.estMgn
 
-    if (leverage > prevLeverage) {
-      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
-      this.leverage = leverage
-      logger.debug('[orderHelper > setLeverage] Reduce margin to new leverage')
-      const posSide = okxClient.position?.posSide || this.position.type
-      const marginInfo = await okxClient.getAdjustLeverageInfo(
-        'SWAP',
-        'isolated',
-        leverage.toString(),
-        posSide,
-        this.symbol
-      )
+    const marginChange = estMgn - margin
+    logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
+    logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
+    logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
 
-      const reduceBy = (margin - +marginInfo.estMgn) * 0.99
-      await this.reduceMargin(reduceBy.toString())
-    } else {
-      logger.debug('[orderHelper > setLeverage] Increase margin to new leverage', {
-        leverage,
-        prevLeverage,
-        availCapital,
-      })
-      const posSide = okxClient.position?.posSide || this.position.type
-      const marginInfo = await okxClient.getAdjustLeverageInfo(
-        'SWAP',
-        'isolated',
-        leverage.toString(),
-        posSide,
-        this.symbol
-      )
+    await sendMail(
+      'Leverage Change',
+      `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`
+    )
 
-      const estMgn = +marginInfo.estMgn
-      logger.debug({ estMgn, margin })
-      const increaseBy = (+marginInfo.estMgn - margin) * 1.01
+    if (marginChange > 0) {
+      const increaseBy = marginChange * 1.01
       if (increaseBy > availCapital) {
-        logger.warn(`[orderHelper > setLeverage] Not enough capital to increase margin`)
+        logger.debug(`[orderHelper > setLeverage] Not enough capital to increase margin`)
         return
       }
-      logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy.toFixed(2)}`)
-      if (increaseBy < 0) {
-        //for some reason less margin needed to maintain position
-        logger.warn(`[orderHelper > setLeverage] Less margin needed to maintain position`, {
-          decrease: (increaseBy * 0.98 * -1).toFixed(2),
-        })
-        await this.reduceMargin((increaseBy * 0.98 * -1).toFixed(2))
-        await sendMail(
-          `IncreaseBy value is negative on ${this.symbol}. Leverage adjusted from ${prevLeverage} to ${leverage}`,
-          `Less margin needed to maintain position`
-        )
-      } else await this.increaseMargin(increaseBy.toFixed(2))
-
-      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
-      this.leverage = leverage
+      logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy}`)
+      await this.increaseMargin(increaseBy.toFixed(2))
     }
+    if (marginChange < 0) {
+      const reducedBy = marginChange * 0.99
+      logger.debug(`[orderHelper > setLeverage] Reduce margin by ${reducedBy}`)
+      await this.reduceMargin(reducedBy.toFixed(2))
+    }
+
+    await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
 
     await sleep(1_000)
     this.position = {
@@ -499,6 +481,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         //@ts-ignore
         delete savedPos.strategy
         orders = savedPos.orders
+        //@ts-ignore
+        this.profitUSD = savedPos.profitUSD
       }
       if (orders.length < 1) {
         orders = await mongo.getLiveOrders({ posId: okxClient.position.posId }, undefined, { time: 1 })
@@ -534,9 +518,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       accHash: this.accHash,
     }
 
-    //TODO: add proper type
-    // @ts-ignore
-    if (savedPos && savedPos.profitUSD) this.profitUSD = savedPos.profitUSD
     return this.position
   }
 

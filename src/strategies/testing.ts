@@ -3,6 +3,8 @@ import { Base } from './base'
 import { createUniqueId } from '../utils'
 import { differenceInSeconds } from 'date-fns'
 
+let action: number = 0
+
 export class TESTING extends Base implements Strategy {
   public readonly name = 'testing'
   public startCapital = 80
@@ -24,7 +26,7 @@ export class TESTING extends Base implements Strategy {
 
     if (!position) {
       const clOrdId = 'first' + createUniqueId(10)
-      await this.orderHelper.setLeverage(5, 'long', portfolio)
+      await this.orderHelper.setLeverage(2, 'long', portfolio)
       await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       return
     }
@@ -32,15 +34,25 @@ export class TESTING extends Base implements Strategy {
     const { orders, leverage, ctSize } = position
     const lastOrder = orders[orders.length - 1]
 
-    if (differenceInSeconds(time, lastOrder.time) > 25 && leverage > 1) {
-      await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
+    if (differenceInSeconds(time, lastOrder.time) % 25 === 0) {
+      //every 25 seconds
+      if (action < 3) {
+        await this.orderHelper.setLeverage(leverage + 1, 'long', portfolio)
+        action++
+      }
+      if (action === 3) {
+        await this.orderHelper.openOrder('long', entrySizeUSD, 'add' + createUniqueId(10))
+        action++
+      }
+      if (action > 3 && leverage > 1) {
+        await this.orderHelper.setLeverage(leverage - 1, 'long', portfolio)
+        action++
+      }
+      if (action === 6) {
+        await this.orderHelper.closeOrder(ctSize)
+        action = 0
+      }
     }
-
-    if (differenceInSeconds(time, lastOrder.time) > 60) {
-      await this.orderHelper.closeOrder(ctSize)
-    }
-
-    return
   }
 
   calculateEntrySizeUSD<T>(steps: number = this.steps): T {
