@@ -357,8 +357,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
 
     await sendMail(
-      'Leverage Change',
-      `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`
+      `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`,
+      'Leverage Change'
     )
 
     if (marginChange > 0) {
@@ -369,15 +369,16 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }
       logger.debug(`[orderHelper > setLeverage] Increase margin by ${increaseBy}`)
       await this.increaseMargin(increaseBy.toFixed(2))
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+      this.leverage = leverage
     }
     if (marginChange < 0) {
-      const reducedBy = marginChange * 0.99
+      const reducedBy = marginChange * 0.99 * -1
       logger.debug(`[orderHelper > setLeverage] Reduce margin by ${reducedBy}`)
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+      this.leverage = leverage
       await this.reduceMargin(reducedBy.toFixed(2))
     }
-
-    await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
-    this.leverage = leverage
 
     await sleep(1_000)
     this.position = {
@@ -530,7 +531,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const amountContracts = Math.floor((amountUSD * this.leverage) / this.price / this.ctVal / this.ctMult)
     logger.debug('amountContracts', amountContracts, amountUSD, this.leverage, this.price, this.ctVal, this.ctMult)
-    logger.debug(Math.floor(amountUSD * this.leverage * this.price))
 
     if (amountContracts < 1) return
 
