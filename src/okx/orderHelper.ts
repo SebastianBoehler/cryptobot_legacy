@@ -1,7 +1,7 @@
 import { CloseOrder, ClosedPosition, Indicators, Order, Position } from 'cryptobot-types'
 import MongoWrapper from '../mongodb'
 import { OkxClient } from './utils'
-import { createUniqueId, logger, sendMail, sleep } from '../utils'
+import { createUniqueId, logger, sleep } from '../utils'
 import { omit } from 'lodash'
 import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
@@ -357,11 +357,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
 
-    await sendMail(
-      `Adjusting leverage for ${this.symbol} from ${okxClient.position.lever} to ${leverage}x. Required margin change: ${marginChange} USDT. Available capital: ${availCapital} USDT.`,
-      'Leverage Change'
-    )
-
     if (marginChange > 0) {
       const increaseBy = marginChange * 1.01
       if (increaseBy > availCapital) {
@@ -388,7 +383,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       ...this.position,
       margin: +okxClient.position.margin,
       liquidationPrice: okxClient.position.liqPrice,
-      leverage,
+      leverage: +okxClient.position.lever,
     }
   }
 
