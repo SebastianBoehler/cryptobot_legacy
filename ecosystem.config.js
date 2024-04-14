@@ -164,7 +164,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 250,
+        START_CAPITAL: 350,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
       },
@@ -222,7 +222,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 1200,
+        START_CAPITAL: 1300,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
@@ -352,7 +352,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'FLOKI-USDT-SWAP',
-        STRATEGY: 'BUILD_FAST',
+        STRATEGY: 'SCALP_TEST',
         START_CAPITAL: 150,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
@@ -367,8 +367,8 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'RSR-USDT-SWAP',
-        STRATEGY: 'SCALP_TEST',
-        START_CAPITAL: 200,
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 250,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
       },
