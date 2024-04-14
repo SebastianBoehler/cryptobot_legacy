@@ -8,7 +8,7 @@ module.exports = {
       script: traderPath,
       env_prod: {
         NODE_ENV: "prod",
-        SYMBOL: 'DOGE-USDT-SWAP',
+        SYMBOL: 'FIL-USDT-SWAP',
         STRATEGY: 'TESTING',
         START_CAPITAL: 60,
         MULTIPLIER: 0.95,
