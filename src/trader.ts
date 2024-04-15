@@ -1,4 +1,4 @@
-import { Indicators, LivePosition } from 'cryptobot-types'
+import { Indicators, MongoLivePosition } from 'cryptobot-types'
 import { GenerateIndicators } from './indicators'
 import { logger, sleep } from './utils'
 import { BUILD_SCALP_FAST } from './strategies/build_scalp_fast'
@@ -81,7 +81,7 @@ async function main() {
 
     if (index % 15 === 0 && pos) {
       //prop comes from loading live position data on startup
-      const obj: LivePosition = {
+      const obj: MongoLivePosition = {
         ...pos,
         env: config.NODE_ENV,
         strategy: {
@@ -94,7 +94,7 @@ async function main() {
         exchange,
       }
       await mongo.saveLivePosition(obj).catch((e) => {
-        logger.error('[mongodb] saving live position', e)
+        logger.error('[mongodb] error saving live position', e)
       })
       index = 0
     }
