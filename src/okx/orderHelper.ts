@@ -359,6 +359,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
 
+    if (marginChange === 0) await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+
     if (marginChange > 0) {
       const increaseBy = marginChange * 1.01
       if (increaseBy > availCapital) {

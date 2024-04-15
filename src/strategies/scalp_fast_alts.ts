@@ -25,6 +25,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       portfolio: number
     }>()
     const { position } = this.orderHelper
+    logger.debug({ entrySizeUSD, portfolio })
 
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
 
@@ -102,7 +103,6 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)

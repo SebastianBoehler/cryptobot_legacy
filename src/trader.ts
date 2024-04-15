@@ -90,7 +90,7 @@ async function main() {
           multiplier: strategy.multiplier,
         },
         profitUSD,
-        timestamp: new Date().toString(),
+        timestamp: new Date(),
         exchange,
       }
       await mongo.saveLivePosition(obj).catch((e) => {

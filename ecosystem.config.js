@@ -167,6 +167,7 @@ module.exports = {
         START_CAPITAL: 350,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
@@ -181,6 +182,7 @@ module.exports = {
         START_CAPITAL: 350,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
@@ -268,6 +270,7 @@ module.exports = {
         START_CAPITAL: 200,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
@@ -327,6 +330,7 @@ module.exports = {
         START_CAPITAL: 250,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
@@ -371,6 +375,7 @@ module.exports = {
         START_CAPITAL: 250,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
       },
       watch: false
     },
