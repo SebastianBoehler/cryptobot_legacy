@@ -381,7 +381,7 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: 'CORE-USDT-SWAP',
-        STRATEGY: 'BUILD_SCALP_FAST',
+        STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 200,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',

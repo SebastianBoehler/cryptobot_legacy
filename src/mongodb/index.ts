@@ -12,8 +12,10 @@ import {
   GeneratedCandle,
   Order,
   ExtendedOrder,
+  TraderAction,
+  MongoLivePosition,
 } from 'cryptobot-types'
-import { IOrderHelperPos, LivePosition } from '../types'
+import { IOrderHelperPos } from '../types'
 
 class MongoWrapper {
   private db: string
@@ -500,7 +502,7 @@ class MongoWrapper {
     return candles
   }
 
-  async saveLivePosition<T extends IOrderHelperPos>(position: T) {
+  async saveLivePosition(position: MongoLivePosition) {
     if (!position.posId) return
     const db = this.client.db('trader')
     const collection = db.collection('livePositions')
@@ -559,7 +561,7 @@ class MongoWrapper {
   async getLivePositions(ids: string[]) {
     const db = this.client.db('trader')
     const collection = db.collection('livePositions')
-    const cursor = collection.aggregate<LivePosition>([
+    const cursor = collection.aggregate<MongoLivePosition>([
       {
         $match: {
           posId: {
@@ -574,7 +576,7 @@ class MongoWrapper {
       },
     ])
 
-    const positions: LivePosition[] = []
+    const positions = []
     while (await cursor.hasNext()) {
       const position = await cursor.next()
       if (position) positions.push(position)
@@ -656,6 +658,16 @@ class MongoWrapper {
     }
 
     return values
+  }
+
+  async storeAction(action: TraderAction | TraderAction[]) {
+    const db = this.client.db('trader')
+    const collection = db.collection('actions')
+    if (Array.isArray(action)) {
+      await collection.insertMany(action)
+    } else {
+      await collection.insertOne(action)
+    }
   }
 }
 

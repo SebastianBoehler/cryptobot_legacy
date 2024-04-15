@@ -334,6 +334,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       return
     }
 
+    const prevLever = this.leverage
+
     if (!this.position || !okxClient.position) {
       await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
       this.leverage = leverage
@@ -379,6 +381,29 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     await sleep(1_000)
+
+    const baseAction = {
+      symbol: this.symbol,
+      posId: okxClient.position.posId,
+      accHash: this.accHash,
+      time: new Date(),
+    }
+
+    await mongo.storeAction([
+      {
+        ...baseAction,
+        action: 'leverage change',
+        prev: prevLever,
+        after: leverage,
+      },
+      {
+        ...baseAction,
+        action: 'margin change',
+        prev: margin,
+        after: +okxClient.position.margin,
+      },
+    ])
+
     this.position = {
       ...this.position,
       margin: +okxClient.position.margin,

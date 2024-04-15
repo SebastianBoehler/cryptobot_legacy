@@ -343,6 +343,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       return
     }
 
+    const prevLever = this.leverage
     const ratio = leverage / this.leverage
     const margin = this.position?.margin || 0
 
@@ -372,6 +373,29 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       liquidationPrice: client.position.liqPrice,
       leverage: +client.position.lever,
     }
+
+    await sleep(1_000)
+    const baseAction = {
+      symbol: this.symbol,
+      posId: this.position.posId,
+      accHash: this.accHash,
+      time: new Date(),
+    }
+
+    await mongo.storeAction([
+      {
+        ...baseAction,
+        action: 'leverage change',
+        prev: prevLever,
+        after: leverage,
+      },
+      {
+        ...baseAction,
+        action: 'margin change',
+        prev: margin,
+        after: +client.position.margin,
+      },
+    ])
   }
 
   private calculateProfit(price: number, baseAmount: number, type: 'long' | 'short') {
