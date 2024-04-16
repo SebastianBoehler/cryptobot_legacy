@@ -42,6 +42,7 @@ export class BybitClient {
       if (!this.symbol) throw new Error('[bybit client] Symbol not set')
       const data = event.data.find((d) => d.symbol === this.symbol)
       if (!data) return
+      logger.debug('ws position event', data)
       const ctSize = +data.size
       const posId = data.createdTime + data.symbol
 

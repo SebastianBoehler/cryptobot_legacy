@@ -366,6 +366,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     this.leverage = leverage
 
     if (!client.position || !this.position) return
+    await sleep(1_000)
 
     this.position = {
       ...this.position,
@@ -374,7 +375,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       leverage: +client.position.lever,
     }
 
-    await sleep(1_000)
     const baseAction = {
       symbol: this.symbol,
       posId: this.position.posId,

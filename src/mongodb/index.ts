@@ -15,7 +15,6 @@ import {
   TraderAction,
   MongoLivePosition,
 } from 'cryptobot-types'
-import { IOrderHelperPos } from '../types'
 
 class MongoWrapper {
   private db: string
@@ -519,14 +518,14 @@ class MongoWrapper {
     )
   }
 
-  async getLivePosition<T extends IOrderHelperPos>(posId: string) {
+  async getLivePosition(posId: string) {
     const db = this.client.db('trader')
     const collection = db.collection('livePositions')
     const result = await collection
       .find({
         posId,
       })
-      .project<T>({
+      .project<MongoLivePosition>({
         _id: 0,
       })
       .toArray()
