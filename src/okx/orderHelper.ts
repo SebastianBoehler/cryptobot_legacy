@@ -28,7 +28,7 @@ export class OrderHelper implements IOrderHelper {
   public identifier: string | undefined
   public lastPosition: ClosedPosition | null = null
   public profitUSD = 0
-  //private indicators: Indicators[] = []
+  private indicators: Indicators[] | undefined
 
   constructor(symbol: string, saveToMongo?: boolean) {
     this.symbol = symbol
@@ -117,6 +117,7 @@ export class OrderHelper implements IOrderHelper {
 
   //TODO: load fee rate from okx during initialize process
   private calculateFee(posSizeInUSD: number) {
+    if (posSizeInUSD < 0) throw new Error('[orderHelper > calculateFee] Position size must be positive')
     const fee = posSizeInUSD * 0.0005
     return -fee
   }
@@ -124,7 +125,7 @@ export class OrderHelper implements IOrderHelper {
   public update(price: number, time: Date, indicators?: Indicators[]) {
     this.price = price
     this.time = time
-    //this.indicators = indicators || []
+    this.indicators = indicators || []
     if (!this.position) return
     const { type } = this.position
 
@@ -167,6 +168,7 @@ export class OrderHelper implements IOrderHelper {
       time: this.time,
       symbol: this.symbol,
       accHash: 'backtester',
+      indicators: this.indicators,
     }
 
     const orders = this.position?.orders || []
@@ -226,6 +228,7 @@ export class OrderHelper implements IOrderHelper {
       posAvgEntryPrice: this.position.avgEntryPrice,
       symbol: this.symbol,
       accHash: 'backtester',
+      indicators: this.indicators,
     }
 
     const orders = this.position?.orders || []
@@ -285,6 +288,25 @@ export class OrderHelper implements IOrderHelper {
     }
 
     return profit
+  }
+
+  public calculatePriceForPnl(pnl: number, amountCt: number, type: 'long' | 'short') {
+    if (!this.ctVal || !this.ctMult) throw new Error('[orderHelper] No contract info found')
+    if (!amountCt) throw new Error('[orderHelper] No contracts specified')
+    if (!this.position) throw new Error('[orderHelper] No position found')
+
+    const entryPrice = this.position.avgEntryPrice
+    const entryValue = entryPrice * amountCt * this.ctVal * this.ctMult
+
+    let exitValue = 0
+    if (type === 'long') {
+      exitValue = entryValue + pnl
+    } else if (type === 'short') {
+      exitValue = entryValue - pnl
+    }
+
+    const exitPrice = exitValue / (amountCt * this.ctVal * this.ctMult)
+    return exitPrice
   }
 
   public convertUSDToContracts(price: number, amountUSD: number) {

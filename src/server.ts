@@ -60,19 +60,25 @@ server.use(middleware)
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 250, // Limit each IP to 30 requests per `window` (here, per 15 minutes)
+  max: 150, // Limit each IP to 30 requests per `window` (here, per 15 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 })
 
+server.use('/mongodb', mongoRoutes)
 server.use(limiter)
 
-server.use('/mongodb', mongoRoutes)
 server.use('/pm2', pm2Routes)
 
 server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
+  if (config.NODE_ENV === 'prod') {
+    res.status(401).send({
+      message: 'Unauthorized',
+    })
+    return
+  }
   const symbol = req.params.symbol
-  const { start, amount, strategy, steps, multiplier, exchange = 'okx' } = req.body
+  const { start, amount, strategy, steps, multiplier, exchange } = req.body
   const id = 'site-' + createUniqueId(8)
   if (!symbol) {
     res.status(400).send({
@@ -80,7 +86,7 @@ server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => 
     })
     return
   }
-  if (!start || !strategy || !amount || !steps) {
+  if (!start || !strategy || !amount || !steps || !exchange) {
     res.status(400).send({
       message: 'Body params not valid, missing data',
     })

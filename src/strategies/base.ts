@@ -1,8 +1,14 @@
 import { Indicators } from 'cryptobot-types'
-import { createUniqueId } from '../utils'
+import { createUniqueId, logger } from '../utils'
 import { ILiveOrderHelper, IOrderHelper } from '../types'
 import { LiveOrderHelper as OkxLiveOrderHelper, OrderHelper as OkxOrderHelper } from '../okx/orderHelper'
 import { OrderHelper as BybitOrderHelper, LiveOrderHelper as BybitLiveOrderHelper } from '../bybit/orderHelper'
+
+interface OptionalPosInfo {
+  price: number
+  highestPrice?: number
+  lowestPrice?: number
+}
 
 export class Base {
   public orderHelper: IOrderHelper | ILiveOrderHelper | undefined
@@ -27,7 +33,7 @@ export class Base {
     return obj
   }
 
-  public addOptionalPositionInfo(price: number, highestPrice?: number, lowestPrice?: number) {
+  public addOptionalPositionInfo({ price, highestPrice, lowestPrice }: OptionalPosInfo) {
     if (!this.orderHelper?.position) return
 
     const { position } = this.orderHelper
@@ -37,6 +43,17 @@ export class Base {
 
     if (!position.highestPrice || price > position.highestPrice) position.highestPrice = price
     if (!position.lowestPrice || price < position.lowestPrice) position.lowestPrice = price
+
+    //calc max drawdown
+    if (position.unrealizedPnlPcnt) {
+      const drawdown = position.unrealizedPnlPcnt
+      if (drawdown < -100) {
+        logger.error('drawdown below -100', drawdown, position.leverage)
+      }
+      if (!position.maxDrawdown || drawdown < position.maxDrawdown) {
+        position.maxDrawdown = drawdown
+      }
+    }
   }
 
   public calculateEntrySizeUSD() {

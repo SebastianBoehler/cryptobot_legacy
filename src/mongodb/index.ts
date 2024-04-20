@@ -668,6 +668,24 @@ class MongoWrapper {
       await collection.insertOne(action)
     }
   }
+
+  async getActions(query: Record<string, any>, page?: number, sort: Record<string, 1 | -1> = { time: -1 }) {
+    const db = this.client.db('trader')
+    const collection = db.collection('actions')
+    const cursor = collection.find<TraderAction>(query).sort(sort)
+
+    if (page !== undefined) {
+      cursor.skip(page * 30).limit(30)
+    }
+
+    const actions: TraderAction[] = []
+    while (await cursor.hasNext()) {
+      const action = await cursor.next()
+      if (action) actions.push(action)
+    }
+
+    return actions
+  }
 }
 
 export default MongoWrapper

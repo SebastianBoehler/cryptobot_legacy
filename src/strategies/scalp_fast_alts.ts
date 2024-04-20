@@ -17,7 +17,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
 
     await this.orderHelper.update(price, time, indicators)
     if (price === 0) return
-    this.addOptionalPositionInfo(price)
+    this.addOptionalPositionInfo({ price })
 
     //TODO: try with more steps as leverage increased
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
@@ -46,6 +46,25 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       initialSizeInCts = orders[0].size
     }
     const lastOrder = orders[orders.length - 1]
+
+    if (unrealizedPnlPcnt < -80) {
+      const ordId = 'loss' + createUniqueId(10)
+      await this.orderHelper.closeOrder(ctSize, ordId)
+      return
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
+    }
+
+    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
+    if (price < avgEntryPrice) {
+      this.addOptionalPositionInfo({
+        price,
+        highestPrice: price,
+      })
+    }
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
@@ -110,22 +129,6 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
         return
       }
-    }
-
-    if (unrealizedPnlPcnt < -60 && leverage > 2) {
-      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
-      return
-    }
-
-    if (unrealizedPnlPcnt < -80) {
-      const ordId = 'loss' + createUniqueId(10)
-      await this.orderHelper.closeOrder(ctSize, ordId)
-      return
-    }
-
-    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
-    if (price < avgEntryPrice) {
-      this.addOptionalPositionInfo(price, price)
     }
 
     return

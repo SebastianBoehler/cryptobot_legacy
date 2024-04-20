@@ -86,6 +86,7 @@ export async function backtest(
 
     const firstCandle = history.find((c) => c.start >= (start || new Date(0))) || history[0]
     const hodl_pct = ((+history[history.length - 1].close - +firstCandle.close) / +firstCandle.close) * 100
+    const maxDrawdown = Math.min(...positions.map((pos) => pos.maxDrawdown || 0))
 
     results.push({
       trades: positions.length,
@@ -106,6 +107,8 @@ export async function backtest(
       liquidations,
       exchange,
       hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
+      //@ts-ignore
+      maxDrawdown,
     })
   }
 

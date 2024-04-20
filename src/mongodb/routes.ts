@@ -3,6 +3,7 @@ const router = express.Router()
 import mongo from './index'
 import { GenerateIndicators } from '../indicators'
 import config from '../config/config'
+import { isNumber } from 'lodash'
 const client = new mongo('admin')
 
 const FIVE_MIN = 60 * 5
@@ -66,15 +67,14 @@ router.get('/indicators/:exchange/:symbol/:granularity', async (req: Request, re
 })
 
 router.post('/backtest', async (req: Request, res: Response) => {
-  const { $match, $sort, page } = req.body
-  if (!$sort || page === undefined) {
-    res.status(400).send('Body params not valid, missing data')
-    return
-  }
+  const { $match, $sort, page, $project } = req.body
 
   const limit = 30
-  const pipeline: any[] = [{ $sort }, { $skip: page * limit }, { $limit: limit }]
+  const pipeline: any[] = []
+  if ($sort) pipeline.unshift({ $sort })
+  if (page) pipeline.push(...[{ $skip: page * limit }, { $limit: limit }])
   if ($match) pipeline.unshift({ $match })
+  if ($project) pipeline.push({ $project })
 
   const result = await client.getBacktestingResults(pipeline)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
@@ -124,6 +124,19 @@ router.post('/trader/positions', async (req: Request, res: Response) => {
   }
 
   const result = await client.getLivePositions(ids)
+  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+  res.json(result)
+})
+
+router.post('/trader/actions', async (req: Request, res: Response) => {
+  const { query, page, sort } = req.body
+
+  if (!query || !isNumber(page) || !sort) {
+    res.status(400).send('query, page and sort params parameter is required')
+    return
+  }
+
+  const result = await client.getActions((query as Record<string, any>) || {}, page, sort)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
 })

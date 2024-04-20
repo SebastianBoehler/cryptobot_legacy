@@ -3,6 +3,7 @@ import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
 
 let initialSizeInCts: number
+//let initialSizeInUSD: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST extends Base implements Strategy {
@@ -15,9 +16,9 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
     if (!this.orderHelper.identifier) this.orderHelper.identifier = `${this.name}-${this.symbol}-${createUniqueId(10)}`
 
-    await this.orderHelper.update(price, time)
+    await this.orderHelper.update(price, time, indicators)
     if (price === 0) return
-    this.addOptionalPositionInfo(price)
+    this.addOptionalPositionInfo({ price })
 
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
@@ -31,7 +32,10 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
-      if (order) initialSizeInCts = order.size
+      if (order) {
+        initialSizeInCts = order.size
+        //initialSizeInUSD = entrySizeUSD
+      }
       return
     }
 
@@ -44,10 +48,32 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
     const lastOrder = orders[orders.length - 1]
 
+    if (unrealizedPnlPcnt < -80) {
+      //calculate the price at which pnl .80 with avgEntryPrice and the leverage
+      // const multiplier = 1 - 0.81 / leverage
+      // const lossPrice = avgEntryPrice * multiplier
+      // this.orderHelper.price = lossPrice
+      const ordId = 'loss' + createUniqueId(10)
+      await this.orderHelper.closeOrder(ctSize, ordId)
+      return
+    }
+
+    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
+      return
+    }
+
+    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
+    if (price < avgEntryPrice) {
+      this.addOptionalPositionInfo({ price, highestPrice: price })
+    }
+
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > this.orderHelper.minSize) {
       if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
+        // const buyLowAmountUSD = initialSizeInUSD
+        // if (buyLowAmountUSD > portfolio) return
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -109,22 +135,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt < -60 && leverage > 2) {
-      await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
-      return
-    }
-
-    if (unrealizedPnlPcnt < -80) {
-      const ordId = 'loss' + createUniqueId(10)
-      await this.orderHelper.closeOrder(ctSize, ordId)
-      return
-    }
-
-    //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
-    if (price < avgEntryPrice) {
-      this.addOptionalPositionInfo(price, price)
-    }
-
     return
   }
 
@@ -135,11 +145,6 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const profit = this.orderHelper.profitUSD
     const realizedProfits = position && 'realizedPnlUSD' in position ? position.realizedPnlUSD : 0
     const portfolio = this.startCapital + profit - inPosition + realizedProfits
-
-    //create a new veriable that tracks how much money has been withdrawn
-    //every 10_000 profit withdraw 1_000
-    // const withdraw = Math.floor(profit / 10_000) * 1_000
-    // const portfolioAfterWithdraw = portfolio - withdraw
 
     const entrySizeUSD = portfolio / steps
 
