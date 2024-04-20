@@ -14,9 +14,9 @@ export class TESTING extends Base implements Strategy {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
     if (!this.orderHelper.identifier) this.orderHelper.identifier = `${this.name}-${this.symbol}-${createUniqueId(10)}`
 
-    await this.orderHelper.update(price, time)
+    await this.orderHelper.update(price, time, indicators)
     if (price === 0) return
-    this.addOptionalPositionInfo(price)
+    this.addOptionalPositionInfo({ price })
 
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
