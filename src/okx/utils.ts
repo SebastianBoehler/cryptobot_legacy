@@ -102,7 +102,7 @@ class OkxClient {
       const data = event.data[0]
       const posId = data.posData.posId
       if (posId === this.position?.posId) {
-        logger.warn('[OKX] position update', data.eventType)
+        logger.warn('[OKX] bal & pos update', data.eventType)
         if (data.eventType === 'liquidation') {
           this.position.gotLiquidated = true
         }

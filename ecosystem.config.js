@@ -79,21 +79,21 @@ module.exports = {
       watch: false,
       log_date_format
     },
-    {
-      name: 'bybit_trader_myro',
-      script: traderPath,
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'MYROUSDT',
-        STRATEGY: 'BUILD_SCALP_FAST',
-        MULTIPLIER: 0.95,
-        START_CAPITAL: 100,
-        EXCHANGE: 'bybit',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false,
-      log_date_format
-    },
+    // {
+    //   name: 'bybit_trader_myro',
+    //   script: traderPath,
+    //   env_prod: {
+    //     NODE_ENV: "prod",
+    //     SYMBOL: 'MYROUSDT',
+    //     STRATEGY: 'BUILD_SCALP_FAST',
+    //     MULTIPLIER: 0.95,
+    //     START_CAPITAL: 100,
+    //     EXCHANGE: 'bybit',
+    //     LOG_LEVEL: 'debug'
+    //   },
+    //   watch: false,
+    //   log_date_format
+    // },
     {
       name: 'bybit_trader_wen',
       script: traderPath,
@@ -109,21 +109,21 @@ module.exports = {
       watch: false,
       log_date_format
     },
-    {
-      name: 'bybit_trader_gpt',
-      script: traderPath,
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'GPTUSDT',
-        STRATEGY: 'SCALP_ALTS',
-        MULTIPLIER: 0.95,
-        START_CAPITAL: 70,
-        EXCHANGE: 'bybit',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false,
-      log_date_format
-    },
+    // {
+    //   name: 'bybit_trader_gpt',
+    //   script: traderPath,
+    //   env_prod: {
+    //     NODE_ENV: "prod",
+    //     SYMBOL: 'GPTUSDT',
+    //     STRATEGY: 'SCALP_ALTS',
+    //     MULTIPLIER: 0.95,
+    //     START_CAPITAL: 70,
+    //     EXCHANGE: 'bybit',
+    //     LOG_LEVEL: 'debug'
+    //   },
+    //   watch: false,
+    //   log_date_format
+    // },
     {
       name: 'bybit_trader_arkm',
       script: traderPath,
@@ -231,20 +231,21 @@ module.exports = {
       },
       watch: false
     },
-    // {
-    //   name: 'hb_trader_op',
-    //   script: traderPath,
-    //   //out_file: "/dev/null", //disable logs from being written to file
-    //   env_prod: {
-    //     NODE_ENV: "prod",
-    //     SYMBOL: 'OP-USDT-SWAP',
-    //     STRATEGY: 'BUILD_SCALP_FAST',
-    //     START_CAPITAL: 250,
-    //     MULTIPLIER: 0.95,
-    //     EXCHANGE: 'okx',
-    //   },
-    //   watch: false
-    // },
+    {
+      name: 'hb_trader_ygg',
+      script: traderPath,
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'YGG-USDT-SWAP',
+        STRATEGY: 'SCALP_ALTS',
+        START_CAPITAL: 120,
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false
+    },
     {
       name: 'hb_trader_jup',
       script: traderPath,
@@ -387,7 +388,22 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'CORE-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 250,
+        START_CAPITAL: 260,
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false
+    },
+    {
+      name: 'hb_trader_stx',
+      script: traderPath,
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'STX-USDT-SWAP',
+        STRATEGY: 'INDICATORS',
+        START_CAPITAL: 120,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
