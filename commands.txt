@@ -5,3 +5,10 @@ scp -r root@157.230.22.214:/root/.pm2/logs ~/Downloads
 
 //clear log folder
 rm -rf /root/.pm2/logs/*
+
+
+ssl renew
+
+make sure HTTP port 80 is open to all connections
+
+run 'certbot renew'

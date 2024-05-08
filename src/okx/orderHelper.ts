@@ -410,6 +410,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       symbol: this.symbol,
       posId: okxClient.position.posId,
       accHash: this.accHash,
+      price: this.price,
       time: new Date(),
     }
 

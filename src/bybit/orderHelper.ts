@@ -382,6 +382,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const baseAction = {
       symbol: this.symbol,
       posId: this.position.posId,
+      price: this.price,
       accHash: this.accHash,
       time: new Date(),
     }
