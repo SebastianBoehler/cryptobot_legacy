@@ -7,7 +7,7 @@ let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
-  public readonly name = 'scalp-fast-alts'
+  public readonly name = 'scalp-fast-alts-t'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -106,10 +106,10 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     }
 
     const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
-    const cond = !lastDCA || timeDiff > 15
+    const cond = !lastDCA || timeDiff > 60
     const baseFactor = 1.2 // Base factor you've been using
-    const atrFactor = indicators5min.ATR / 1000 // Adjusting the ATR factor to bring it into a meaningful scale
-    const dynamicFactor = baseFactor * atrFactor
+    const atrFactor = indicators5min.ATR / 100 // Adjusting the ATR factor to bring it into a meaningful scale
+    const dynamicFactor = baseFactor * (1 - atrFactor)
 
     if (price > avgEntryPrice * dynamicFactor && cond) {
       let buyAmountUSD = entrySizeUSD
