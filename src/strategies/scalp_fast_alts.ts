@@ -1,6 +1,7 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
+import { differenceInMinutes } from 'date-fns'
 
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
@@ -10,6 +11,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
+  public requiresIndicators = true
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -45,7 +47,13 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       logger.debug('initialSizeInCts not set')
       initialSizeInCts = orders[0].size
     }
+
+    const mappedIndicators = this.mapIndicators(indicators)
+    const indicators5min = mappedIndicators[5]
+
     const lastOrder = orders[orders.length - 1]
+    const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
+    const lastDCA = DCAs[DCAs.length - 1]
 
     if (unrealizedPnlPcnt < -80) {
       const ordId = 'loss' + createUniqueId(10)
@@ -95,6 +103,23 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceBy, ordId)
         return
       }
+    }
+
+    const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
+    const cond = !lastDCA || timeDiff > 15
+    const baseFactor = 1.2 // Base factor you've been using
+    const atrFactor = indicators5min.ATR / 1000 // Adjusting the ATR factor to bring it into a meaningful scale
+    const dynamicFactor = baseFactor * atrFactor
+
+    if (price > avgEntryPrice * dynamicFactor && cond) {
+      let buyAmountUSD = entrySizeUSD
+      const ratio = 1 - margin / buyAmountUSD
+      if (ratio > 0.1) {
+        buyAmountUSD = margin * 0.2
+      }
+      const ordId = 'buydca' + createUniqueId(6)
+      await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+      return
     }
 
     //LEVERAGE INCREASE

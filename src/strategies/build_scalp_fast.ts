@@ -1,13 +1,14 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
+import { differenceInMinutes } from 'date-fns'
 
 let initialSizeInCts: number
 //let initialSizeInUSD: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST extends Base implements Strategy {
-  public readonly name = 'build-scalp-fast'
+  public readonly name = 'build-scalp-fast-t'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -47,6 +48,8 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       initialSizeInCts = orders[0].size
     }
     const lastOrder = orders[orders.length - 1]
+    const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
+    const lastDCA = DCAs[DCAs.length - 1]
 
     if (unrealizedPnlPcnt < -80) {
       //calculate the price at which pnl .80 with avgEntryPrice and the leverage
@@ -99,6 +102,20 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         await this.orderHelper.closeOrder(reduceBy, ordId)
         return
       }
+    }
+
+    const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
+    const cond = !lastDCA || timeDiff > 15
+
+    if (price > avgEntryPrice * 1.2 && cond) {
+      let buyAmountUSD = entrySizeUSD
+      const ratio = 1 - margin / buyAmountUSD
+      if (ratio > 0.1) {
+        buyAmountUSD = margin * 0.2
+      }
+      const ordId = 'buydca' + createUniqueId(6)
+      await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+      return
     }
 
     //LEVERAGE INCREASE
