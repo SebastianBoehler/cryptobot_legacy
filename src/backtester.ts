@@ -3,7 +3,7 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 1000
+const startCapital = 300
 const startDate = new Date('2024-04-01')
 const exchange = 'okx'
 

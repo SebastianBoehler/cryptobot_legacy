@@ -7,7 +7,7 @@ let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
-  public readonly name = 'scalp-fast-alts'
+  public readonly name = 'scalp-fast-alts-f'
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
@@ -112,7 +112,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
         buyAmountUSD = margin * 0.2
       }
       const ordId = 'buydca' + createUniqueId(6)
-      if (buyAmountUSD > portfolio) {
+      if (buyAmountUSD < portfolio) {
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return
       }

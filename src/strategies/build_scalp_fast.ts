@@ -105,7 +105,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
-    const cond = !lastDCA || timeDiff > 15
+    const cond = !lastDCA || timeDiff > 20
 
     if (price > avgEntryPrice * 1.2 && cond) {
       let buyAmountUSD = entrySizeUSD
@@ -114,7 +114,10 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         buyAmountUSD = margin * 0.2
       }
       const ordId = 'buydca' + createUniqueId(6)
-      await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+      if (buyAmountUSD < portfolio) {
+        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+        return
+      }
       return
     }
 
