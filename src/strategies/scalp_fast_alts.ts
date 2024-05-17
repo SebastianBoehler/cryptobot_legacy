@@ -11,7 +11,6 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
-  public requiresIndicators = true
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
