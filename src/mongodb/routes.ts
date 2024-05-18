@@ -131,8 +131,8 @@ router.post('/trader/positions', async (req: Request, res: Response) => {
 router.post('/trader/actions', async (req: Request, res: Response) => {
   const { query, page, sort } = req.body
 
-  if (!query || !isNumber(page) || !sort) {
-    res.status(400).send('query, page and sort params parameter is required')
+  if (!query) {
+    res.status(400).send('query as params parameter is required')
     return
   }
 
