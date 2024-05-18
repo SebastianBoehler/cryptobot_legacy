@@ -3,7 +3,6 @@ const router = express.Router()
 import mongo from './index'
 import { GenerateIndicators } from '../indicators'
 import config from '../config/config'
-import { isNumber } from 'lodash'
 const client = new mongo('admin')
 
 const FIVE_MIN = 60 * 5
