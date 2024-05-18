@@ -80,11 +80,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       }
 
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
-        let buyAmountUSD = entrySizeUSD
-        const ratio = 1 - margin / buyAmountUSD
-        if (ratio > 0.85) {
-          buyAmountUSD = margin * 5
-        }
+        let buyAmountUSD = margin * 0.2
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return
@@ -102,13 +98,13 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     }
 
     const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
-    const cond = !lastDCA || timeDiff > 60
+    const cond = !lastDCA || timeDiff > 30
 
     if (price > avgEntryPrice * 1.2 && cond) {
       let buyAmountUSD = entrySizeUSD
       const ratio = 1 - margin / buyAmountUSD
       if (ratio > 0.1) {
-        buyAmountUSD = margin * 0.2
+        buyAmountUSD = margin * 0.3
       }
       const ordId = 'buydca' + createUniqueId(6)
       if (buyAmountUSD < portfolio) {
