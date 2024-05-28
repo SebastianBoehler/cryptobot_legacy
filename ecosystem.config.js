@@ -172,6 +172,21 @@ module.exports = {
       watch: false
     },
     {
+      name: 'hb_trader_velo',
+      script: traderPath,
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'VELO-USDT-SWAP',
+        STRATEGY: 'INDICATORS',
+        START_CAPITAL: 100,
+        MULTIPLIER: 0.95,
+        EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false
+    },
+    {
       name: 'hb_trader_fet',
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
