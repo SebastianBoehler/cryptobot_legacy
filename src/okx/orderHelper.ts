@@ -29,6 +29,7 @@ export class OrderHelper implements IOrderHelper {
   public lastPosition: ClosedPosition | null = null
   public profitUSD = 0
   private indicators: Indicators[] | undefined
+  accHash: string = 'backtester'
 
   constructor(symbol: string, saveToMongo?: boolean) {
     this.symbol = symbol
@@ -656,6 +657,23 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       realizedPnlUSD: this.profitUSD + this.position.realizedPnlUSD,
     })
 
+    const baseAction = {
+      symbol: this.symbol,
+      posId: okxClient.position.posId,
+      accHash: this.accHash,
+      price: this.price,
+      time: new Date(),
+    }
+
+    await mongo.storeAction([
+      {
+        ...baseAction,
+        action: 'margin change',
+        prev: positionPre?.margin || 0,
+        after: +okxClient.position.margin,
+      },
+    ])
+
     return orderObj
   }
 
@@ -666,7 +684,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (amountCts > this.position.ctSize) throw new Error('[orderHelper] Cannot close more contracts than open')
 
     const posId = okxClient.position.posId
-    const realizedProfitPre = this.position.realizedPnlUSD
+    const positionPre = this.position
+    const realizedProfitPre = positionPre.realizedPnlUSD
     const positionsPre = okxClient.position
     const marginPre = +positionsPre.margin
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
@@ -755,6 +774,23 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       realizedPnlUSD: this.profitUSD + realizedPnlUSD,
     })
 
+    const baseAction = {
+      symbol: this.symbol,
+      posId: okxClient.position.posId,
+      accHash: this.accHash,
+      price: this.price,
+      time: new Date(),
+    }
+
+    await mongo.storeAction([
+      {
+        ...baseAction,
+        action: 'margin change',
+        prev: positionPre?.margin || 0,
+        after: +okxClient.position.margin,
+      },
+    ])
+
     return order
   }
 
@@ -777,5 +813,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const ctSize = 1
     const ctValue = ctSize * price * ctVal * ctMult
     return ctValue
+  }
+
+  public async loadLastLeverIncrease() {
+    const action = await mongo.loadLastLeverIncrease(this.symbol, this.accHash)
+    return action
   }
 }

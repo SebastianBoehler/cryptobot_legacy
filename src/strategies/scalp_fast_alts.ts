@@ -2,6 +2,7 @@ import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
 import { differenceInMinutes } from 'date-fns'
+import { isLiveOrderHelper } from '../types'
 
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
@@ -37,6 +38,11 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) initialSizeInCts = order.size
       return
+    }
+
+    if (!lastLeverIncrease && isLiveOrderHelper(this.orderHelper)) {
+      const lastIncrease = await this.orderHelper.loadLastLeverIncrease()
+      if (lastIncrease) lastLeverIncrease = lastIncrease.price
     }
 
     const { orders, avgEntryPrice, leverage, highestPrice, ctSize, unrealizedPnlPcnt, margin } = position

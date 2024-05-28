@@ -623,6 +623,23 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       realizedPnlUSD: this.profitUSD + this.position.realizedPnlUSD,
     })
 
+    const baseAction = {
+      symbol: this.symbol,
+      posId,
+      accHash: this.accHash,
+      price: this.price,
+      time: new Date(),
+    }
+
+    await mongo.storeAction([
+      {
+        ...baseAction,
+        action: 'margin change',
+        prev: positionPre?.margin || 0,
+        after: client.position.margin,
+      },
+    ])
+
     return orderObj
   }
 
@@ -742,5 +759,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const ctSize = 1
     const ctValue = ctSize * price
     return ctValue
+  }
+
+  public async loadLastLeverIncrease() {
+    const action = await mongo.loadLastLeverIncrease(this.symbol, this.accHash)
+    return action
   }
 }

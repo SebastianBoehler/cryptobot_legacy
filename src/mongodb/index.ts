@@ -686,6 +686,24 @@ class MongoWrapper {
 
     return actions
   }
+
+  async loadLastLeverIncrease(symbol: string, accHash: string) {
+    const db = this.client.db('trader')
+    const collection = db.collection('actions')
+    const result = await collection
+      .find<TraderAction>({
+        action: 'leverage change',
+        after: { $gt: '$prev' },
+        symbol,
+        $expr: { $gt: ['$after', '$prev'] },
+        accHash,
+      })
+      .sort({ time: -1 })
+      .limit(1)
+      .toArray()
+
+    return result[0]
+  }
 }
 
 export default MongoWrapper
