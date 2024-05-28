@@ -47,7 +47,7 @@
     "@types/jest": "^29.5.5",
     "bybit-api": "^3.9.7",
     "cors": "^2.8.5",
-    "cryptobot-types": "^1.2.2",
+    "cryptobot-types": "^1.2.5",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.1",
     "dotenv-extended": "^2.9.0",
