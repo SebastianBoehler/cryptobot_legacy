@@ -304,7 +304,6 @@ const idl = {
 
 // @ts-ignore
 const program = new anchor.Program<HbCapitalSmartcontract>(idl, provider)
-console
 
 const initializePda = async (pos: IOrderHelperPos, id: number) => {
   if (config.NODE_ENV === 'test') return
@@ -345,7 +344,7 @@ const addAction = async (action: TraderAction, id: number) => {
     return
   }
   if (config.NODE_ENV === 'prod') return
-  const ticker = action.symbol + action.posId
+  const ticker = action.symbol
   const [posPDA, _bump] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode('pos'),
@@ -380,7 +379,7 @@ const addOrder = async (order: Order | CloseOrder, id: number) => {
     return
   }
   if (config.NODE_ENV === 'prod') return
-  const ticker = order.symbol + order.posId
+  const ticker = order.symbol
   const [posPDA, _bump] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode('pos'),
@@ -427,7 +426,7 @@ const doesPdaExist = async (ticker: string, id: number) => {
 }
 
 // @ts-ignore
-initializePda({ symbol: 'BTC-test', type: 'long' }, 42)
+// initializePda({ symbol: 'BTC-USDT-SWAP', type: 'long' }, 42)
 // @ts-ignore
 // addAction({ symbol: 'BTC-test', action: 'margin change', after: 23 })
 // @ts-ignore
