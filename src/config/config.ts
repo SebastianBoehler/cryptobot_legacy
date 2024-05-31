@@ -30,7 +30,7 @@ const config = {
   WRITE_TO_DB: parsedConfig.WRITE_TO_DB as boolean,
   MONGO_URL: parsedConfig.MONGO_URL as string,
   //NODE defaults
-  NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb',
+  NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb' | 'test' | 'local',
   LOG_LEVEL,
 
   //API

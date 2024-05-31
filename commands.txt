@@ -1,6 +1,6 @@
 Download log files
 
-scp -r root@157.230.22.214:/root/.pm2/logs ~/Downloads
+scp -r root@157.230.22.214:/root/.pm2/logs ~/Downloads/server_logs
 
 
 //clear log folder

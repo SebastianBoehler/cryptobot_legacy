@@ -30,6 +30,10 @@
                 "path": "ticker"
               },
               {
+                "kind": "arg",
+                "path": "identifier"
+              },
+              {
                 "kind": "account",
                 "path": "signer"
               }
@@ -40,6 +44,10 @@
       "args": [
         {
           "name": "_ticker",
+          "type": "string"
+        },
+        {
+          "name": "_identifier",
           "type": "string"
         },
         {
@@ -79,6 +87,10 @@
                 "path": "ticker"
               },
               {
+                "kind": "arg",
+                "path": "identifier"
+              },
+              {
                 "kind": "account",
                 "path": "signer"
               }
@@ -89,6 +101,10 @@
       "args": [
         {
           "name": "_ticker",
+          "type": "string"
+        },
+        {
+          "name": "_identifier",
           "type": "string"
         },
         {
@@ -132,6 +148,10 @@
                 "path": "ticker"
               },
               {
+                "kind": "arg",
+                "path": "identifier"
+              },
+              {
                 "kind": "account",
                 "path": "signer"
               }
@@ -151,6 +171,10 @@
         {
           "name": "side",
           "type": "u8"
+        },
+        {
+          "name": "_identifier",
+          "type": "string"
         },
         {
           "name": "_bump",

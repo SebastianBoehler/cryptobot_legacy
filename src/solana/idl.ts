@@ -36,6 +36,10 @@ export type HbCapitalSmartcontract = {
                 path: 'ticker'
               },
               {
+                kind: 'arg'
+                path: 'identifier'
+              },
+              {
                 kind: 'account'
                 path: 'signer'
               }
@@ -46,6 +50,10 @@ export type HbCapitalSmartcontract = {
       args: [
         {
           name: 'ticker'
+          type: 'string'
+        },
+        {
+          name: 'identifier'
           type: 'string'
         },
         {
@@ -85,6 +93,10 @@ export type HbCapitalSmartcontract = {
                 path: 'ticker'
               },
               {
+                kind: 'arg'
+                path: 'identifier'
+              },
+              {
                 kind: 'account'
                 path: 'signer'
               }
@@ -95,6 +107,10 @@ export type HbCapitalSmartcontract = {
       args: [
         {
           name: 'ticker'
+          type: 'string'
+        },
+        {
+          name: 'identifier'
           type: 'string'
         },
         {
@@ -138,6 +154,10 @@ export type HbCapitalSmartcontract = {
                 path: 'ticker'
               },
               {
+                kind: 'arg'
+                path: 'identifier'
+              },
+              {
                 kind: 'account'
                 path: 'signer'
               }
@@ -157,6 +177,10 @@ export type HbCapitalSmartcontract = {
         {
           name: 'side'
           type: 'u8'
+        },
+        {
+          name: 'identifier'
+          type: 'string'
         },
         {
           name: 'bump'

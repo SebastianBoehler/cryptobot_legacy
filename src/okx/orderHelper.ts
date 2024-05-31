@@ -436,7 +436,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     await mongo.storeAction([levChangeAction, mmChangeAction])
-    await Promise.allSettled([addAction(levChangeAction), addAction(mmChangeAction)])
+    await Promise.allSettled([
+      addAction(levChangeAction, (okxClient.closedPositions.length + 1).toString()),
+      addAction(mmChangeAction, (okxClient.closedPositions.length + 1).toString()),
+    ])
   }
 
   private async reduceMargin(amount: string) {
@@ -678,8 +681,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     try {
       await Promise.allSettled(promises)
-      if (!positionPre) await initializePda(this.position)
-      await addOrder(orderObj)
+      if (!positionPre) await initializePda(this.position, (this.closedPositions.length + 1).toString())
+      await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
     } catch (error) {
       logger.error('Error during open order', error)
     }
@@ -739,6 +742,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + realizedFee
 
     //this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
+    const baseAction = {
+      symbol: this.symbol,
+      posId: okxClient.position.posId,
+      accHash: this.accHash,
+      price: this.price,
+      time: new Date(),
+    }
 
     if (!okxClient.position) {
       //@ts-ignore
@@ -758,14 +768,23 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       this.profitUSD += closedPos.realizedPnlUSD
 
       this.positionId = `TT${createUniqueId(5)}TT`
-
-      await mongo.writeOrder({
-        ...orderObj,
-        realizedFee,
-        realizedPnlUSD: this.profitUSD,
-      })
+      await Promise.allSettled([
+        mongo.storeAction([
+          {
+            ...baseAction,
+            action: 'margin change',
+            prev: positionPre?.margin || 0,
+            after: 0,
+          },
+        ]),
+        mongo.writeOrder({
+          ...orderObj,
+          realizedFee,
+          realizedPnlUSD: this.profitUSD,
+        }),
+      ])
       await mongo.writePosition(closedPos, 'trader')
-      await addOrder(orderObj)
+      await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
       return closedPos
     }
 
@@ -778,14 +797,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee,
       margin: +okxClient.position.margin,
       realizedPnlUSD: okxClient.position.realizedPnlUsd,
-    }
-
-    const baseAction = {
-      symbol: this.symbol,
-      posId: okxClient.position.posId,
-      accHash: this.accHash,
-      price: this.price,
-      time: new Date(),
     }
 
     await Promise.allSettled([
@@ -804,7 +815,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }),
     ])
 
-    await addOrder(orderObj)
+    await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
 
     return order
   }
