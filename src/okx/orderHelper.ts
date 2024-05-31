@@ -6,6 +6,7 @@ import { omit } from 'lodash'
 import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
 import config from '../config/config'
+import { addAction, addOrder, initializePda } from '../solana/solana'
 
 const okxClient = new OkxClient({
   apiKey: config.OKX_KEY,
@@ -29,14 +30,13 @@ export class OrderHelper implements IOrderHelper {
   public lastPosition: ClosedPosition | null = null
   public profitUSD = 0
   private indicators: Indicators[] | undefined
-  accHash: string = 'backtester'
 
   constructor(symbol: string, saveToMongo?: boolean) {
     this.symbol = symbol
     this.saveToMongo = saveToMongo || false
   }
 
-  public setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
+  public async setLeverage(leverage: number, _type: 'long' | 'short', availCapital: number) {
     if (leverage < 1) return
     const maxLever = this.maxLever || 100
     if (leverage > maxLever && this.leverage < maxLever) leverage = maxLever
@@ -415,19 +415,22 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       time: new Date(),
     }
 
-    await mongo.storeAction([
-      {
-        ...baseAction,
-        action: 'leverage change',
-        prev: prevLever,
-        after: leverage,
-      },
-      {
-        ...baseAction,
-        action: 'margin change',
-        prev: margin,
-        after: +okxClient.position.margin,
-      },
+    const levChangeAction = {
+      ...baseAction,
+      action: 'leverage change',
+      prev: prevLever,
+      after: leverage,
+    }
+    const mmChangeAction = {
+      ...baseAction,
+      action: 'margin change',
+      prev: margin,
+      after: +okxClient.position.margin,
+    }
+    await Promise.allSettled([
+      mongo.storeAction([levChangeAction, mmChangeAction]),
+      addAction(levChangeAction),
+      addAction(mmChangeAction),
     ])
 
     this.position = {
@@ -651,12 +654,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       accHash: this.accHash,
     }
 
-    await mongo.writeOrder({
-      ...orderObj,
-      realizedFee: this.position.fee,
-      realizedPnlUSD: this.profitUSD + this.position.realizedPnlUSD,
-    })
-
     const baseAction = {
       symbol: this.symbol,
       posId: okxClient.position.posId,
@@ -665,14 +662,30 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       time: new Date(),
     }
 
-    await mongo.storeAction([
-      {
-        ...baseAction,
-        action: 'margin change',
-        prev: positionPre?.margin || 0,
-        after: +okxClient.position.margin,
-      },
-    ])
+    const promises = [
+      mongo.writeOrder({
+        ...orderObj,
+        realizedFee: this.position.fee,
+        realizedPnlUSD: this.profitUSD + this.position.realizedPnlUSD,
+      }),
+      mongo.storeAction([
+        {
+          ...baseAction,
+          action: 'margin change',
+          prev: positionPre?.margin || 0,
+          after: +okxClient.position.margin,
+        },
+      ]),
+    ]
+
+    if (!positionPre) {
+      promises.push(initializePda(this.position))
+    }
+
+    try {
+      await Promise.allSettled(promises)
+      await addOrder(orderObj)
+    } catch (error) {}
 
     return orderObj
   }
@@ -768,11 +781,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       margin: +okxClient.position.margin,
       realizedPnlUSD: okxClient.position.realizedPnlUsd,
     }
-    await mongo.writeOrder({
-      ...orderObj,
-      realizedFee,
-      realizedPnlUSD: this.profitUSD + realizedPnlUSD,
-    })
 
     const baseAction = {
       symbol: this.symbol,
@@ -782,13 +790,21 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       time: new Date(),
     }
 
-    await mongo.storeAction([
-      {
-        ...baseAction,
-        action: 'margin change',
-        prev: positionPre?.margin || 0,
-        after: +okxClient.position.margin,
-      },
+    await Promise.allSettled([
+      mongo.storeAction([
+        {
+          ...baseAction,
+          action: 'margin change',
+          prev: positionPre?.margin || 0,
+          after: +okxClient.position.margin,
+        },
+      ]),
+      mongo.writeOrder({
+        ...orderObj,
+        realizedFee,
+        realizedPnlUSD: this.profitUSD + realizedPnlUSD,
+      }),
+      addOrder(orderObj),
     ])
 
     return order
