@@ -332,6 +332,10 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
       position: posPDA,
     })
     .rpc()
+    .catch((e) => {
+      logger.error('Error initializing pda:', e)
+      return null
+    })
 
   logger.debug('Initialize pos pda tx:', tx)
 
@@ -419,7 +423,10 @@ const doesPdaExist = async (ticker: string, id: number) => {
     program.programId
   )
 
-  const pda = await program.account.position.fetch(posPDA)
+  const pda = await program.account.position.fetch(posPDA).catch((err) => {
+    logger.error('Error fetching pda:', err)
+    return null
+  })
   logger.debug('PDA:', !!pda, pda)
 
   return !!pda
