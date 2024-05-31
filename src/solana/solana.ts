@@ -16,7 +16,12 @@ const mongo = new MongoWrapper('trader')
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com') // Replace with your network endpoint
 
 // Convert the secret key from environment variable to Uint8Array
-const secretKeyArray = new Uint8Array(JSON.parse(fs.readFileSync(path.join(__dirname, '/my-new-keypair.json'), 'utf8')))
+const kpPath =
+  config.NODE_ENV === 'prod'
+    ? '/root/cryptobot3.0/src/solana/my-new-keypair.json'
+    : path.join(__dirname, '/my-new-keypair.json')
+
+const secretKeyArray = new Uint8Array(JSON.parse(fs.readFileSync(kpPath, 'utf8')))
 const keypair = anchor.web3.Keypair.fromSecretKey(secretKeyArray)
 const wallet = new anchor.Wallet(keypair)
 const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions())
