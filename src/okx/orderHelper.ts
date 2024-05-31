@@ -437,8 +437,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     await mongo.storeAction([levChangeAction, mmChangeAction])
     await Promise.allSettled([
-      addAction(levChangeAction, (okxClient.closedPositions.length + 1).toString()),
-      addAction(mmChangeAction, (okxClient.closedPositions.length + 1).toString()),
+      addAction(levChangeAction, okxClient.closedPositions.length + 1),
+      addAction(mmChangeAction, okxClient.closedPositions.length + 1),
     ])
   }
 
@@ -681,8 +681,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     try {
       await Promise.allSettled(promises)
-      if (!positionPre) await initializePda(this.position, (this.closedPositions.length + 1).toString())
-      await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
+      if (!positionPre) await initializePda(this.position, this.closedPositions.length + 1)
+      await addOrder(orderObj, okxClient.closedPositions.length + 1)
     } catch (error) {
       logger.error('Error during open order', error)
     }
@@ -784,7 +784,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         }),
       ])
       await mongo.writePosition(closedPos, 'trader')
-      await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
+      await addOrder(orderObj, okxClient.closedPositions.length + 1)
       return closedPos
     }
 
@@ -815,7 +815,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }),
     ])
 
-    await addOrder(orderObj, (okxClient.closedPositions.length + 1).toString())
+    await addOrder(orderObj, okxClient.closedPositions.length + 1)
 
     return order
   }

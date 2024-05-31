@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/hb_capital_smartcontract.json`.
  */
 export type HbCapitalSmartcontract = {
-  address: '5QaqK6CHSveNZVNFnzniBNb3qYW56hqwV9BJbFgUE4Uh'
+  address: '8SPueaEQmPzs9rHUEv789r1P89zq7e4fWnQmCnKXTdEV'
   metadata: {
     name: 'hbCapitalSmartcontract'
     version: '0.1.1'
@@ -37,7 +37,7 @@ export type HbCapitalSmartcontract = {
               },
               {
                 kind: 'arg'
-                path: 'identifier'
+                path: 'id'
               },
               {
                 kind: 'account'
@@ -53,8 +53,8 @@ export type HbCapitalSmartcontract = {
           type: 'string'
         },
         {
-          name: 'identifier'
-          type: 'string'
+          name: 'id'
+          type: 'u64'
         },
         {
           name: 'actionType'
@@ -94,7 +94,7 @@ export type HbCapitalSmartcontract = {
               },
               {
                 kind: 'arg'
-                path: 'identifier'
+                path: 'id'
               },
               {
                 kind: 'account'
@@ -110,8 +110,8 @@ export type HbCapitalSmartcontract = {
           type: 'string'
         },
         {
-          name: 'identifier'
-          type: 'string'
+          name: 'id'
+          type: 'u64'
         },
         {
           name: 'orderType'
@@ -120,10 +120,6 @@ export type HbCapitalSmartcontract = {
         {
           name: 'price'
           type: 'u64'
-        },
-        {
-          name: 'time'
-          type: 'i64'
         },
         {
           name: 'size'
@@ -155,7 +151,7 @@ export type HbCapitalSmartcontract = {
               },
               {
                 kind: 'arg'
-                path: 'identifier'
+                path: 'id'
               },
               {
                 kind: 'account'
@@ -175,12 +171,12 @@ export type HbCapitalSmartcontract = {
           type: 'string'
         },
         {
-          name: 'side'
-          type: 'u8'
+          name: 'id'
+          type: 'u64'
         },
         {
-          name: 'identifier'
-          type: 'string'
+          name: 'side'
+          type: 'u8'
         },
         {
           name: 'bump'
@@ -228,10 +224,6 @@ export type HbCapitalSmartcontract = {
       type: {
         kind: 'struct'
         fields: [
-          {
-            name: 'time'
-            type: 'i64'
-          },
           {
             name: 'orderType'
             type: 'u8'

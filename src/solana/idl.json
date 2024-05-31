@@ -1,5 +1,5 @@
 {
-  "address": "5QaqK6CHSveNZVNFnzniBNb3qYW56hqwV9BJbFgUE4Uh",
+  "address": "8SPueaEQmPzs9rHUEv789r1P89zq7e4fWnQmCnKXTdEV",
   "metadata": {
     "name": "hb_capital_smartcontract",
     "version": "0.1.1",
@@ -31,7 +31,7 @@
               },
               {
                 "kind": "arg",
-                "path": "identifier"
+                "path": "id"
               },
               {
                 "kind": "account",
@@ -47,8 +47,8 @@
           "type": "string"
         },
         {
-          "name": "_identifier",
-          "type": "string"
+          "name": "_id",
+          "type": "u64"
         },
         {
           "name": "action_type",
@@ -88,7 +88,7 @@
               },
               {
                 "kind": "arg",
-                "path": "identifier"
+                "path": "id"
               },
               {
                 "kind": "account",
@@ -104,8 +104,8 @@
           "type": "string"
         },
         {
-          "name": "_identifier",
-          "type": "string"
+          "name": "_id",
+          "type": "u64"
         },
         {
           "name": "order_type",
@@ -114,10 +114,6 @@
         {
           "name": "price",
           "type": "u64"
-        },
-        {
-          "name": "time",
-          "type": "i64"
         },
         {
           "name": "size",
@@ -149,7 +145,7 @@
               },
               {
                 "kind": "arg",
-                "path": "identifier"
+                "path": "id"
               },
               {
                 "kind": "account",
@@ -169,12 +165,12 @@
           "type": "string"
         },
         {
-          "name": "side",
-          "type": "u8"
+          "name": "_id",
+          "type": "u64"
         },
         {
-          "name": "_identifier",
-          "type": "string"
+          "name": "side",
+          "type": "u8"
         },
         {
           "name": "_bump",
@@ -222,10 +218,6 @@
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "time",
-            "type": "i64"
-          },
           {
             "name": "order_type",
             "type": "u8"
