@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
-    "a": "tsc copy-files.ts --outDir dist",
+    "a": "tsc src/copy-files.ts --outDir dist",
     "b": "node dist/copy-files.js",
     "watch": "npx tsc -w",
     "backtester4": "ts-node src/backtester.ts 0 5",
