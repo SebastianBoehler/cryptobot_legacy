@@ -4,8 +4,6 @@ import { logger } from '../utils'
 import { getUnixTime } from 'date-fns'
 import { CloseOrder, Order, TraderAction } from 'cryptobot-types'
 import { IOrderHelperPos } from '../types'
-import fs from 'fs'
-import path from 'path'
 import MongoWrapper from '../mongodb'
 import config from '../config/config'
 // Load the environment variables from .env file
@@ -16,12 +14,12 @@ const mongo = new MongoWrapper('trader')
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com') // Replace with your network endpoint
 
 // Convert the secret key from environment variable to Uint8Array
-const kpPath =
-  config.NODE_ENV === 'prod'
-    ? '/root/cryptobot3.0/src/solana/my-new-keypair.json'
-    : path.join(__dirname, '/my-new-keypair.json')
 
-const secretKeyArray = new Uint8Array(JSON.parse(fs.readFileSync(kpPath, 'utf8')))
+const secretKeyArray = new Uint8Array([
+  184, 249, 65, 241, 48, 85, 24, 236, 131, 170, 161, 151, 101, 1, 19, 181, 166, 37, 14, 174, 7, 70, 136, 182, 178, 196,
+  113, 206, 164, 139, 211, 128, 222, 186, 217, 155, 46, 95, 253, 252, 71, 193, 15, 60, 54, 223, 143, 231, 128, 149, 130,
+  230, 11, 81, 99, 123, 128, 128, 47, 106, 133, 248, 107, 238,
+])
 const keypair = anchor.web3.Keypair.fromSecretKey(secretKeyArray)
 const wallet = new anchor.Wallet(keypair)
 const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions())
@@ -30,10 +28,281 @@ anchor.setProvider(provider)
 const signer = wallet.payer
 logger.debug('Signer:', signer.publicKey.toBase58())
 
-// Ensure to load the correct Program ID and IDL
-const filePath =
-  config.NODE_ENV === 'prod' ? '/root/cryptobot3.0/src/solana/idl.json' : path.join(__dirname, '/idl.json')
-const idl = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+const idl = {
+  address: '8SPueaEQmPzs9rHUEv789r1P89zq7e4fWnQmCnKXTdEV',
+  metadata: {
+    name: 'hb_capital_smartcontract',
+    version: '0.1.1',
+    spec: '0.1.0',
+    description: 'Making our transactions more transparent and easy verifiable',
+  },
+  instructions: [
+    {
+      name: 'add_action',
+      discriminator: [96, 90, 68, 182, 95, 52, 192, 101],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: '_ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'action_type',
+          type: 'u8',
+        },
+        {
+          name: 'time',
+          type: 'i64',
+        },
+        {
+          name: 'set_to',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'add_order',
+      discriminator: [119, 178, 239, 1, 189, 29, 253, 254],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: '_ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'order_type',
+          type: 'u8',
+        },
+        {
+          name: 'price',
+          type: 'u64',
+        },
+        {
+          name: 'size',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'initialize',
+      discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+        {
+          name: 'system_program',
+          address: '11111111111111111111111111111111',
+        },
+      ],
+      args: [
+        {
+          name: 'ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'side',
+          type: 'u8',
+        },
+        {
+          name: '_bump',
+          type: 'u8',
+        },
+      ],
+    },
+  ],
+  accounts: [
+    {
+      name: 'Position',
+      discriminator: [170, 188, 143, 228, 122, 64, 247, 208],
+    },
+  ],
+  errors: [
+    {
+      code: 6000,
+      name: 'Unathorized',
+      msg: 'Unauthorized',
+    },
+  ],
+  types: [
+    {
+      name: 'Action',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'action_type',
+            type: 'u8',
+          },
+          {
+            name: 'time',
+            type: 'i64',
+          },
+          {
+            name: 'set_to',
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'Order',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'order_type',
+            type: 'u8',
+          },
+          {
+            name: 'price',
+            type: 'u64',
+          },
+          {
+            name: 'size',
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'Position',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'ticker',
+            type: 'string',
+          },
+          {
+            name: 'side',
+            type: 'u8',
+          },
+          {
+            name: 'actions',
+            type: {
+              vec: {
+                defined: {
+                  name: 'Action',
+                },
+              },
+            },
+          },
+          {
+            name: 'orders',
+            type: {
+              vec: {
+                defined: {
+                  name: 'Order',
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
+}
+
+// @ts-ignore
 const program = new anchor.Program<HbCapitalSmartcontract>(idl, provider)
 console
 

@@ -277,3 +277,277 @@ export type HbCapitalSmartcontract = {
     }
   ]
 }
+
+export const RAW_IDL = JSON.stringify({
+  address: '8SPueaEQmPzs9rHUEv789r1P89zq7e4fWnQmCnKXTdEV',
+  metadata: {
+    name: 'hb_capital_smartcontract',
+    version: '0.1.1',
+    spec: '0.1.0',
+    description: 'Making our transactions more transparent and easy verifiable',
+  },
+  instructions: [
+    {
+      name: 'add_action',
+      discriminator: [96, 90, 68, 182, 95, 52, 192, 101],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: '_ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'action_type',
+          type: 'u8',
+        },
+        {
+          name: 'time',
+          type: 'i64',
+        },
+        {
+          name: 'set_to',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'add_order',
+      discriminator: [119, 178, 239, 1, 189, 29, 253, 254],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+      ],
+      args: [
+        {
+          name: '_ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'order_type',
+          type: 'u8',
+        },
+        {
+          name: 'price',
+          type: 'u64',
+        },
+        {
+          name: 'size',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'initialize',
+      discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+      accounts: [
+        {
+          name: 'signer',
+          writable: true,
+          signer: true,
+        },
+        {
+          name: 'position',
+          writable: true,
+          pda: {
+            seeds: [
+              {
+                kind: 'const',
+                value: [112, 111, 115],
+              },
+              {
+                kind: 'arg',
+                path: 'ticker',
+              },
+              {
+                kind: 'arg',
+                path: 'id',
+              },
+              {
+                kind: 'account',
+                path: 'signer',
+              },
+            ],
+          },
+        },
+        {
+          name: 'system_program',
+          address: '11111111111111111111111111111111',
+        },
+      ],
+      args: [
+        {
+          name: 'ticker',
+          type: 'string',
+        },
+        {
+          name: '_id',
+          type: 'u64',
+        },
+        {
+          name: 'side',
+          type: 'u8',
+        },
+        {
+          name: '_bump',
+          type: 'u8',
+        },
+      ],
+    },
+  ],
+  accounts: [
+    {
+      name: 'Position',
+      discriminator: [170, 188, 143, 228, 122, 64, 247, 208],
+    },
+  ],
+  errors: [
+    {
+      code: 6000,
+      name: 'Unathorized',
+      msg: 'Unauthorized',
+    },
+  ],
+  types: [
+    {
+      name: 'Action',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'action_type',
+            type: 'u8',
+          },
+          {
+            name: 'time',
+            type: 'i64',
+          },
+          {
+            name: 'set_to',
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'Order',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'order_type',
+            type: 'u8',
+          },
+          {
+            name: 'price',
+            type: 'u64',
+          },
+          {
+            name: 'size',
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'Position',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'ticker',
+            type: 'string',
+          },
+          {
+            name: 'side',
+            type: 'u8',
+          },
+          {
+            name: 'actions',
+            type: {
+              vec: {
+                defined: {
+                  name: 'Action',
+                },
+              },
+            },
+          },
+          {
+            name: 'orders',
+            type: {
+              vec: {
+                defined: {
+                  name: 'Order',
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
+})
