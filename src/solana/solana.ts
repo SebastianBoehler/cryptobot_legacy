@@ -26,7 +26,9 @@ const signer = wallet.payer
 logger.debug('Signer:', signer.publicKey.toBase58())
 
 // Ensure to load the correct Program ID and IDL
-const idl = JSON.parse(fs.readFileSync(path.join(__dirname, '/idl.json'), 'utf8'))
+const filePath =
+  config.NODE_ENV === 'prod' ? '/root/cryptobot3.0/src/solana/idl.json' : path.join(__dirname, '/idl.json')
+const idl = JSON.parse(fs.readFileSync(filePath, 'utf8'))
 const program = new anchor.Program<HbCapitalSmartcontract>(idl, provider)
 console
 
@@ -151,7 +153,7 @@ const doesPdaExist = async (ticker: string, id: number) => {
 }
 
 // @ts-ignore
-initializePda({ symbol: 'BTC-test', type: 'long' }, 43)
+initializePda({ symbol: 'BTC-test', type: 'long' }, 42)
 // @ts-ignore
 // addAction({ symbol: 'BTC-test', action: 'margin change', after: 23 })
 // @ts-ignore
