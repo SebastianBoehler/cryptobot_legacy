@@ -407,6 +407,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     await sleep(1_000)
 
+    this.position = {
+      ...this.position,
+      margin: +okxClient.position.margin,
+      liquidationPrice: okxClient.position.liqPrice,
+      leverage: +okxClient.position.lever,
+    }
+
     const baseAction = {
       symbol: this.symbol,
       posId: okxClient.position.posId,
@@ -427,18 +434,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       prev: margin,
       after: +okxClient.position.margin,
     }
-    await Promise.allSettled([
-      mongo.storeAction([levChangeAction, mmChangeAction]),
-      addAction(levChangeAction),
-      addAction(mmChangeAction),
-    ])
 
-    this.position = {
-      ...this.position,
-      margin: +okxClient.position.margin,
-      liquidationPrice: okxClient.position.liqPrice,
-      leverage: +okxClient.position.lever,
-    }
+    await mongo.storeAction([levChangeAction, mmChangeAction])
+    await Promise.allSettled([addAction(levChangeAction), addAction(mmChangeAction)])
   }
 
   private async reduceMargin(amount: string) {
@@ -678,14 +676,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       ]),
     ]
 
-    if (!positionPre) {
-      promises.push(initializePda(this.position))
-    }
-
     try {
       await Promise.allSettled(promises)
+      if (!positionPre) await initializePda(this.position)
       await addOrder(orderObj)
-    } catch (error) {}
+    } catch (error) {
+      logger.error('Error during open order', error)
+    }
 
     return orderObj
   }
@@ -768,6 +765,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         realizedPnlUSD: this.profitUSD,
       })
       await mongo.writePosition(closedPos, 'trader')
+      await addOrder(orderObj)
       return closedPos
     }
 
@@ -804,8 +802,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         realizedFee,
         realizedPnlUSD: this.profitUSD + realizedPnlUSD,
       }),
-      addOrder(orderObj),
     ])
+
+    await addOrder(orderObj)
 
     return order
   }

@@ -6,8 +6,10 @@ import { CloseOrder, Order, TraderAction } from 'cryptobot-types'
 import { IOrderHelperPos } from '../types'
 import fs from 'fs'
 import path from 'path'
+import MongoWrapper from '../mongodb'
 // Load the environment variables from .env file
 require('dotenv').config()
+const mongo = new MongoWrapper('backtests')
 
 // Hard-coded provider and wallet setup
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com') // Replace with your network endpoint
@@ -46,6 +48,8 @@ const initializePda = async (pos: IOrderHelperPos) => {
     .rpc()
 
   logger.debug('Initialize pos pda tx:', tx)
+
+  //await mongo.addFields('livePositions', { txHash: tx }, { symbol: pos.symbol, posId: pos.posId })
 }
 
 const addAction = async (action: TraderAction) => {
@@ -69,6 +73,8 @@ const addAction = async (action: TraderAction) => {
     .rpc()
 
   logger.debug('Add action tx:', tx)
+
+  await mongo.addFields('actions', { txHash: tx }, { posId: action.posId, time: action.time })
 }
 
 const addOrder = async (order: Order | CloseOrder) => {
@@ -92,6 +98,8 @@ const addOrder = async (order: Order | CloseOrder) => {
     .rpc()
 
   logger.debug('Add order tx:', tx)
+
+  await mongo.addFields('orders', { txHash: tx }, { posId: order.posId, time: order.time })
 }
 
 const doesPdaExist = async (ticker: string) => {

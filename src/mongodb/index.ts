@@ -102,6 +102,12 @@ class MongoWrapper {
     await collection.deleteMany(query)
   }
 
+  async addFields(collectionName: string, fields: Record<string, any>, query: Record<string, any>, database?: string) {
+    const db = this.client.db(database || this.db)
+    const collection = db.collection(collectionName)
+    await collection.updateMany(query, { $set: fields })
+  }
+
   async writePosition<T extends ClosedPosition>(data: T, database?: string) {
     //@ts-ignore
     if (data._id) {
