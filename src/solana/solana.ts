@@ -9,7 +9,7 @@ import path from 'path'
 import MongoWrapper from '../mongodb'
 // Load the environment variables from .env file
 require('dotenv').config()
-const mongo = new MongoWrapper('backtests')
+const mongo = new MongoWrapper('trader')
 
 // Hard-coded provider and wallet setup
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com') // Replace with your network endpoint
