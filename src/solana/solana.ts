@@ -459,12 +459,4 @@ const doesPdaExist = async (ticker: string, id: number) => {
 // @ts-ignore
 // addOrder({ symbol: 'BTC-test', action: 'open', avgPrice: 100, size: 100 })
 
-async function test() {
-  // @ts-ignore
-  await initializePda({ symbol: 'BTC-test-dev', type: 'long' }, 42)
-  // @ts-ignore
-  await addAction({ symbol: 'BTC-test-dev', action: 'margin change', after: 23 }, 42)
-}
-test()
-
 export { initializePda, addAction, addOrder, doesPdaExist }
