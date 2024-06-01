@@ -1,11 +1,12 @@
 import * as anchor from '@coral-xyz/anchor'
 import { HbCapitalSmartcontract } from './idl'
-import { logger } from '../utils'
-import { getUnixTime } from 'date-fns'
+import { logger, sleep } from '../utils'
+import { differenceInSeconds, getUnixTime } from 'date-fns'
 import { CloseOrder, Order, TraderAction } from 'cryptobot-types'
 import { IOrderHelperPos } from '../types'
 import MongoWrapper from '../mongodb'
 import config from '../config/config'
+import { isTransactionFinalized } from './helper'
 // Load the environment variables from .env file
 require('dotenv').config()
 const mongo = new MongoWrapper('trader')
@@ -323,7 +324,9 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
   console.log(id)
   console.log('PDA:', posPDA.toBase58())
 
-  const bump = 6
+  //bump random u8
+  const bump = Math.floor(Math.random() * 255)
+
   const tx = await program.methods
     .initialize(ticker, new anchor.BN(id), side, bump)
     .accounts({
@@ -338,8 +341,19 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
     })
 
   logger.debug('Initialize pos pda tx:', tx)
+  if (!tx) return
 
   //await mongo.addFields('livePositions', { txHash: tx }, { symbol: pos.symbol, posId: pos.posId })
+
+  const start = Date.now()
+  while (true) {
+    await sleep(1000)
+    const finalized = await isTransactionFinalized(tx)
+    if (finalized) break
+    if (differenceInSeconds(start, Date.now()) > 20) break
+  }
+
+  logger.debug('Transaction finalized', isTransactionFinalized(tx))
 }
 
 const addAction = async (action: TraderAction, id: number) => {
@@ -358,6 +372,8 @@ const addAction = async (action: TraderAction, id: number) => {
     ],
     program.programId
   )
+
+  logger.debug('pda address', posPDA.toBase58())
 
   const action_type = action.action.includes('margin') ? 0 : 1
   const time = new anchor.BN(getUnixTime(new Date()))
@@ -394,6 +410,8 @@ const addOrder = async (order: Order | CloseOrder, id: number) => {
     program.programId
   )
 
+  logger.debug('pda address', posPDA.toBase58())
+
   const orderType = order.action === 'open' ? 0 : 1
   const price = new anchor.BN(order.avgPrice)
   const size = new anchor.BN(order.size)
@@ -423,11 +441,13 @@ const doesPdaExist = async (ticker: string, id: number) => {
     program.programId
   )
 
+  logger.debug('pda address', posPDA.toBase58())
+
   const pda = await program.account.position.fetch(posPDA).catch((err) => {
     logger.error('Error fetching pda:', err)
     return null
   })
-  logger.debug('PDA:', !!pda, pda)
+  logger.debug('PDA:', !!pda)
 
   return !!pda
 }
@@ -438,5 +458,13 @@ const doesPdaExist = async (ticker: string, id: number) => {
 // addAction({ symbol: 'BTC-test', action: 'margin change', after: 23 })
 // @ts-ignore
 // addOrder({ symbol: 'BTC-test', action: 'open', avgPrice: 100, size: 100 })
+
+async function test() {
+  // @ts-ignore
+  await initializePda({ symbol: 'BTC-test-dev', type: 'long' }, 42)
+  // @ts-ignore
+  await addAction({ symbol: 'BTC-test-dev', action: 'margin change', after: 23 }, 42)
+}
+test()
 
 export { initializePda, addAction, addOrder, doesPdaExist }
