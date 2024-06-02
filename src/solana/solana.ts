@@ -27,7 +27,7 @@ const provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProv
 anchor.setProvider(provider)
 
 const signer = wallet.payer
-logger.debug('Signer:', signer.publicKey.toBase58())
+logger.debug('[solana] signer:', signer.publicKey.toBase58())
 
 const idl = {
   address: '8SPueaEQmPzs9rHUEv789r1P89zq7e4fWnQmCnKXTdEV',
@@ -336,11 +336,11 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
     })
     .rpc()
     .catch((e) => {
-      logger.error('Error initializing pda:', e)
+      logger.error('[solana] Error initializing pda:', e)
       return null
     })
 
-  logger.debug('Initialize pos pda tx:', tx)
+  logger.debug('[solana] Initialize pos pda tx:', tx)
   if (!tx) return
 
   //await mongo.addFields('livePositions', { txHash: tx }, { symbol: pos.symbol, posId: pos.posId })
@@ -353,15 +353,14 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
     if (differenceInSeconds(start, Date.now()) > 20) break
   }
 
-  logger.debug('Transaction finalized', isTransactionFinalized(tx))
+  logger.debug('[solana] transaction finalized')
 }
 
 const addAction = async (action: TraderAction, id: number) => {
   if (!doesPdaExist(action.symbol, id)) {
-    logger.error('PDA does not exist for action')
+    logger.error('[solana] PDA does not exist for action')
     return
   }
-  if (config.NODE_ENV === 'prod') return
   const ticker = action.symbol
   const [posPDA, _bump] = anchor.web3.PublicKey.findProgramAddressSync(
     [
@@ -373,7 +372,7 @@ const addAction = async (action: TraderAction, id: number) => {
     program.programId
   )
 
-  logger.debug('pda address', posPDA.toBase58())
+  logger.debug('[solana] pda address', posPDA.toBase58())
 
   const action_type = action.action.includes('margin') ? 0 : 1
   const time = new anchor.BN(getUnixTime(new Date()))
@@ -388,17 +387,16 @@ const addAction = async (action: TraderAction, id: number) => {
     })
     .rpc()
 
-  logger.debug('Add action tx:', tx)
+  logger.debug('[solana] Add action tx:', tx)
 
   await mongo.addFields('actions', { txHash: tx }, { posId: action.posId, time: action.time })
 }
 
 const addOrder = async (order: Order | CloseOrder, id: number) => {
   if (!doesPdaExist(order.symbol, id)) {
-    logger.error('PDA does not exist for order:', order)
+    logger.error('[solana] PDA does not exist for order:', order)
     return
   }
-  if (config.NODE_ENV === 'prod') return
   const ticker = order.symbol
   const [posPDA, _bump] = anchor.web3.PublicKey.findProgramAddressSync(
     [
@@ -410,7 +408,7 @@ const addOrder = async (order: Order | CloseOrder, id: number) => {
     program.programId
   )
 
-  logger.debug('pda address', posPDA.toBase58())
+  logger.debug('[solana > add order] pda address', posPDA.toBase58())
 
   const orderType = order.action === 'open' ? 0 : 1
   const price = new anchor.BN(order.avgPrice)
@@ -425,7 +423,7 @@ const addOrder = async (order: Order | CloseOrder, id: number) => {
     })
     .rpc()
 
-  logger.debug('Add order tx:', tx)
+  logger.debug('[solana] Add order tx:', tx)
 
   await mongo.addFields('orders', { txHash: tx }, { posId: order.posId, time: order.time })
 }
@@ -447,7 +445,7 @@ const doesPdaExist = async (ticker: string, id: number) => {
     logger.error('Error fetching pda:', err)
     return null
   })
-  logger.debug('PDA:', !!pda)
+  logger.debug('[solana] does pda exist:', !!pda)
 
   return !!pda
 }

@@ -11,7 +11,7 @@ const okxClient = new RestClient({
   apiSecret: config.OKX_SECRET,
   apiPass: config.OKX_PASS,
 })
-const startTime = subMonths(new Date(), 3).getTime()
+const startTime = subMonths(new Date(), 6).getTime()
 
 async function processSymbol(symbol: string) {
   const lastCandle = await mongo.readLastCandle(symbol)

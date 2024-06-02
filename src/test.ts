@@ -1,29 +1,44 @@
+import { RestClientV5 } from 'bybit-api'
 import config from './config/config'
-import { sleep } from './utils'
-import { BybitClient } from './bybit/utils'
 
-const symbol = 'MNTUSDT'
-const client = new BybitClient(config.BYBIT_KEY, config.BYBIT_SECRET)
+const symbol = '10000WENUSDT'
+
+const client = new RestClientV5({
+  key: config.BYBIT_KEY,
+  secret: config.BYBIT_SECRET,
+})
+
 async function main() {
-  client.subscribeToTicker(symbol)
-  await client.setLeverage(symbol, 3)
-  await sleep(1000 * 5)
+  let orders: any[] = []
+  const { result } = await client.getHistoricOrders({
+    symbol,
+    limit: 50,
+    endTime: new Date().getTime(),
+    category: 'linear',
+  })
 
-  const response = await client.placeMarketOrder(symbol, 'Buy', 2)
+  orders = [...orders, ...result.list].sort((a, b) => +a.createdTime - +b.createdTime)
 
-  await sleep(1000 * 2)
+  console.log(orders.length)
+  if (orders.length > 0) {
+    console.log(new Date(+orders[0].createdTime))
+    console.log(new Date(+orders[orders.length - 1].createdTime))
+  }
 
-  const details = await client.getOrderDetails(response.orderId)
+  const { result: result2 } = await client.getHistoricOrders({
+    symbol,
+    limit: 50,
+    endTime: orders[0].createdTime,
+    category: 'linear',
+  })
 
-  console.log(details)
+  const sorted2 = result2.list.sort((a, b) => +a.createdTime - +b.createdTime)
 
-  await sleep(1000 * 5)
-
-  await client.setLeverage(symbol, 10)
-
-  while (client.position) {
-    await sleep(1000 * 5)
-    console.log(client.position)
+  console.log(sorted2.length)
+  if (sorted2.length > 0) {
+    console.log(new Date(+sorted2[0].createdTime))
+    console.log(new Date(+sorted2[sorted2.length - 1].createdTime))
   }
 }
+
 main()

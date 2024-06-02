@@ -744,7 +744,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     //this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
     const baseAction = {
       symbol: this.symbol,
-      posId: okxClient.position.posId,
+      posId: okxClient.position?.posId || positionPre.posId,
       accHash: this.accHash,
       price: this.price,
       time: new Date(),

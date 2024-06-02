@@ -2,6 +2,7 @@ import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
 import { isLiveOrderHelper } from '../types'
+import { differenceInMinutes } from 'date-fns'
 
 let initialSizeInCts: number
 let lastLeverIncrease: number | null
@@ -52,6 +53,8 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
       initialSizeInCts = orders[0].size
     }
     const lastOrder = orders[orders.length - 1]
+    const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
+    const lastDCA = DCAs[DCAs.length - 1]
 
     if (unrealizedPnlPcnt < -80) {
       const ordId = 'loss' + createUniqueId(10)
@@ -134,6 +137,21 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
       const ordId = 'reduce' + createUniqueId(10)
       if (reduceCtsAmount > 0) {
         await this.orderHelper.closeOrder(reduceCtsAmount, ordId)
+        return
+      }
+    }
+
+    const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
+    const cond = !lastDCA || timeDiff > 30
+    if (price > avgEntryPrice * 1.2 && cond) {
+      let buyAmountUSD = entrySizeUSD
+      const ratio = 1 - margin / buyAmountUSD
+      if (ratio > 0.1) {
+        buyAmountUSD = margin * 0.3
+      }
+      const ordId = 'buydca' + createUniqueId(6)
+      if (buyAmountUSD < portfolio) {
+        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return
       }
     }
