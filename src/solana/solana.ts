@@ -15,7 +15,6 @@ const mongo = new MongoWrapper('trader')
 const connection = new anchor.web3.Connection('https://api.devnet.solana.com') // Replace with your network endpoint
 
 // Convert the secret key from environment variable to Uint8Array
-
 const secretKeyArray = new Uint8Array([
   184, 249, 65, 241, 48, 85, 24, 236, 131, 170, 161, 151, 101, 1, 19, 181, 166, 37, 14, 174, 7, 70, 136, 182, 178, 196,
   113, 206, 164, 139, 211, 128, 222, 186, 217, 155, 46, 95, 253, 252, 71, 193, 15, 60, 54, 223, 143, 231, 128, 149, 130,
@@ -357,7 +356,8 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
 }
 
 const addAction = async (action: TraderAction, id: number) => {
-  if (!doesPdaExist(action.symbol, id)) {
+  const pdaExists = await doesPdaExist(action.symbol, id)
+  if (!pdaExists) {
     logger.error('[solana] PDA does not exist for action')
     return
   }
@@ -393,11 +393,12 @@ const addAction = async (action: TraderAction, id: number) => {
 }
 
 const addOrder = async (order: Order | CloseOrder, id: number) => {
-  if (!doesPdaExist(order.symbol, id)) {
+  const ticker = order.symbol
+  const pdaExists = await doesPdaExist(ticker, id)
+  if (!pdaExists) {
     logger.error('[solana] PDA does not exist for order:', order)
     return
   }
-  const ticker = order.symbol
   const [posPDA, _bump] = anchor.web3.PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode('pos'),
@@ -411,7 +412,7 @@ const addOrder = async (order: Order | CloseOrder, id: number) => {
   logger.debug('[solana > add order] pda address', posPDA.toBase58())
 
   const orderType = order.action === 'open' ? 0 : 1
-  const price = new anchor.BN(order.avgPrice)
+  const price = new anchor.BN(order.avgPrice * 100_000)
   const size = new anchor.BN(order.size)
 
   const tx = await program.methods
@@ -439,8 +440,6 @@ const doesPdaExist = async (ticker: string, id: number) => {
     program.programId
   )
 
-  logger.debug('pda address', posPDA.toBase58())
-
   const pda = await program.account.position.fetch(posPDA).catch((err) => {
     logger.error('Error fetching pda:', err)
     return null
@@ -451,10 +450,10 @@ const doesPdaExist = async (ticker: string, id: number) => {
 }
 
 // @ts-ignore
-// initializePda({ symbol: 'BTC-USDT-SWAP', type: 'long' }, 42)
+//initializePda({ symbol: 'BTC-USDT-SWAP', type: 'long' }, 42)
 // @ts-ignore
-// addAction({ symbol: 'BTC-test', action: 'margin change', after: 23 })
+// addAction({ symbol: 'BTC-test', action: 'margin change', after: 23 }, 42)
 // @ts-ignore
-// addOrder({ symbol: 'BTC-test', action: 'open', avgPrice: 100, size: 100 })
+//addOrder({ symbol: 'BTC-test', action: 'open', avgPrice: 0.00453, size: 100 }, 42)
 
 export { initializePda, addAction, addOrder, doesPdaExist }
