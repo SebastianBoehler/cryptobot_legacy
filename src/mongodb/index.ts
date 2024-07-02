@@ -710,6 +710,57 @@ class MongoWrapper {
 
     return result[0]
   }
+
+  async loadChatHistory(sessionId: string) {
+    const db = this.client.db('chats')
+    const collection = db.collection(sessionId)
+    const result = await collection.find().sort({ time: 1 }).toArray()
+
+    return result
+  }
+
+  async saveChatMessages(messages: any[], sessionId: string) {
+    const db = this.client.db('chats')
+    const collection = db.collection(sessionId)
+    await collection.insertMany(messages)
+  }
+
+  async deleteChatMessages(messages: { _id?: string; time: Date; parts: any; role: string }[], sessionId: string) {
+    const db = this.client.db('chats')
+    const collection = db.collection(sessionId)
+    // _id might not be present in all messages so we use time
+    console.log(messages)
+    await collection.deleteMany({
+      time: { $in: messages.map((m) => m.time) },
+    })
+  }
+
+  //update user profile function where you can only update some fields
+  async updateUserProfile(userId: string, setFields: Record<string, any>) {
+    const db = this.client.db('users')
+    const collection = db.collection('profiles')
+
+    await collection.updateOne({ userId }, { $set: setFields })
+  }
+
+  //should only work if the user profile doesn't exist
+  async createUserProfile(userId: string, fields: Record<string, any>) {
+    const db = this.client.db('users')
+    const collection = db.collection('profiles')
+
+    // if the user profile already exists, return
+    const existingProfile = await collection.findOne({ userId })
+    if (existingProfile) return
+
+    await collection.insertOne({ userId, ...fields })
+  }
+
+  async getUserProfile(userId: string) {
+    const db = this.client.db('users')
+    const collection = db.collection('profiles')
+    const profile = await collection.findOne({ userId })
+    return profile
+  }
 }
 
 export default MongoWrapper

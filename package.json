@@ -12,6 +12,7 @@
     "test": "jest",
     "trader": "export NODE_ENV=dev && ts-node src/trader.ts",
     "worker": "export NODE_ENV=dev && ts-node src/worker.ts",
+    "optimizer": "export NODE_ENV=dev && ts-node src/optimizer.ts",
     "backtester": "export NODE_ENV=dev && ts-node src/backtester.ts",
     "solana": "export NODE_ENV=dev && ts-node src/solana/solana.ts",
     "nodemon": "export NODE_ENV=dev && nodemon src/backtester.ts",

@@ -165,4 +165,78 @@ router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) 
   res.json(result)
 })
 
+router.get('/chat/history', async (req: Request, res: Response) => {
+  const { session } = req.query
+  if (!session) {
+    res.status(400).send('user and session query parameter is required')
+    return
+  }
+
+  const history = await client.loadChatHistory(session as string)
+
+  res.set('Cache-control', `public, max-age=0`)
+  res.json(history)
+})
+
+router.post('/chat/save', async (req: Request, res: Response) => {
+  const { session, messages } = req.body
+  if (!session || !messages) {
+    res.status(400).send('user, session and messages query parameter is required')
+    return
+  }
+
+  await client.saveChatMessages(messages as any[], session as string)
+
+  res.json({ message: 'saved' })
+})
+
+router.post('/chat/message/delete', async (req: Request, res: Response) => {
+  const { messages, session } = req.body
+  if (!session || !messages) {
+    res.status(400).send('session and messages query parameter is required')
+    return
+  }
+
+  await client.deleteChatMessages(messages, session)
+
+  res.json({ message: 'deleted' })
+})
+
+router.post('/user/profile/update', async (req: Request, res: Response) => {
+  const { setFields, user } = req.body
+  if (!user) {
+    res.status(400).send('user query parameter is required')
+    return
+  }
+
+  await client.updateUserProfile(user as string, setFields || {})
+
+  res.json({ message: 'saved' })
+})
+
+router.post('/user/profile/create', async (req: Request, res: Response) => {
+  const { user, fields } = req.body
+  if (!user || !fields) {
+    res.status(400).send('user and fields query parameter is required')
+    return
+  }
+
+  await client.createUserProfile(user as string, fields as Record<string, any>)
+
+  res.json({ message: 'saved' })
+})
+
+router.get('/user/profile/:user', async (req: Request, res: Response) => {
+  const { user } = req.params
+  if (!user) {
+    res.status(400).send('user query parameter is required')
+    return
+  }
+
+  const profile = await client.getUserProfile(user)
+
+  res.set('Cache-control', `public, max-age=0`)
+  res.json(profile)
+})
+
 export default router

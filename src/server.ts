@@ -15,9 +15,8 @@ const port = process.env.PORT || 3001
 
 import mongoRoutes from './mongodb/routes'
 import pm2Routes from './pm2/routes'
-import { createUniqueId, logger } from './utils'
+import { logger } from './utils'
 import config from './config/config'
-import { backtest } from './backtest'
 
 server.use(cors())
 server.use(express.json())
@@ -70,36 +69,36 @@ server.use(limiter)
 
 server.use('/pm2', pm2Routes)
 
-server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
-  if (config.NODE_ENV === 'prod') {
-    res.status(401).send({
-      message: 'Unauthorized',
-    })
-    return
-  }
-  const symbol = req.params.symbol
-  const { start, amount, strategy, steps, multiplier, exchange } = req.body
-  const id = 'site-' + createUniqueId(8)
-  if (!symbol) {
-    res.status(400).send({
-      message: 'Symbol not provided',
-    })
-    return
-  }
-  if (!start || !strategy || !amount || !steps || !exchange) {
-    res.status(400).send({
-      message: 'Body params not valid, missing data',
-    })
-    return
-  }
+// server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
+//   if (config.NODE_ENV === 'prod') {
+//     res.status(401).send({
+//       message: 'Unauthorized',
+//     })
+//     return
+//   }
+//   const symbol = req.params.symbol
+//   const { start, amount, strategy, steps, multiplier, exchange } = req.body
+//   const id = 'site-' + createUniqueId(8)
+//   if (!symbol) {
+//     res.status(400).send({
+//       message: 'Symbol not provided',
+//     })
+//     return
+//   }
+//   if (!start || !strategy || !amount || !steps || !exchange) {
+//     res.status(400).send({
+//       message: 'Body params not valid, missing data',
+//     })
+//     return
+//   }
 
-  backtest(symbol, exchange, new Date(start), id, amount, strategy, steps, multiplier)
+//   backtest(symbol, exchange, new Date(start), id, amount, strategy, steps, multiplier)
 
-  res.status(200).send({
-    message: 'Backtest triggered',
-    id,
-  })
-})
+//   res.status(200).send({
+//     message: 'Backtest triggered',
+//     id,
+//   })
+// })
 
 server.options('*', (_req, res: Response) => {
   res.status(200).send()

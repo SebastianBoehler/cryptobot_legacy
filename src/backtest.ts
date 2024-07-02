@@ -12,6 +12,12 @@ const prodMongo = new MongoWrapper(
 
 const saveToMongo = true
 
+interface StrategyParams {
+  steps?: number
+  multiplier?: number
+  stopLoss?: number
+}
+
 export async function backtest(
   symbol: string,
   exchange = 'okx',
@@ -19,8 +25,7 @@ export async function backtest(
   identifier?: string,
   amount?: number,
   strategyName?: keyof typeof strategies,
-  steps?: number,
-  multiplier?: number
+  params: StrategyParams = {}
 ) {
   const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>(exchange, symbol, {
     close: 1,
@@ -44,9 +49,12 @@ export async function backtest(
     await strategy.initalize(symbol, exchange, saveToMongo, false)
     if (strategy.orderHelper) strategy.orderHelper.identifier = identifier || `${strategy.name}-${symbol}-${rndStr}`
     if (amount) strategy.startCapital = amount
-    if (steps) strategy.steps = steps
-    //@ts-ignore
-    if (multiplier && strategy.multiplier) strategy.multiplier = multiplier
+
+    //for every parameter in params, set the value in the strategy
+    for (const [key, value] of Object.entries(params)) {
+      //@ts-ignore
+      if (strategy[key]) strategy[key] = value
+    }
   }
 
   outer: for (const candle of history) {
@@ -88,6 +96,9 @@ export async function backtest(
     const hodl_pct = ((+history[history.length - 1].close - +firstCandle.close) / +firstCandle.close) * 100
     const maxDrawdown = Math.min(...positions.map((pos) => pos.maxDrawdown || 0))
 
+    const diff = pnl_pct - hodl_pct
+    const hodl_ratio = diff / hodl_pct
+
     results.push({
       trades: positions.length,
       identifier,
@@ -110,7 +121,11 @@ export async function backtest(
       //@ts-ignore
       maxDrawdown,
     })
+
+    logger.info('compare ratio calc', { diff, hodl_ratio })
   }
 
   await prodMongo.writeMany('results', results)
+
+  return results
 }

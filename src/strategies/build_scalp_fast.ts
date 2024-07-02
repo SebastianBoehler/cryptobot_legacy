@@ -13,6 +13,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
+  public stopLoss = -80
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -57,7 +58,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
     const lastDCA = DCAs[DCAs.length - 1]
 
-    if (unrealizedPnlPcnt < -80) {
+    if (unrealizedPnlPcnt < this.stopLoss) {
       //calculate the price at which pnl .80 with avgEntryPrice and the leverage
       // const multiplier = 1 - 0.81 / leverage
       // const lossPrice = avgEntryPrice * multiplier
