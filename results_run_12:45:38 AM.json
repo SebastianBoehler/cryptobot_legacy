@@ -1,0 +1,32 @@
+[
+  {
+    "reward": 113041.99007462687,
+    "parameters": {
+      "steps": 5,
+      "multiplier": 0.96,
+      "stopLoss": -13,
+      "leverReduce": -19
+    },
+    "rest": {
+      "trades": 67,
+      "identifier": "optimization_5_0.96_-13_-19-CORE-USDT-SWAP-qIxo",
+      "name": "optimization_5_0.96_-13_-19",
+      "startCapital": 220,
+      "symbol": "CORE-USDT-SWAP",
+      "margin": 20110.06196,
+      "pnl": 226103.81,
+      "winRatio": 0.2835820895522388,
+      "time": "2024-07-03T22:54:40.262Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 102774.46121667705,
+      "hodl_pct": 179.33814170555792,
+      "liquidations": 50,
+      "exchange": "okx",
+      "hodl_ratio": 573.0764255682702,
+      "maxDrawdown": -62.12912504513175,
+      "_id": "6685d6b06b093a7ccf39abf7"
+    },
+    "identifier": "optimization_5_0.96_-13_-19-CORE-USDT-SWAP-qIxo"
+  }
+]

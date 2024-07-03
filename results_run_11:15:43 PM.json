@@ -1,0 +1,32 @@
+[
+  {
+    "reward": 7143.9592105263155,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.95,
+      "stopLoss": -19,
+      "leverReduce": -17
+    },
+    "rest": {
+      "trades": 19,
+      "identifier": "optimization_2_0.95_-19_-17-SOL-USDT-SWAP-0h6l",
+      "name": "optimization_2_0.95_-19_-17",
+      "startCapital": 1400,
+      "symbol": "SOL-USDT-SWAP",
+      "margin": 1815.4733689839575,
+      "pnl": 14294.95,
+      "winRatio": 0.42105263157894735,
+      "time": "2024-07-03T21:31:26.294Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 1021.06792898814,
+      "hodl_pct": 57.3746918652424,
+      "liquidations": 12,
+      "exchange": "okx",
+      "hodl_ratio": 17.79648649593364,
+      "maxDrawdown": -26.53856592958893,
+      "_id": "6685c32ea2b43002aec4ad09"
+    },
+    "identifier": "optimization_2_0.95_-19_-17-SOL-USDT-SWAP-0h6l"
+  }
+]

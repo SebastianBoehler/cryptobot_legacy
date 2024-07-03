@@ -202,6 +202,17 @@ router.post('/chat/message/delete', async (req: Request, res: Response) => {
   res.json({ message: 'deleted' })
 })
 
+router.delete('/chat/delete/:session', async (req: Request, res: Response) => {
+  const { session } = req.params
+  if (!session) {
+    res.status(400).send('session query parameter is required')
+    return
+  }
+
+  await client.deleteCollection(session, 'chats')
+  res.json({ message: 'deleted' })
+})
+
 router.post('/user/profile/update', async (req: Request, res: Response) => {
   const { setFields, user } = req.body
   if (!user) {

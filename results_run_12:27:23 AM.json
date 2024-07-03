@@ -1,0 +1,32 @@
+[
+  {
+    "reward": 86.70227272727273,
+    "parameters": {
+      "steps": 3,
+      "multiplier": 0.97,
+      "stopLoss": -24,
+      "leverReduce": -8
+    },
+    "rest": {
+      "trades": 22,
+      "identifier": "optimization_3_0.97_-24_-8-STX-USDT-SWAP-U0Tu",
+      "name": "optimization_3_0.97_-24_-8",
+      "startCapital": 120,
+      "symbol": "STX-USDT-SWAP",
+      "margin": 133.8514,
+      "pnl": 176.65,
+      "winRatio": 0.5909090909090909,
+      "time": "2024-07-03T22:27:31.300Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 147.20462112647434,
+      "hodl_pct": 11.561691113028482,
+      "liquidations": 9,
+      "exchange": "okx",
+      "hodl_ratio": 12.732101185491315,
+      "maxDrawdown": -26.242142863268775,
+      "_id": "6685d053c8646b3177a3c624"
+    },
+    "identifier": "optimization_3_0.97_-24_-8-STX-USDT-SWAP-U0Tu"
+  }
+]

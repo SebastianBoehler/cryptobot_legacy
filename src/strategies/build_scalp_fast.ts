@@ -14,6 +14,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
   public steps = 6
   public multiplier = 0.95
   public stopLoss = -80
+  public leverReduce = -60
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -43,6 +44,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       return
     }
 
+    if (this.shouldEndTrading) {
+      await this.orderHelper.closeOrder(position.ctSize, 'reduce' + createUniqueId(10))
+      return
+    }
+
     if (!lastLeverIncrease && isLiveOrderHelper(this.orderHelper)) {
       const lastIncrease = await this.orderHelper.loadLastLeverIncrease()
       if (lastIncrease) lastLeverIncrease = lastIncrease.price
@@ -69,7 +75,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       return
     }
 
-    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+    if (unrealizedPnlPcnt < this.leverReduce && leverage > 2) {
       await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
       return
     }

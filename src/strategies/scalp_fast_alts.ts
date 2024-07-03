@@ -42,6 +42,11 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       return
     }
 
+    if (this.shouldEndTrading) {
+      await this.orderHelper.closeOrder(position.ctSize, 'reduce' + createUniqueId(10))
+      return
+    }
+
     if (!lastLeverIncrease && isLiveOrderHelper(this.orderHelper)) {
       const lastIncrease = await this.orderHelper.loadLastLeverIncrease()
       if (lastIncrease) lastLeverIncrease = lastIncrease.price

@@ -18,6 +18,7 @@ export class Base {
   public multiplier = 1
   public stopLoss = -30
   public requiresIndicators = false
+  public leverReduce = -60
 
   public async initalize(symbol: string, exchange: string, saveToMongo?: boolean, live: boolean = false) {
     this.symbol = symbol

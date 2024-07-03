@@ -11,6 +11,7 @@ import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
 import { TESTING } from './strategies/testing'
 import { IOrderHelperPos } from './types'
 import { SCALP_FAST_TEST } from './strategies/scalp_fast_test'
+import { log } from 'console'
 
 if (!config.SYMBOL) throw new Error('no symbol')
 if (!config.START_CAPITAL) throw new Error('no start capital')
@@ -42,6 +43,12 @@ if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = +proces
 if (strategy.stopLoss && process.env.STOP_LOSS) strategy.stopLoss = +process.env.STOP_LOSS
 if (strategy.steps && process.env.STEPS) strategy.steps = +process.env.STEPS
 if (process.env.SHOULD_END_TRADING) strategy.shouldEndTrading = process.env.SHOULD_END_TRADING === 'true'
+if (process.env.LEVER_REDUCE) strategy.leverReduce = +process.env.LEVER_REDUCE
+
+logger.debug(`Set multiplier to ${strategy.multiplier}`)
+logger.debug(`Set stop loss to ${strategy.stopLoss}`)
+logger.debug(`Set steps to ${strategy.steps}`)
+logger.debug(`Set shouldEndTrading to ${strategy.shouldEndTrading}`)
 
 let indicators: GenerateIndicators[] = [
   new GenerateIndicators(exchange, symbol, 5),

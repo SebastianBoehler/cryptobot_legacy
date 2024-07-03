@@ -1,0 +1,31 @@
+[
+  {
+    "reward": 2040.4052631578948,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.94,
+      "stopLoss": -26
+    },
+    "rest": {
+      "trades": 19,
+      "identifier": "scalp-fast-alts-SOL-USDT-SWAP-81Ex",
+      "name": "scalp-fast-alts",
+      "startCapital": 1400,
+      "symbol": "SOL-USDT-SWAP",
+      "margin": 394.0084852216748,
+      "pnl": 4087.2,
+      "winRatio": 0.5263157894736842,
+      "time": "2024-07-03T18:27:37.514Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 291.9425877606034,
+      "hodl_pct": 57.3746918652424,
+      "liquidations": 11,
+      "exchange": "okx",
+      "hodl_ratio": 5.088351296880119,
+      "maxDrawdown": -103.22184818231828,
+      "_id": "668598194aedff194790d46e"
+    },
+    "identifier": "scalp-fast-alts-SOL-USDT-SWAP-81Ex"
+  }
+]

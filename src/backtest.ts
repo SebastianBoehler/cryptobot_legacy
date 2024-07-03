@@ -16,6 +16,7 @@ interface StrategyParams {
   steps?: number
   multiplier?: number
   stopLoss?: number
+  [key: string]: any
 }
 
 export async function backtest(
@@ -45,16 +46,16 @@ export async function backtest(
 
   const strategyArray = strategyName ? [strategies[strategyName]] : Object.values(strategies)
   for (const strategy of strategyArray) {
-    logger.debug('initalizing', strategy.name)
-    await strategy.initalize(symbol, exchange, saveToMongo, false)
-    if (strategy.orderHelper) strategy.orderHelper.identifier = identifier || `${strategy.name}-${symbol}-${rndStr}`
-    if (amount) strategy.startCapital = amount
-
     //for every parameter in params, set the value in the strategy
     for (const [key, value] of Object.entries(params)) {
       //@ts-ignore
       if (strategy[key]) strategy[key] = value
     }
+
+    logger.debug('initalizing', strategy.name)
+    await strategy.initalize(symbol, exchange, saveToMongo, false)
+    if (strategy.orderHelper) strategy.orderHelper.identifier = identifier || `${strategy.name}-${symbol}-${rndStr}`
+    if (amount) strategy.startCapital = amount
   }
 
   outer: for (const candle of history) {

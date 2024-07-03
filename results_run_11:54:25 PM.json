@@ -1,0 +1,32 @@
+[
+  {
+    "reward": 20096.99,
+    "parameters": {
+      "steps": 3,
+      "multiplier": 0.95,
+      "stopLoss": -24,
+      "leverReduce": -19
+    },
+    "rest": {
+      "trades": 27,
+      "identifier": "optimization_3_0.95_-24_-19-FTM-USDT-SWAP-e9gC",
+      "name": "optimization_3_0.95_-24_-19",
+      "startCapital": 1400,
+      "symbol": "FTM-USDT-SWAP",
+      "margin": 5438.669666666668,
+      "pnl": 40197.18,
+      "winRatio": 0.6666666666666666,
+      "time": "2024-07-03T22:04:27.114Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 2871.2272900814296,
+      "hodl_pct": 67.17600452744765,
+      "liquidations": 9,
+      "exchange": "okx",
+      "hodl_ratio": 42.74185864847419,
+      "maxDrawdown": -40.33281390836836,
+      "_id": "6685caeb68e9046526e832af"
+    },
+    "identifier": "optimization_3_0.95_-24_-19-FTM-USDT-SWAP-e9gC"
+  }
+]

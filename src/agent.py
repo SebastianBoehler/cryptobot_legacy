@@ -27,9 +27,7 @@ class DQNAgent:
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation="relu"))
         model.add(Dense(24, activation="relu"))
-        model.add(
-            Dense(3, activation="linear")
-        )  # Output 3 values for steps, multiplier, stopLoss
+        model.add(Dense(4, activation="linear"))  # Output 4 values now
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
         return model
 
@@ -54,7 +52,13 @@ class DQNAgent:
                     self.action_space["stopLoss"][0], self.action_space["stopLoss"][1]
                 )
             )  # Ensure integer
-            return np.array([steps, multiplier, stop_loss])
+            lever_reduce = int(
+                np.random.uniform(
+                    self.action_space["leverReduce"][0],
+                    self.action_space["leverReduce"][1],
+                )
+            )
+            return np.array([steps, multiplier, stop_loss, lever_reduce])
         else:
             # Exploit: Predict actions using the learned model
             act_values = self.model.predict(state)
@@ -78,7 +82,14 @@ class DQNAgent:
                     self.action_space["stopLoss"][0],
                 )
             )  # Ensure integer
-            return np.array([steps, multiplier, stop_loss])
+            # Clip leverReduce to the action space range
+            lever_reduce = int(
+                max(
+                    min(round(act_values[0][3]), self.action_space["leverReduce"][1]),
+                    self.action_space["leverReduce"][0],
+                )
+            )
+            return np.array([steps, multiplier, stop_loss, lever_reduce])
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
@@ -110,6 +121,7 @@ class TradingEnv(gym.Env):
             "steps": (2, 10),  # Example: steps between 1 and 10
             "multiplier": (0.8, 1.2),  # Example: multiplier between 0.7 and 1.3
             "stopLoss": (-30, -10),  # Stop loss between -80% and -10%
+            "leverReduce": (-30, -5),  # Lever reduce between 0 and 10
         }
         self.observation_space = spaces.Box(low=0, high=1, shape=(3,), dtype=np.float32)
 
@@ -144,8 +156,9 @@ if len(sys.argv) > 1:
             results.get("steps", 1),
             results.get("multiplier", 1.0),
             results.get("stopLoss", -20),
+            results.get("leverReduce", -10),
         ]
-    )  # Get steps, multiplier, and stopLoss
+    )  # Get steps, multiplier, stopLoss and leverReduce
     done = results.get("done", False)
 
     agent.remember(state, action, reward, next_state, done)
@@ -163,9 +176,9 @@ else:
                 "steps": int(action[0]),  # Return steps as integer
                 "multiplier": float(action[1]),  # Return multiplier as float
                 "stopLoss": float(action[2]),  # Return stopLoss as float
+                "leverReduce": int(action[3]),  # Return leverReduce as integer
             }
         )
     )
-
 # Save the model after training
 agent.save("trading_model.weights.h5")
