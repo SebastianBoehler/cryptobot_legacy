@@ -107,9 +107,9 @@ class TradingEnv(gym.Env):
         super(TradingEnv, self).__init__()
         # Define action space for 'steps', 'multiplier', and 'stopLoss'
         self.action_space = {
-            "steps": (1, 10),  # Example: steps between 1 and 10
+            "steps": (2, 10),  # Example: steps between 1 and 10
             "multiplier": (0.8, 1.2),  # Example: multiplier between 0.7 and 1.3
-            "stopLoss": (-80, -10),  # Stop loss between -80% and -10%
+            "stopLoss": (-30, -10),  # Stop loss between -80% and -10%
         }
         self.observation_space = spaces.Box(low=0, high=1, shape=(3,), dtype=np.float32)
 

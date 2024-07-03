@@ -38,8 +38,10 @@ logger.info(`Using strategy: ${strategy.name} on ${symbol} on ${exchange}`)
 strategy.startCapital = config.START_CAPITAL
 logger.debug(`Set start capital to ${strategy.startCapital}`)
 
-const multiplier = process.env.MULTIPLIER ? +process.env.MULTIPLIER : 1
-if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = multiplier
+if (strategy.multiplier && process.env.MULTIPLIER) strategy.multiplier = +process.env.MULTIPLIER
+if (strategy.stopLoss && process.env.STOP_LOSS) strategy.stopLoss = +process.env.STOP_LOSS
+if (strategy.steps && process.env.STEPS) strategy.steps = +process.env.STEPS
+if (process.env.SHOULD_END_TRADING) strategy.shouldEndTrading = process.env.SHOULD_END_TRADING === 'true'
 
 let indicators: GenerateIndicators[] = [
   new GenerateIndicators(exchange, symbol, 5),

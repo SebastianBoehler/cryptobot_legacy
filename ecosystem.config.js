@@ -79,21 +79,6 @@ module.exports = {
       watch: false,
       log_date_format
     },
-    // {
-    //   name: 'bybit_trader_myro',
-    //   script: traderPath,
-    //   env_prod: {
-    //     NODE_ENV: "prod",
-    //     SYMBOL: 'MYROUSDT',
-    //     STRATEGY: 'BUILD_SCALP_FAST',
-    //     MULTIPLIER: 0.95,
-    //     START_CAPITAL: 100,
-    //     EXCHANGE: 'bybit',
-    //     LOG_LEVEL: 'debug'
-    //   },
-    //   watch: false,
-    //   log_date_format
-    // },
     {
       name: 'bybit_trader_wen',
       script: traderPath,
@@ -140,7 +125,6 @@ module.exports = {
       log_date_format
     },
     //HB CAPITAL
-    //INJECTIVE
     {
       name: 'hb_trader_ordi',
       script: traderPath,
@@ -192,6 +176,7 @@ module.exports = {
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
+        SHOULD_END_TRADING: true,
         SYMBOL: 'FET-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 350,
@@ -210,7 +195,9 @@ module.exports = {
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 700,
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.94,
+        STOP_LOSS: -11,
+        STEPS: 6,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },
@@ -222,6 +209,7 @@ module.exports = {
       //out_file: "/dev/null", //disable logs from being written to file
       env_prod: {
         NODE_ENV: "prod",
+        SHOULD_END_TRADING: true,
         SYMBOL: 'RNDR-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 600,
@@ -241,6 +229,8 @@ module.exports = {
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 1400,
         MULTIPLIER: 0.95,
+        STOP_LOSS: -14,
+        STEPS: 10,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },

@@ -1,0 +1,379 @@
+[
+  {
+    "reward": 2000.9814285714285,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.92,
+      "stopLoss": -22
+    },
+    "rest": {
+      "trades": 7,
+      "identifier": "scalp-fast-alts-BTC-USDT-SWAP-SWzL",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "BTC-USDT-SWAP",
+      "margin": 1484.953,
+      "pnl": 4001.62,
+      "winRatio": 0.8571428571428571,
+      "time": "2024-07-03T15:13:40.373Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 133.38728006971505,
+      "hodl_pct": 45.58251254348292,
+      "liquidations": 0,
+      "exchange": "okx",
+      "hodl_ratio": 2.9262818705412905,
+      "maxDrawdown": -20.190072946908924,
+      "_id": "66856aa452cd361725266dda"
+    },
+    "identifier": "scalp-fast-alts-BTC-USDT-SWAP-SWzL"
+  },
+  {
+    "reward": 2841.6911904761905,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.86,
+      "stopLoss": -10
+    },
+    "rest": {
+      "trades": 21,
+      "identifier": "scalp-fast-alts-ETH-USDT-SWAP-Cl34",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "ETH-USDT-SWAP",
+      "margin": 873.8910286363637,
+      "pnl": 5691.63,
+      "winRatio": 0.38095238095238093,
+      "time": "2024-07-03T15:22:57.080Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 189.72106855839826,
+      "hodl_pct": 49.59153685352181,
+      "liquidations": 14,
+      "exchange": "okx",
+      "hodl_ratio": 3.8256743104932625,
+      "maxDrawdown": -55.563925384189986,
+      "_id": "66856cd152cd361725266f9a"
+    },
+    "identifier": "scalp-fast-alts-ETH-USDT-SWAP-Cl34"
+  },
+  {
+    "reward": 4844.564090909091,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.88,
+      "stopLoss": -24
+    },
+    "rest": {
+      "trades": 44,
+      "identifier": "scalp-fast-alts-SOL-USDT-SWAP-bUPJ",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "SOL-USDT-SWAP",
+      "margin": 493.688608695652,
+      "pnl": 9702.11,
+      "winRatio": 0.5454545454545454,
+      "time": "2024-07-03T15:32:43.504Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 323.4038156039348,
+      "hodl_pct": 57.3746918652424,
+      "liquidations": 22,
+      "exchange": "okx",
+      "hodl_ratio": 5.636698082205351,
+      "maxDrawdown": -71.95565054774484,
+      "_id": "66856f1b52cd361725267514"
+    },
+    "identifier": "scalp-fast-alts-SOL-USDT-SWAP-bUPJ"
+  },
+  {
+    "reward": -85.2783870967742,
+    "parameters": {
+      "steps": 10,
+      "multiplier": 0.87,
+      "stopLoss": -14
+    },
+    "rest": {
+      "trades": 31,
+      "identifier": "scalp-fast-alts-NOT-USDT-SWAP-Kz2B",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "NOT-USDT-SWAP",
+      "margin": 127.54874,
+      "pnl": -157.46,
+      "winRatio": 0.25806451612903225,
+      "time": "2024-07-03T15:33:16.675Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": -5.248625462173102,
+      "hodl_pct": -37.155877976190474,
+      "liquidations": 22,
+      "exchange": "okx",
+      "hodl_ratio": -0.14125962695690913,
+      "maxDrawdown": -109.78551656540529,
+      "_id": "66856f3c52cd361725267570"
+    },
+    "identifier": "scalp-fast-alts-NOT-USDT-SWAP-Kz2B"
+  },
+  {
+    "reward": 5350377.463571428,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.95,
+      "stopLoss": -17
+    },
+    "rest": {
+      "trades": 28,
+      "identifier": "scalp-fast-alts-PEPE-USDT-SWAP-36PQ",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "PEPE-USDT-SWAP",
+      "margin": 12156191.238639036,
+      "pnl": 10700766.77,
+      "winRatio": 0.39285714285714285,
+      "time": "2024-07-03T15:39:43.079Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:33:00.000Z",
+      "pnl_pct": 356692.2257257357,
+      "hodl_pct": 1126.695842450766,
+      "liquidations": 20,
+      "exchange": "okx",
+      "hodl_ratio": 316.58253477696877,
+      "maxDrawdown": -40.69722715961608,
+      "_id": "668570bf52cd361725267ac2"
+    },
+    "identifier": "scalp-fast-alts-PEPE-USDT-SWAP-36PQ"
+  },
+  {
+    "reward": 374387.4197058824,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.8,
+      "stopLoss": -18
+    },
+    "rest": {
+      "trades": 85,
+      "identifier": "scalp-fast-alts-PEOPLE-USDT-SWAP-iHAv",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "PEOPLE-USDT-SWAP",
+      "margin": 627939.8985,
+      "pnl": 748807.67,
+      "winRatio": 0.4235294117647059,
+      "time": "2024-07-03T15:52:00.408Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 24960.25557992464,
+      "hodl_pct": 246.54701521654312,
+      "liquidations": 55,
+      "exchange": "okx",
+      "hodl_ratio": 101.23933383659892,
+      "maxDrawdown": -90.904111530162,
+      "_id": "668573a052cd361725268842"
+    },
+    "identifier": "scalp-fast-alts-PEOPLE-USDT-SWAP-iHAv"
+  },
+  {
+    "reward": 1113.4366666666667,
+    "parameters": {
+      "steps": 3,
+      "multiplier": 0.91,
+      "stopLoss": -15
+    },
+    "rest": {
+      "trades": 93,
+      "identifier": "scalp-fast-alts-ORDI-USDT-SWAP-JsCS",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "ORDI-USDT-SWAP",
+      "margin": 200.030243035396,
+      "pnl": 2266.34,
+      "winRatio": 0.3333333333333333,
+      "time": "2024-07-03T15:59:18.197Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 75.54478127189343,
+      "hodl_pct": -35.9716184480088,
+      "liquidations": 66,
+      "exchange": "okx",
+      "hodl_ratio": 2.1001218330245908,
+      "maxDrawdown": -171.30675514772614,
+      "_id": "6685755652cd3617252691f9"
+    },
+    "identifier": "scalp-fast-alts-ORDI-USDT-SWAP-JsCS"
+  },
+  {
+    "reward": 38366.58423076923,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.83,
+      "stopLoss": -19
+    },
+    "rest": {
+      "trades": 52,
+      "identifier": "scalp-fast-alts-DOGE-USDT-SWAP-2WD4",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "DOGE-USDT-SWAP",
+      "margin": 4399.499181069655,
+      "pnl": 76755.23,
+      "winRatio": 0.34615384615384615,
+      "time": "2024-07-03T16:12:34.464Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 2558.5076473276454,
+      "hodl_pct": 57.51965508496069,
+      "liquidations": 37,
+      "exchange": "okx",
+      "hodl_ratio": 44.48058048242022,
+      "maxDrawdown": -108.5261002476771,
+      "_id": "6685787252cd361725269e02"
+    },
+    "identifier": "scalp-fast-alts-DOGE-USDT-SWAP-2WD4"
+  },
+  {
+    "reward": 676.4041666666667,
+    "parameters": {
+      "steps": 3,
+      "multiplier": 0.84,
+      "stopLoss": -16
+    },
+    "rest": {
+      "trades": 48,
+      "identifier": "scalp-fast-alts-TURBO-USDT-SWAP-z15j",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "TURBO-USDT-SWAP",
+      "margin": 644.9602,
+      "pnl": 1372.5,
+      "winRatio": 0.2708333333333333,
+      "time": "2024-07-03T16:15:35.464Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 45.74986595710144,
+      "hodl_pct": -31.836296501130505,
+      "liquidations": 33,
+      "exchange": "okx",
+      "hodl_ratio": 1.4370347994301682,
+      "maxDrawdown": -44.282227015676376,
+      "_id": "6685792752cd36172526a170"
+    },
+    "identifier": "scalp-fast-alts-TURBO-USDT-SWAP-z15j"
+  },
+  {
+    "reward": 869638.5177272727,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.94,
+      "stopLoss": -18
+    },
+    "rest": {
+      "trades": 55,
+      "identifier": "scalp-fast-alts-CEL-USDT-SWAP-nrXh",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "CEL-USDT-SWAP",
+      "margin": 1112391.162,
+      "pnl": 1739299.69,
+      "winRatio": 0.36363636363636365,
+      "time": "2024-07-03T16:20:41.323Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 57976.6562600057,
+      "hodl_pct": 397.20982142857144,
+      "liquidations": 38,
+      "exchange": "okx",
+      "hodl_ratio": 145.95977524294776,
+      "maxDrawdown": -62.19198173809591,
+      "_id": "66857a5952cd36172526a860"
+    },
+    "identifier": "scalp-fast-alts-CEL-USDT-SWAP-nrXh"
+  },
+  {
+    "reward": 66811.93777777778,
+    "parameters": {
+      "steps": 5,
+      "multiplier": 0.96,
+      "stopLoss": -28
+    },
+    "rest": {
+      "trades": 36,
+      "identifier": "scalp-fast-alts-WLD-USDT-SWAP-4DmF",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "WLD-USDT-SWAP",
+      "margin": 71257.007,
+      "pnl": 133634.52,
+      "winRatio": 0.3888888888888889,
+      "time": "2024-07-03T16:33:39.036Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 4454.483882415091,
+      "hodl_pct": -0.3039513677811601,
+      "liquidations": 18,
+      "exchange": "okx",
+      "hodl_ratio": 14655.251973145405,
+      "maxDrawdown": -47.788796180747404,
+      "_id": "66857d6352cd36172526bed3"
+    },
+    "identifier": "scalp-fast-alts-WLD-USDT-SWAP-4DmF"
+  },
+  {
+    "reward": 1698.992962962963,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.83,
+      "stopLoss": -18
+    },
+    "rest": {
+      "trades": 54,
+      "identifier": "scalp-fast-alts-CRV-USDT-SWAP-ZQ04",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "CRV-USDT-SWAP",
+      "margin": 901.140525,
+      "pnl": 3421.86,
+      "winRatio": 0.3148148148148148,
+      "time": "2024-07-03T16:43:55.862Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 114.0619603715191,
+      "hodl_pct": -36.940298507462686,
+      "liquidations": 40,
+      "exchange": "okx",
+      "hodl_ratio": 3.087737917127992,
+      "maxDrawdown": -187.502388802593,
+      "_id": "66857fcb52cd36172526c9a6"
+    },
+    "identifier": "scalp-fast-alts-CRV-USDT-SWAP-ZQ04"
+  },
+  {
+    "reward": 47.635000000000005,
+    "parameters": {
+      "steps": 10,
+      "multiplier": 0.93,
+      "stopLoss": -24
+    },
+    "rest": {
+      "trades": 12,
+      "identifier": "scalp-fast-alts-WIF-USDT-SWAP-eHS0",
+      "name": "scalp-fast-alts",
+      "startCapital": 3000,
+      "symbol": "WIF-USDT-SWAP",
+      "margin": 16.189905957787868,
+      "pnl": 98.67,
+      "winRatio": 0.5,
+      "time": "2024-07-03T16:48:19.769Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 3.28902895775135,
+      "hodl_pct": -32.39913766553742,
+      "liquidations": 6,
+      "exchange": "okx",
+      "hodl_ratio": 0.10151594131006306,
+      "maxDrawdown": -29.913521534869318,
+      "_id": "668580d352cd36172526cd73"
+    },
+    "identifier": "scalp-fast-alts-WIF-USDT-SWAP-eHS0"
+  }
+]

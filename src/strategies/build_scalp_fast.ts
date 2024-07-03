@@ -31,6 +31,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     logger.debug({ entrySizeUSD, portfolio })
 
     if (!position) {
+      if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null

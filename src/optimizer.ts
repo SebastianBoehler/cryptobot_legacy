@@ -37,7 +37,7 @@ async function runPythonScript(scriptPath: string, args: string[] = []): Promise
   })
 }
 
-async function runBacktestWithOptimization(symbol: string, maxIterations: number = 70) {
+async function runBacktestWithOptimization(symbol: string, maxIterations: number = 60) {
   let bestResult = null
 
   for (let i = 0; i < maxIterations; i++) {
@@ -50,15 +50,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       //const { steps, multiplier } = parameters
 
       // 2. Run backtest with the received parameters
-      const result = await backtest(
-        symbol,
-        exchange,
-        startDate,
-        undefined,
-        startCapital,
-        'build_scalp_fast',
-        parameters
-      )
+      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', parameters)
 
       // Trim decimals on result[0].pnl BEFORE calculating reward
       result[0].pnl = parseFloat(result[0].pnl.toFixed(2)) // Adjust decimal places as needed
@@ -79,7 +71,6 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         //delete previous best result
         if (bestResult)
           await Promise.all([
-            mongo.delete({ identifier: bestResult.identifier }, 'positions', 'backtests'),
             prodMongo.delete({ identifier: bestResult.identifier }, 'positions', 'backtests'),
             prodMongo.delete({ identifier: bestResult.identifier }, 'results', 'backtests'),
           ])
@@ -87,13 +78,14 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         bestResult = { reward, parameters, rest, identifier: result[0].identifier }
       } else {
         await Promise.all([
-          mongo.delete({ identifier: result[0].identifier }, 'positions', 'backtests'),
           prodMongo.delete({ identifier: result[0].identifier }, 'positions', 'backtests'),
           prodMongo.delete({ identifier: result[0].identifier }, 'results', 'backtests'),
         ])
       }
 
-      logger.info(`Iteration ${i + 1} for ${symbol} completed. Reward: ${reward}. Profit: ${result[0].pnl}`)
+      //always delete from local db
+      mongo.delete({ identifier: result[0].identifier }, 'positions', 'backtests'),
+        logger.info(`Iteration ${i + 1} for ${symbol} completed. Reward: ${reward}. Profit: ${result[0].pnl}`)
     } catch (error) {
       logger.error(`Error in iteration ${i + 1} for ${symbol}:`, error)
     }
@@ -107,7 +99,10 @@ async function main() {
     const symbols = await mongo.symbolsSortedByVolume(exchange)
 
     const results = []
-    for (const { symbol } of symbols.filter((s: any) => s.symbol.includes('USDT'))) {
+    const runName = `run_${new Date().toLocaleTimeString()}`
+
+    const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
+    for (const { symbol } of filtered) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
 
@@ -123,7 +118,7 @@ async function main() {
         logger.warn(`No valid result found for ${symbol}`)
       }
 
-      writeFileSync('results.json', JSON.stringify(results))
+      writeFileSync(`results_${runName}.json`, JSON.stringify(results, null, 2))
     }
   } catch (error) {
     logger.error('Error during backtests:', error)

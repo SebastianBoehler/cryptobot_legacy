@@ -13,8 +13,10 @@ interface OptionalPosInfo {
 export class Base {
   public orderHelper: IOrderHelper | ILiveOrderHelper | undefined
   public readonly name: string = 'base'
+  public shouldEndTrading = false
   public symbol: string | undefined
   public multiplier = 1
+  public stopLoss = -30
   public requiresIndicators = false
 
   public async initalize(symbol: string, exchange: string, saveToMongo?: boolean, live: boolean = false) {

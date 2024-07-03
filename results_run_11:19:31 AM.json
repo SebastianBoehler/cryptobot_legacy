@@ -1,0 +1,31 @@
+[
+  {
+    "reward": 411763.75545454543,
+    "parameters": {
+      "steps": 7,
+      "multiplier": 0.95,
+      "stopLoss": -74
+    },
+    "rest": {
+      "trades": 11,
+      "identifier": "build-scalp-fast-AR-USDT-SWAP-jhbT",
+      "name": "build-scalp-fast",
+      "startCapital": 3000,
+      "symbol": "AR-USDT-SWAP",
+      "margin": 24877.855852226614,
+      "pnl": 823529.02,
+      "winRatio": 0.7272727272727273,
+      "time": "2024-07-03T09:29:11.140Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-02T20:32:00.000Z",
+      "pnl_pct": 27450.96739355697,
+      "hodl_pct": 237.7854016325565,
+      "liquidations": 3,
+      "exchange": "okx",
+      "hodl_ratio": 115.44429222772987,
+      "maxDrawdown": -79.40493081095144,
+      "_id": "668519e72e4ab98bd591276a"
+    },
+    "identifier": "build-scalp-fast-AR-USDT-SWAP-jhbT"
+  }
+]

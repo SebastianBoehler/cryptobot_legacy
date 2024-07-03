@@ -12,6 +12,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public multiplier = 0.95
+  public stopLoss = -80
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -32,6 +33,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
 
     if (!position) {
+      if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
@@ -57,7 +59,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
     const lastDCA = DCAs[DCAs.length - 1]
 
-    if (unrealizedPnlPcnt < -80) {
+    if (unrealizedPnlPcnt < this.stopLoss) {
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
