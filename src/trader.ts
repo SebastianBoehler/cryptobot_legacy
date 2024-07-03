@@ -11,7 +11,6 @@ import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
 import { TESTING } from './strategies/testing'
 import { IOrderHelperPos } from './types'
 import { SCALP_FAST_TEST } from './strategies/scalp_fast_test'
-import { log } from 'console'
 
 if (!config.SYMBOL) throw new Error('no symbol')
 if (!config.START_CAPITAL) throw new Error('no start capital')
