@@ -56,7 +56,9 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'ONDOUSDT',
         STRATEGY: 'SCALP_ALTS',
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.88,
+        STEPS: 2,
+        STOP_LOSS: -25,
         START_CAPITAL: 120,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'
@@ -116,7 +118,10 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'ARKMUSDT',
         STRATEGY: 'SCALP_ALTS',
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.9,
+        STEPS: 2,
+        STOP_LOSS: -17,
+        LEVER_REDUCE: -5,
         START_CAPITAL: 80,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'
@@ -149,7 +154,10 @@ module.exports = {
         SYMBOL: 'TIA-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 350,
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.94,
+        STEPS: 10,
+        STOP_LOSS: -28,
+        LEVER_REDUCE: -8,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },
@@ -171,22 +179,6 @@ module.exports = {
       watch: false
     },
     {
-      name: 'hb_trader_fet',
-      script: traderPath,
-      //out_file: "/dev/null", //disable logs from being written to file
-      env_prod: {
-        NODE_ENV: "prod",
-        SHOULD_END_TRADING: true,
-        SYMBOL: 'FET-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 350,
-        MULTIPLIER: 0.95,
-        EXCHANGE: 'okx',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false
-    },
-    {
       name: 'hb_trader_ar',
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
@@ -198,22 +190,6 @@ module.exports = {
         MULTIPLIER: 0.94,
         STEPS: 2,
         STOP_LOSS: -19,
-        EXCHANGE: 'okx',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false
-    },
-    {
-      name: 'hb_trader_rndr',
-      script: traderPath,
-      //out_file: "/dev/null", //disable logs from being written to file
-      env_prod: {
-        NODE_ENV: "prod",
-        SHOULD_END_TRADING: true,
-        SYMBOL: 'RNDR-USDT-SWAP',
-        STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 600,
-        MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },

@@ -2,7 +2,7 @@ import { BacktestingResult, Indicators } from 'cryptobot-types'
 import { GenerateIndicators } from './indicators'
 import MongoWrapper from './mongodb'
 import strategies from './strategies'
-import { createUniqueId, logger } from './utils'
+import { calculateSharpeRatio, createUniqueId, logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
 const prodMongo = new MongoWrapper(
@@ -95,10 +95,33 @@ export async function backtest(
 
     const firstCandle = history.find((c) => c.start >= (start || new Date(0))) || history[0]
     const hodl_pct = ((+history[history.length - 1].close - +firstCandle.close) / +firstCandle.close) * 100
-    const maxDrawdown = Math.min(...positions.map((pos) => pos.maxDrawdown || 0))
+
+    //TODO: Maximum Drawdown: The largest percentage drop from peak to trough in your portfolio's value.
 
     const diff = pnl_pct - hodl_pct
     const hodl_ratio = diff / hodl_pct
+
+    // --- Risk Metric Calculation Start ---
+
+    let runningProfitUSD = 0
+    let peakProfitUSD = 0
+    let maxDrawdown = 0
+    const returns: number[] = []
+
+    for (const pos of positions) {
+      runningProfitUSD += pos.realizedPnlUSD
+      returns.push(pos.realizedPnlUSD) // Calculate return for this order
+
+      peakProfitUSD = Math.max(peakProfitUSD, runningProfitUSD)
+      maxDrawdown = Math.max(maxDrawdown, (peakProfitUSD - runningProfitUSD) / strategy.startCapital)
+
+      // ... (Calculate other risk metrics using the 'returns' array)
+    }
+
+    const baseReturn = strategy.startCapital * (hodl_pct / 100)
+    const sharpeRatio = calculateSharpeRatio(returns, baseReturn) // Use hodl_pct as base return
+
+    // --- Risk Metric Calculation End ---
 
     results.push({
       trades: positions.length,
@@ -107,7 +130,8 @@ export async function backtest(
       startCapital: strategy.startCapital,
       symbol,
       margin,
-      orders,
+      //TODO: remove orders from results
+      //orders,
       pnl,
       winRatio,
       stringifiedFunc,
@@ -119,8 +143,9 @@ export async function backtest(
       liquidations,
       exchange,
       hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
-      //@ts-ignore
-      maxDrawdown,
+      maxDrawdown: maxDrawdown * 100,
+      // @ts-ignore
+      sharpeRatio,
     })
 
     logger.info('compare ratio calc', { diff, hodl_ratio })

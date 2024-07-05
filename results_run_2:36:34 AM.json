@@ -1,0 +1,64 @@
+[
+  {
+    "reward": -2.335,
+    "parameters": {
+      "steps": 9,
+      "multiplier": 0.99,
+      "stopLoss": -11,
+      "leverReduce": -14
+    },
+    "rest": {
+      "trades": 3,
+      "identifier": "optimization_9_0.99_-11_-14-1000000BABYDOGEUSDT-Pq04",
+      "name": "optimization_9_0.99_-11_-14",
+      "startCapital": 100,
+      "symbol": "1000000BABYDOGEUSDT",
+      "margin": 28.266370000000002,
+      "pnl": -4.07,
+      "winRatio": 0.3333333333333333,
+      "time": "2024-07-05T00:43:14.821Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:09:00.000Z",
+      "pnl_pct": -4.069521085999995,
+      "hodl_pct": -15.856105153925974,
+      "liquidations": 2,
+      "exchange": "bybit",
+      "hodl_ratio": -0.2566532604630451,
+      "maxDrawdown": 4.640346723999992,
+      "sharpeRatio": 2.986835646650795,
+      "_id": "668741a285583ae42dfc498f"
+    },
+    "identifier": "optimization_9_0.99_-11_-14-1000000BABYDOGEUSDT-Pq04"
+  },
+  {
+    "reward": 611.841015037594,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.83,
+      "stopLoss": -18,
+      "leverReduce": -8
+    },
+    "rest": {
+      "trades": 133,
+      "identifier": "optimization_2_0.83_-18_-8-MOBILEUSDT-eKrR",
+      "name": "optimization_2_0.83_-18_-8",
+      "startCapital": 100,
+      "symbol": "MOBILEUSDT",
+      "margin": 199.08836250000002,
+      "pnl": 1258.27,
+      "winRatio": 0.3533834586466165,
+      "time": "2024-07-05T00:58:16.308Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:10:00.000Z",
+      "pnl_pct": 1258.27254351002,
+      "hodl_pct": -51.8262313226342,
+      "liquidations": 87,
+      "exchange": "bybit",
+      "hodl_ratio": 24.27868111182708,
+      "maxDrawdown": 503.5490273800689,
+      "sharpeRatio": 61.24323118995457,
+      "_id": "6687452885583ae42dfc637b"
+    },
+    "identifier": "optimization_2_0.83_-18_-8-MOBILEUSDT-eKrR"
+  }
+]

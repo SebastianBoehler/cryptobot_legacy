@@ -209,7 +209,18 @@ router.delete('/chat/delete/:session', async (req: Request, res: Response) => {
     return
   }
 
-  await client.deleteCollection(session, 'chats')
+  let error
+  try {
+    await client.deleteCollection(session, 'chats')
+  } catch (error) {
+    error = error
+  }
+
+  if (error) {
+    res.status(500).json({ error })
+    return
+  }
+
   res.json({ message: 'deleted' })
 })
 

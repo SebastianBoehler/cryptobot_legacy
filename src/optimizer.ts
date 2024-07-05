@@ -11,7 +11,7 @@ const prodMongo = new MongoWrapper(
 )
 const startCapital = 100
 const startDate = new Date('2024-02-01')
-const exchange = 'okx'
+const exchange = 'bybit'
 
 async function runPythonScript(scriptPath: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -54,6 +54,8 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         ...parameters,
         name: `optimization_${steps}_${multiplier}_${stopLoss}_${leverReduce}`,
       })
+
+      if (!result || result.length === 0) break
 
       // Trim decimals on result[0].pnl BEFORE calculating reward
       result[0].pnl = parseFloat(result[0].pnl.toFixed(2)) // Adjust decimal places as needed
@@ -99,13 +101,13 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    //const symbols = await mongo.symbolsSortedByVolume(exchange)
+    const symbols = await mongo.symbolsSortedByVolume(exchange)
 
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
 
-    const filtered = [{ symbol: 'FLOKI-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
-    for (const { symbol } of filtered) {
+    const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
+    for (const { symbol } of filtered.slice(10, 40)) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
 

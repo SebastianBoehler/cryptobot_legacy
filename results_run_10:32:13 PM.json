@@ -1,0 +1,188 @@
+[
+  {
+    "reward": 24812.11,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.96,
+      "stopLoss": -21,
+      "leverReduce": -18
+    },
+    "rest": {
+      "trades": 60,
+      "identifier": "optimization_2_0.96_-21_-18-1000PEPEUSDT-YsHG",
+      "name": "optimization_2_0.96_-21_-18",
+      "startCapital": 100,
+      "symbol": "1000PEPEUSDT",
+      "margin": 24831.365800000003,
+      "pnl": 49637.13,
+      "winRatio": 0.48333333333333334,
+      "time": "2024-07-04T20:35:25.056Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:09:00.000Z",
+      "pnl_pct": 49637.1265594578,
+      "hodl_pct": 946.7708447164246,
+      "liquidations": 33,
+      "exchange": "bybit",
+      "hodl_ratio": 52.42781485769668,
+      "maxDrawdown": 61941.03988815221,
+      "sharpeRatio": -0.6001408921230795,
+      "_id": "6687078d59862270a97c9089"
+    },
+    "identifier": "optimization_2_0.96_-21_-18-1000PEPEUSDT-YsHG"
+  },
+  {
+    "reward": 31059.989999999998,
+    "parameters": {
+      "steps": 5,
+      "multiplier": 0.96,
+      "stopLoss": -12,
+      "leverReduce": -16
+    },
+    "rest": {
+      "trades": 28,
+      "identifier": "optimization_5_0.96_-12_-16-NOTUSDT-Wcb8",
+      "name": "optimization_5_0.96_-12_-16",
+      "startCapital": 100,
+      "symbol": "NOTUSDT",
+      "margin": 12387.16,
+      "pnl": 62128.63,
+      "winRatio": 0.25,
+      "time": "2024-07-04T20:58:50.542Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:10:00.000Z",
+      "pnl_pct": 62128.628396110216,
+      "hodl_pct": 137.78625954198475,
+      "liquidations": 22,
+      "exchange": "bybit",
+      "hodl_ratio": 450.9058348969771,
+      "maxDrawdown": 25804.960052339222,
+      "sharpeRatio": 3.4922976547336972,
+      "_id": "66870d0a59862270a97c9f0b"
+    },
+    "identifier": "optimization_5_0.96_-12_-16-NOTUSDT-Wcb8"
+  },
+  {
+    "reward": 108.95097560975609,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.92,
+      "stopLoss": -29,
+      "leverReduce": -21
+    },
+    "rest": {
+      "trades": 41,
+      "identifier": "optimization_2_0.92_-29_-21-MEWUSDT-CRxa",
+      "name": "optimization_2_0.92_-29_-21",
+      "startCapital": 100,
+      "symbol": "MEWUSDT",
+      "margin": 281.3546,
+      "pnl": 226.38,
+      "winRatio": 0.5365853658536586,
+      "time": "2024-07-04T21:06:27.708Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:10:00.000Z",
+      "pnl_pct": 226.381367413127,
+      "hodl_pct": 3.795662100456617,
+      "liquidations": 22,
+      "exchange": "bybit",
+      "hodl_ratio": 59.642128677864505,
+      "maxDrawdown": 127.45159819971548,
+      "sharpeRatio": 1.6462850212614009,
+      "_id": "66870ed359862270a97ca71e"
+    },
+    "identifier": "optimization_2_0.92_-29_-21-MEWUSDT-CRxa"
+  },
+  {
+    "reward": 1404.309705882353,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.86,
+      "stopLoss": -26,
+      "leverReduce": -19
+    },
+    "rest": {
+      "trades": 85,
+      "identifier": "optimization_2_0.86_-26_-19-LEVERUSDT-RT4I",
+      "name": "optimization_2_0.86_-26_-19",
+      "startCapital": 100,
+      "symbol": "LEVERUSDT",
+      "margin": 659.99802,
+      "pnl": 2825.93,
+      "winRatio": 0.4823529411764706,
+      "time": "2024-07-04T21:20:12.153Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:10:00.000Z",
+      "pnl_pct": 2825.9291900131907,
+      "hodl_pct": 69.31732933233307,
+      "liquidations": 44,
+      "exchange": "bybit",
+      "hodl_ratio": 40.76800444034181,
+      "maxDrawdown": 1820.742475594157,
+      "sharpeRatio": -9.047623396983656,
+      "_id": "6687120c59862270a97cbae6"
+    },
+    "identifier": "optimization_2_0.86_-26_-19-LEVERUSDT-RT4I"
+  },
+  {
+    "reward": -15.602912087912088,
+    "parameters": {
+      "steps": 10,
+      "multiplier": 0.9,
+      "stopLoss": -28,
+      "leverReduce": -8
+    },
+    "rest": {
+      "trades": 91,
+      "identifier": "optimization_10_0.9_-28_-8-10000SATSUSDT-QpOT",
+      "name": "optimization_10_0.9_-28_-8",
+      "startCapital": 100,
+      "symbol": "10000SATSUSDT",
+      "margin": 2.6314124999999997,
+      "pnl": -8.63,
+      "winRatio": 0.37362637362637363,
+      "time": "2024-07-04T21:36:02.714Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:09:00.000Z",
+      "pnl_pct": -8.6315502390854,
+      "hodl_pct": -69.4547586476451,
+      "liquidations": 57,
+      "exchange": "bybit",
+      "hodl_ratio": -0.1242758654288126,
+      "maxDrawdown": 20.583788616717296,
+      "sharpeRatio": 90.95443160355865,
+      "_id": "668715c259862270a97cd17d"
+    },
+    "identifier": "optimization_10_0.9_-28_-8-10000SATSUSDT-QpOT"
+  },
+  {
+    "reward": 47076.2759478673,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.81,
+      "stopLoss": -13,
+      "leverReduce": -8
+    },
+    "rest": {
+      "trades": 211,
+      "identifier": "optimization_2_0.81_-13_-8-10000LADYSUSDT-gxBg",
+      "name": "optimization_2_0.81_-13_-8",
+      "startCapital": 100,
+      "symbol": "10000LADYSUSDT",
+      "margin": 20910.243792,
+      "pnl": 94212.35,
+      "winRatio": 0.33649289099526064,
+      "time": "2024-07-04T21:49:21.801Z",
+      "start": "2024-02-01T00:00:00.000Z",
+      "end": "2024-07-04T19:09:00.000Z",
+      "pnl_pct": 94212.35047988068,
+      "hodl_pct": 111.66604547148712,
+      "liquidations": 150,
+      "exchange": "bybit",
+      "hodl_ratio": 843.6973843041386,
+      "maxDrawdown": 134932.44422042923,
+      "sharpeRatio": 6.6946228045079375,
+      "_id": "668718e159862270a97ce71e"
+    },
+    "identifier": "optimization_2_0.81_-13_-8-10000LADYSUSDT-gxBg"
+  }
+]

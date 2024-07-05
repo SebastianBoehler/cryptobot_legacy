@@ -91,3 +91,15 @@ export const sendMail = async (text: string, subject: string = 'Cryptobot') => {
     logger.error('Error sending mail', error)
   }
 }
+
+export function calculateSharpeRatio(returns: number[], baseReturn: number): number {
+  const excessReturns = returns.map((ret) => ret - baseReturn)
+  const stdDev = Math.sqrt(excessReturns.reduce((acc, val) => acc + val * val, 0) / excessReturns.length)
+
+  // Handle cases where standard deviation is zero to avoid division by zero
+  if (stdDev === 0) {
+    return 0
+  }
+
+  return excessReturns.reduce((acc, val) => acc + val, 0) / stdDev
+}
