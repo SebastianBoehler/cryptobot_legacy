@@ -5,12 +5,9 @@ import { BUILD_SCALP_FAST } from './strategies/build_scalp_fast'
 import MongoWrapper from './mongodb'
 import { livePositionMetrics } from './pm2'
 import config from './config/config'
-import { BUILD_FAST } from './strategies/build_fast'
 import { BUILD_SCALP_FAST_INDICATORS } from './strategies/scalp_indicators'
 import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
-import { TESTING } from './strategies/testing'
 import { IOrderHelperPos } from './types'
-import { SCALP_FAST_TEST } from './strategies/scalp_fast_test'
 
 if (!config.SYMBOL) throw new Error('no symbol')
 if (!config.START_CAPITAL) throw new Error('no start capital')
@@ -24,12 +21,9 @@ const exchange = config.EXCHANGE
 const strategyName = config.STRATEGY
 
 const strategies = {
-  BUILD_FAST: new BUILD_FAST(),
   BUILD_SCALP_FAST: new BUILD_SCALP_FAST(),
   INDICATORS: new BUILD_SCALP_FAST_INDICATORS(),
   SCALP_ALTS: new BUILD_SCALP_FAST_ALTS(),
-  SCALP_TEST: new SCALP_FAST_TEST(),
-  TESTING: new TESTING(),
 }
 
 const strategy = strategies[strategyName as keyof typeof strategies]

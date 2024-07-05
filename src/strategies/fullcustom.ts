@@ -1,15 +1,22 @@
 import { Indicators, Strategy } from 'cryptobot-types'
 import { Base } from './base'
 import { createUniqueId, logger } from '../utils'
+import { differenceInMinutes } from 'date-fns'
+import { isLiveOrderHelper } from '../types'
 
 let initialSizeInCts: number
+//let initialSizeInUSD: number
 let lastLeverIncrease: number | null
 
-export class SCALP_FAST_TEST extends Base implements Strategy {
-  public readonly name = 'scalp-fast-test'
+export class FULL_CUSTOM extends Base implements Strategy {
+  public readonly name = 'FULL_CUSTOM'
   public startCapital = 250
   public steps = 6
-  public multiplier = 0.95
+  public takeProfitRate = 1.02 //steps of LastOrder
+  public takeProfitThrehsold = 50
+  public buyLowRate = 0.975
+  public stopLoss = -80
+  public leverReduce = -60
 
   async update(price: number, indicators: Indicators[], time: Date) {
     if (!this.orderHelper) throw new Error(`[${this.name}] OrderHelper not initialized`)
@@ -19,22 +26,34 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
     if (price === 0) return
     this.addOptionalPositionInfo({ price })
 
-    //TODO: try with more steps as leverage increased
     const { entrySizeUSD, portfolio } = this.calculateEntrySizeUSD<{
       entrySizeUSD: number
       portfolio: number
     }>()
     const { position } = this.orderHelper
-
-    //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
+    logger.debug({ entrySizeUSD, portfolio })
 
     if (!position) {
+      if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
-      if (order) initialSizeInCts = order.size
+      if (order) {
+        initialSizeInCts = order.size
+        //initialSizeInUSD = entrySizeUSD
+      }
       return
+    }
+
+    if (this.shouldEndTrading) {
+      await this.orderHelper.closeOrder(position.ctSize, 'reduce' + createUniqueId(10))
+      return
+    }
+
+    if (!lastLeverIncrease && isLiveOrderHelper(this.orderHelper)) {
+      const lastIncrease = await this.orderHelper.loadLastLeverIncrease()
+      if (lastIncrease) lastLeverIncrease = lastIncrease.price
     }
 
     const { orders, avgEntryPrice, leverage, highestPrice, ctSize, unrealizedPnlPcnt, margin } = position
@@ -45,31 +64,35 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       initialSizeInCts = orders[0].size
     }
     const lastOrder = orders[orders.length - 1]
+    const DCAs = orders.filter((o) => o.ordId.startsWith('buydca'))
+    const lastDCA = DCAs[DCAs.length - 1]
 
-    //LOWERED TO 75
-    if (unrealizedPnlPcnt < -75) {
+    if (unrealizedPnlPcnt < this.stopLoss) {
+      //calculate the price at which pnl .80 with avgEntryPrice and the leverage
+      // const multiplier = 1 - 0.81 / leverage
+      // const lossPrice = avgEntryPrice * multiplier
+      // this.orderHelper.price = lossPrice
       const ordId = 'loss' + createUniqueId(10)
       await this.orderHelper.closeOrder(ctSize, ordId)
       return
     }
 
-    if (unrealizedPnlPcnt < -60 && leverage > 2) {
+    if (unrealizedPnlPcnt < this.leverReduce && leverage > 2) {
       await this.orderHelper.setLeverage(leverage - 1, position.type, portfolio)
       return
     }
 
     //RESET HIGHESTPRICE IF PRICE < AVG ENTRY PRICE
     if (price < avgEntryPrice) {
-      this.addOptionalPositionInfo({
-        price,
-        highestPrice: price,
-      })
+      this.addOptionalPositionInfo({ price, highestPrice: price })
     }
 
     //INCREASE POSITION IF PRICE IS BELOW AVG ENTRY PRICE
     const buyingPowerInCts = this.orderHelper.convertUSDToContracts(price, entrySizeUSD * leverage)
     if (buyingPowerInCts > this.orderHelper.minSize) {
-      if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.96 * this.multiplier) {
+      if (price < avgEntryPrice * this.buyLowRate && price < lastOrder.avgPrice * this.buyLowRate) {
+        // const buyLowAmountUSD = initialSizeInUSD
+        // if (buyLowAmountUSD > portfolio) return
         const ordId = 'buylow' + createUniqueId(6)
         await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
         return
@@ -78,8 +101,8 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
         let buyAmountUSD = entrySizeUSD
         const ratio = 1 - margin / buyAmountUSD
-        if (ratio > 0.85) {
-          buyAmountUSD = margin * 6
+        if (ratio > 0.95) {
+          buyAmountUSD = margin * 16.5
         }
         const ordId = 'buyhigh' + createUniqueId(6)
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
@@ -87,7 +110,7 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt > 50 && price > lastOrder.avgPrice * 1.07 * this.multiplier) {
+    if (unrealizedPnlPcnt > this.takeProfitThrehsold && price > lastOrder.avgPrice * this.takeProfitRate) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
       if (reduceBy > this.orderHelper.minSize) {
@@ -97,6 +120,20 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       }
     }
 
+    const timeDiff = differenceInMinutes(time, lastDCA?.time || new Date())
+    const cond = !lastDCA || timeDiff > 20
+
+    if (price > avgEntryPrice * 1.2 && cond) {
+      let buyAmountUSD = margin * 0.2
+      const ordId = 'buydca' + createUniqueId(6)
+      //if (buyAmountUSD > margin) throw new Error(`[${this.name}] Buy amount is higher than margin`)
+      if (buyAmountUSD < portfolio) {
+        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+        return
+      }
+      return
+    }
+
     //LEVERAGE INCREASE
     if (
       price > avgEntryPrice * 1.1 * this.multiplier &&
@@ -104,11 +141,11 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       (!lastLeverIncrease || price > lastLeverIncrease * 1.025)
     ) {
       const marginPre = margin
-      await this.orderHelper.setLeverage(leverage + 3, 'long', portfolio)
+      await this.orderHelper.setLeverage(leverage + 3, position.type, portfolio)
       lastLeverIncrease = price
       const marginPost = this.orderHelper.position?.margin || 0
       const gainedCapital = marginPre - marginPost
-      const entrySizeUSD = gainedCapital / 6
+      const entrySizeUSD = gainedCapital / 12
       const ordId = 'lev' + createUniqueId(10)
       await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
       return
@@ -122,7 +159,6 @@ export class SCALP_FAST_TEST extends Base implements Strategy {
       return
     }
 
-    //TODO: remove ctSize check and compare results
     if (ctSize > initialSizeInCts && price < avgEntryPrice * 1.005 && highestPrice > avgEntryPrice * 1.15) {
       const reduceCtsAmount = ctSize - initialSizeInCts
       const ordId = 'reduce' + createUniqueId(10)

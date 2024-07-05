@@ -10,8 +10,8 @@ const prodMongo = new MongoWrapper(
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
 const startCapital = 100
-const startDate = new Date('2024-02-01')
-const exchange = 'bybit'
+const startDate = new Date('2023-09-01')
+const exchange = 'okx'
 
 async function runPythonScript(scriptPath: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -50,12 +50,15 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       const { steps, multiplier, stopLoss, leverReduce } = parameters
 
       // 2. Run backtest with the received parameters
-      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
+      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
         ...parameters,
         name: `optimization_${steps}_${multiplier}_${stopLoss}_${leverReduce}`,
       })
 
-      if (!result || result.length === 0) break
+      if (!result || result.length === 0) {
+        logger.warn(`No result found for ${symbol}`)
+        continue
+      }
 
       // Trim decimals on result[0].pnl BEFORE calculating reward
       result[0].pnl = parseFloat(result[0].pnl.toFixed(2)) // Adjust decimal places as needed
@@ -101,13 +104,13 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    const symbols = await mongo.symbolsSortedByVolume(exchange)
+    //const symbols = await mongo.symbolsSortedByVolume(exchange)
 
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
 
-    const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
-    for (const { symbol } of filtered.slice(10, 40)) {
+    const filtered = [{ symbol: 'AVAX-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
+    for (const { symbol } of filtered) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
 
