@@ -36,6 +36,10 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
+      if (entrySizeUSD > portfolio) {
+        logger.error(`[Strategy] Entry size is higher than portfolio`)
+        return
+      }
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) {
         initialSizeInCts = order.size
@@ -92,7 +96,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         // const buyLowAmountUSD = initialSizeInUSD
         // if (buyLowAmountUSD > portfolio) return
         const ordId = 'buylow' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+        if (entrySizeUSD > portfolio) await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+        else {
+          logger.debug(`[Strategy] Buy amount is higher than portfolio`)
+          throw new Error(`[Strategy] Buy amount is higher than portfolio`)
+        }
         return
       }
 
@@ -103,7 +111,11 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
           buyAmountUSD = margin * 16.5
         }
         const ordId = 'buyhigh' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+        if (buyAmountUSD < portfolio) await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+        else {
+          logger.debug(`[Strategy] Buy amount is higher than portfolio`)
+          throw new Error(`[Strategy] Buy amount is higher than portfolio`)
+        }
         return
       }
     }
