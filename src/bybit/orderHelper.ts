@@ -252,7 +252,7 @@ export class OrderHelper implements IOrderHelper {
     this.profitUSD += order.bruttoPnlUSD + order.fee
 
     if (this.position.ctSize <= 0) {
-      //FIXME: cant really determine invested capital
+      //TODO: check realizedPnlCalculation
       const spentMargin = 1
       const closedPos: ClosedPosition = {
         ...omit(this.position, ['unrealizedPnlPcnt', 'unrealizedPnlUSD']),
@@ -497,6 +497,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     let orders = this.position?.orders || []
     let savedPos = this.position
     if (!this.position || orders.length === 0) {
+      logger.debug('[orderHelper > update] loading live position')
       savedPos = await mongo.getLivePosition(client.position.posId)
 
       if (savedPos) {

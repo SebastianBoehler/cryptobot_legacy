@@ -38,6 +38,10 @@ export class FULL_CUSTOM extends Base implements Strategy {
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
       lastLeverIncrease = null
+      if (entrySizeUSD > portfolio) {
+        logger.error(`[Strategy] Entry size is higher than portfolio`)
+        return
+      }
       const order = await this.orderHelper.openOrder('long', entrySizeUSD, clOrdId)
       if (order) {
         initialSizeInCts = order.size
@@ -94,8 +98,11 @@ export class FULL_CUSTOM extends Base implements Strategy {
         // const buyLowAmountUSD = initialSizeInUSD
         // if (buyLowAmountUSD > portfolio) return
         const ordId = 'buylow' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
-        return
+        if (entrySizeUSD < portfolio) {
+          await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+          return
+        }
+        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
 
       if (price < highestPrice * 0.9 && price > avgEntryPrice * 1.05) {
@@ -105,8 +112,11 @@ export class FULL_CUSTOM extends Base implements Strategy {
           buyAmountUSD = margin * 16.5
         }
         const ordId = 'buyhigh' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
-        return
+        if (entrySizeUSD < portfolio) {
+          await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
+          return
+        }
+        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
     }
 

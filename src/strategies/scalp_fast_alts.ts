@@ -92,23 +92,20 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     if (buyingPowerInCts > this.orderHelper.minSize) {
       if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
-        if (entrySizeUSD < portfolio) await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
-        else {
-          logger.debug(`[Strategy] Buy amount is higher than portfolio`)
-          throw new Error(`[Strategy] Buy amount is higher than portfolio`)
+        if (entrySizeUSD < portfolio) {
+          await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+          return
         }
-        return
+        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
 
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
         let buyAmountUSD = margin * 0.2
         const ordId = 'buyhigh' + createUniqueId(6)
-        if (entrySizeUSD < portfolio) await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
-        else {
-          logger.debug(`[Strategy] Buy amount is higher than portfolio`)
-          throw new Error(`[Strategy] Buy amount is higher than portfolio`)
+        if (entrySizeUSD < portfolio) {
+          await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         }
-        return
+        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
     }
 
