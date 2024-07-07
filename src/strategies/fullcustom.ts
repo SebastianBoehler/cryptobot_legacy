@@ -13,7 +13,7 @@ export class FULL_CUSTOM extends Base implements Strategy {
   public startCapital = 250
   public steps = 6
   public takeProfitRate = 1.02 //steps of LastOrder
-  public takeProfitThrehsold = 50
+  public takeProfitThreshold = 50
   public buyLowRate = 0.975
   public stopLoss = -80
   public leverReduce = -60
@@ -98,7 +98,7 @@ export class FULL_CUSTOM extends Base implements Strategy {
         return
       }
 
-      if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
+      if (price < highestPrice * 0.9 && price > avgEntryPrice * 1.05) {
         let buyAmountUSD = entrySizeUSD
         const ratio = 1 - margin / buyAmountUSD
         if (ratio > 0.95) {
@@ -110,7 +110,7 @@ export class FULL_CUSTOM extends Base implements Strategy {
       }
     }
 
-    if (unrealizedPnlPcnt > this.takeProfitThrehsold && price > lastOrder.avgPrice * this.takeProfitRate) {
+    if (unrealizedPnlPcnt > this.takeProfitThreshold && price > lastOrder.avgPrice * this.takeProfitRate) {
       const reduceByMax = ctSize - initialSizeInCts
       const reduceBy = Math.floor(reduceByMax / 6)
       if (reduceBy > this.orderHelper.minSize) {

@@ -164,6 +164,24 @@ module.exports = {
       watch: false
     },
     {
+      name: 'hb_trader_turbo',
+      script: traderPath,
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'TURBO-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 100,
+        MULTIPLIER: 0.95,
+        STEPS: 5,
+        STOP_LOSS: -18,
+        LEVER_REDUCE: -16,
+        EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug'
+      },
+      watch: false
+    },
+    {
       name: 'hb_trader_velo',
       script: traderPath,
       //out_file: "/dev/null", //disable logs from being written to file
@@ -383,7 +401,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'CORE-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 260,
+        START_CAPITAL: 270,
         MULTIPLIER: 0.96,
         STEPS: 5,
         STOP_LOSS: -13,

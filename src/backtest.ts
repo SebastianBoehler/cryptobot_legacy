@@ -143,7 +143,7 @@ export async function backtest(
       liquidations,
       exchange,
       hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
-      maxDrawdown: maxDrawdown * 100,
+      maxDrawdown,
       // @ts-ignore
       sharpeRatio,
     })

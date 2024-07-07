@@ -9,8 +9,8 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 100
-const startDate = new Date('2023-09-01')
+const startCapital = 200
+const startDate = new Date('2024-01-01')
 const exchange = 'okx'
 
 async function runPythonScript(scriptPath: string, args: string[] = []): Promise<string> {
@@ -37,26 +37,29 @@ async function runPythonScript(scriptPath: string, args: string[] = []): Promise
   })
 }
 
-async function runBacktestWithOptimization(symbol: string, maxIterations: number = 100) {
+async function runBacktestWithOptimization(symbol: string, maxIterations: number = 70) {
   let bestResult = null
 
+  let noResultCount = 0
   for (let i = 0; i < maxIterations; i++) {
     logger.info(`Starting optimization iteration ${i + 1} for ${symbol}`)
 
     try {
       // 1. Get parameters from the RL agent
-      const output = await runPythonScript('/Users/sebastianboehler/Documents/GitHub/cryptobot3.0/src/agent.py')
+      const output = await runPythonScript('/Users/sebastianboehler/Documents/GitHub/cryptobot3.0/src/old_agent.py')
       const parameters = JSON.parse(output)
-      const { steps, multiplier, stopLoss, leverReduce } = parameters
+      const { steps, stopLoss, leverReduce, multiplier } = parameters
 
       // 2. Run backtest with the received parameters
       const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
         ...parameters,
-        name: `optimization_${steps}_${multiplier}_${stopLoss}_${leverReduce}`,
+        name: `optimized_${steps}_${multiplier}_${stopLoss}_${leverReduce}`,
       })
 
       if (!result || result.length === 0) {
-        logger.warn(`No result found for ${symbol}`)
+        noResultCount++
+        logger.warn(`No backtest result found for ${symbol}`)
+        if (noResultCount > 10) break
         continue
       }
 
@@ -64,11 +67,15 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       result[0].pnl = parseFloat(result[0].pnl.toFixed(2)) // Adjust decimal places as needed
 
       // 3. Calculate reward (you may want to adjust this based on your preferences)
-      const reward = result[0].pnl * 0.5 + result[0].winRatio * 0.3 + result[0].liquidations * -1 * 0.2
+      const reward =
+        result[0].pnl * 0.5 +
+        result[0].winRatio * 0.3 +
+        result[0].liquidations * -1 * 0.1 +
+        result[0].maxDrawdown * -1 * 0.1
 
       console.log(parameters)
       // 4. Send the result back to the RL agent for learning
-      await runPythonScript('/Users/sebastianboehler/Documents/GitHub/cryptobot3.0/src/agent.py', [
+      await runPythonScript('/Users/sebastianboehler/Documents/GitHub/cryptobot3.0/src/old_agent.py', [
         JSON.stringify({ reward, ...parameters }),
       ])
 
@@ -104,12 +111,12 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    //const symbols = await mongo.symbolsSortedByVolume(exchange)
+    // const symbols = await mongo.symbolsSortedByVolume(exchange)
 
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
 
-    const filtered = [{ symbol: 'AVAX-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
+    const filtered = [{ symbol: 'PYTH-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
     for (const { symbol } of filtered) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
