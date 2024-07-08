@@ -517,7 +517,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const unrealizedPnlUSD = this.calculateProfit(this.price, client.position.ctSize, client.position.type)
     const unrealizedPnlPcnt = (unrealizedPnlUSD / +client.position.margin) * 100
 
-    logger.debug('realizedPnlUSD', client.position.realizedPnlUsd)
+    logger.debug('realizedPnlUSD update', client.position.realizedPnlUsd)
 
     this.position = {
       //use if no position existing otherwise overwrite with proper values

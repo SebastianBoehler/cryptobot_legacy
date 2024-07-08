@@ -184,5 +184,36 @@
       "_id": "668b977ed2c03e51b38fa582"
     },
     "identifier": "optimized_3_0.83_-20_-27-PEOPLE-USDT-SWAP-MPr7"
+  },
+  {
+    "reward": 114.45487968277124,
+    "parameters": {
+      "steps": 5,
+      "multiplier": 0.92,
+      "stopLoss": -17,
+      "leverReduce": -9
+    },
+    "rest": {
+      "trades": 60,
+      "identifier": "optimized_5_0.92_-17_-9-ORDI-USDT-SWAP-ebsG",
+      "name": "optimized_5_0.92_-17_-9",
+      "startCapital": 1500,
+      "symbol": "ORDI-USDT-SWAP",
+      "margin": 64.13862211456255,
+      "pnl": 235.91,
+      "winRatio": 0.4666666666666667,
+      "time": "2024-07-08T08:13:18.544Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:27:00.000Z",
+      "pnl_pct": 15.727502087720143,
+      "hodl_pct": -61.340830560124445,
+      "liquidations": 36,
+      "exchange": "okx",
+      "hodl_ratio": 0.25639532337770543,
+      "maxDrawdown": 0.4012031722877214,
+      "sharpeRatio": 59.41813247531501,
+      "_id": "668b9f9ed2c03e51b38fa6c5"
+    },
+    "identifier": "optimized_5_0.92_-17_-9-ORDI-USDT-SWAP-ebsG"
   }
 ]

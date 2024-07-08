@@ -111,7 +111,7 @@ export class BybitClient {
     const margin = pos.positionIM!
     const data = pos
     const ctSize = +data.size
-    const realizedPnlUsd = +data.cumRealisedPnl
+    const realizedPnlUsd = +data.curRealisedPnl
 
     this.position = {
       uplUsd,
