@@ -517,6 +517,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const unrealizedPnlUSD = this.calculateProfit(this.price, client.position.ctSize, client.position.type)
     const unrealizedPnlPcnt = (unrealizedPnlUSD / +client.position.margin) * 100
 
+    logger.debug('realizedPnlUSD', client.position.realizedPnlUsd)
+
     this.position = {
       //use if no position existing otherwise overwrite with proper values
       highestPrice: client.position.avgEntryPrice,
@@ -597,6 +599,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const avgEntryPrice = client.position.avgEntryPrice
     // const fee = this.calculateFee(amountContracts * contractValue)
     // const ctSize = (this.position?.ctSize || 0) + amountContracts
+
+    logger.debug('realizedPnl open', client.position.realizedPnlUsd)
 
     this.position = {
       ...this.position,
@@ -693,6 +697,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const bruttoProfits = closeOrders.map((order) => order.bruttoPnlUSD)
     const realizedFee = this.position.fee + orderFee
     const realizedPnlUSD = bruttoProfits.reduce((acc, curr) => acc + curr, 0) + realizedFee
+
+    logger.debug('realizedPnl close', realizedPnlUSD, closeOrders.length, orders.length)
 
     //this.profitUSD += orderObj.bruttoPnlUSD + orderObj.fee
 

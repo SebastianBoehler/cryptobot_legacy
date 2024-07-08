@@ -1,0 +1,188 @@
+[
+  {
+    "reward": 573.9642937546,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.95,
+      "stopLoss": -16,
+      "leverReduce": -9
+    },
+    "rest": {
+      "trades": 8,
+      "identifier": "optimized_2_0.95_-16_-9-BTC-USDT-SWAP-VFBE",
+      "name": "optimized_2_0.95_-16_-9",
+      "startCapital": 1500,
+      "symbol": "BTC-USDT-SWAP",
+      "margin": 1705.1440000000002,
+      "pnl": 1148.5,
+      "winRatio": 0.5,
+      "time": "2024-07-08T06:51:59.044Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:27:00.000Z",
+      "pnl_pct": 76.56658019855159,
+      "hodl_pct": 35.38810626831805,
+      "liquidations": 4,
+      "exchange": "okx",
+      "hodl_ratio": 2.1636246827680474,
+      "maxDrawdown": 0.3570624539999994,
+      "sharpeRatio": -4.0259801142235645,
+      "_id": "668b8c8fd2c03e51b38f884b"
+    },
+    "identifier": "optimized_2_0.95_-16_-9-BTC-USDT-SWAP-VFBE"
+  },
+  {
+    "reward": 1062.1711579975506,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.82,
+      "stopLoss": -11,
+      "leverReduce": -26
+    },
+    "rest": {
+      "trades": 29,
+      "identifier": "optimized_2_0.82_-11_-26-ETH-USDT-SWAP-1LLr",
+      "name": "optimized_2_0.82_-11_-26",
+      "startCapital": 1500,
+      "symbol": "ETH-USDT-SWAP",
+      "margin": 273.32630561860003,
+      "pnl": 2128.54,
+      "winRatio": 0.20689655172413793,
+      "time": "2024-07-08T07:00:21.531Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:26:00.000Z",
+      "pnl_pct": 141.9029464334479,
+      "hodl_pct": 31.130794368368935,
+      "liquidations": 21,
+      "exchange": "okx",
+      "hodl_ratio": 4.558282219024621,
+      "maxDrawdown": 0.6091096796666658,
+      "sharpeRatio": -16.54392994835428,
+      "_id": "668b8e85d2c03e51b38f89c9"
+    },
+    "identifier": "optimized_2_0.82_-11_-26-ETH-USDT-SWAP-1LLr"
+  },
+  {
+    "reward": 7303.217190468225,
+    "parameters": {
+      "steps": 5,
+      "multiplier": 0.84,
+      "stopLoss": -13,
+      "leverReduce": -24
+    },
+    "rest": {
+      "trades": 69,
+      "identifier": "optimized_5_0.84_-13_-24-SOL-USDT-SWAP-o0fc",
+      "name": "optimized_5_0.84_-13_-24",
+      "startCapital": 1500,
+      "symbol": "SOL-USDT-SWAP",
+      "margin": 292.8731427344348,
+      "pnl": 14615.82,
+      "winRatio": 0.36231884057971014,
+      "time": "2024-07-08T07:09:55.892Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:26:00.000Z",
+      "pnl_pct": 974.3878693426742,
+      "hodl_pct": 35.32881156001178,
+      "liquidations": 46,
+      "exchange": "okx",
+      "hodl_ratio": 27.580544782479215,
+      "maxDrawdown": 2.0150518394789785,
+      "sharpeRatio": -11.740655422651024,
+      "_id": "668b90c3d2c03e51b38f8e9d"
+    },
+    "identifier": "optimized_5_0.84_-13_-24-SOL-USDT-SWAP-o0fc"
+  },
+  {
+    "reward": 5583373.304011007,
+    "parameters": {
+      "steps": 2,
+      "multiplier": 0.92,
+      "stopLoss": -26,
+      "leverReduce": -18
+    },
+    "rest": {
+      "trades": 27,
+      "identifier": "optimized_2_0.92_-26_-18-PEPE-USDT-SWAP-xWWx",
+      "name": "optimized_2_0.92_-26_-18",
+      "startCapital": 1500,
+      "symbol": "PEPE-USDT-SWAP",
+      "margin": 7398519.874999999,
+      "pnl": 11168561.28,
+      "winRatio": 0.5555555555555556,
+      "time": "2024-07-08T07:17:45.436Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:26:00.000Z",
+      "pnl_pct": 744570.7519503427,
+      "hodl_pct": 589.5752895752895,
+      "liquidations": 18,
+      "exchange": "okx",
+      "hodl_ratio": 1262.8934168640392,
+      "maxDrawdown": 9057.026556599085,
+      "sharpeRatio": 2.2861678821670326,
+      "_id": "668b9299d2c03e51b38f92fa"
+    },
+    "identifier": "optimized_2_0.92_-26_-18-PEPE-USDT-SWAP-xWWx"
+  },
+  {
+    "reward": 215034.23636135634,
+    "parameters": {
+      "steps": 4,
+      "multiplier": 1.08,
+      "stopLoss": -24,
+      "leverReduce": -5
+    },
+    "rest": {
+      "trades": 10,
+      "identifier": "optimized_4_1.08_-24_-5-NOT-USDT-SWAP-KRyE",
+      "name": "optimized_4_1.08_-24_-5",
+      "startCapital": 1500,
+      "symbol": "NOT-USDT-SWAP",
+      "margin": 195732.011346583,
+      "pnl": 430196.97,
+      "winRatio": 0.2,
+      "time": "2024-07-08T07:27:08.996Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:26:00.000Z",
+      "pnl_pct": 28679.79785590655,
+      "hodl_pct": 190.52005373248895,
+      "liquidations": 8,
+      "exchange": "okx",
+      "hodl_ratio": 150.5342733955772,
+      "maxDrawdown": 635.0863864365078,
+      "sharpeRatio": 1.0420388113714565,
+      "_id": "668b94ccd2c03e51b38f9b56"
+    },
+    "identifier": "optimized_4_1.08_-24_-5-NOT-USDT-SWAP-KRyE"
+  },
+  {
+    "reward": 457867.3933745509,
+    "parameters": {
+      "steps": 3,
+      "multiplier": 0.83,
+      "stopLoss": -20,
+      "leverReduce": -27
+    },
+    "rest": {
+      "trades": 128,
+      "identifier": "optimized_3_0.83_-20_-27-PEOPLE-USDT-SWAP-MPr7",
+      "name": "optimized_3_0.83_-20_-27",
+      "startCapital": 1500,
+      "symbol": "PEOPLE-USDT-SWAP",
+      "margin": 316867.5214063955,
+      "pnl": 915832,
+      "winRatio": 0.375,
+      "time": "2024-07-08T07:38:38.725Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-07T20:26:00.000Z",
+      "pnl_pct": 61055.46698284793,
+      "hodl_pct": 318.9358372456964,
+      "liquidations": 90,
+      "exchange": "okx",
+      "hodl_ratio": 191.43495290500405,
+      "maxDrawdown": 397.1912544906668,
+      "sharpeRatio": 3.702961248658233,
+      "_id": "668b977ed2c03e51b38fa582"
+    },
+    "identifier": "optimized_3_0.83_-20_-27-PEOPLE-USDT-SWAP-MPr7"
+  }
+]
