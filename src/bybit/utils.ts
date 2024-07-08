@@ -109,21 +109,20 @@ export class BybitClient {
 
     const uplUsd = pos.unrealisedPnl
     const margin = pos.positionIM!
-    const data = pos
-    const ctSize = +data.size
-    const realizedPnlUsd = +data.curRealisedPnl
+    const ctSize = +pos.size
+    const realizedPnlUsd = +pos.curRealisedPnl
 
     this.position = {
       uplUsd,
       profit: (+uplUsd / +margin).toString(),
-      posId: data.createdTime + data.symbol,
-      liqPrice: +data.liqPrice,
-      avgEntryPrice: +data.avgPrice,
+      posId: pos.createdTime + pos.symbol,
+      liqPrice: +pos.liqPrice,
+      avgEntryPrice: +pos.avgPrice,
       margin,
-      lever: data.leverage!,
-      creationTime: data.createdTime,
+      lever: pos.leverage!,
+      creationTime: pos.createdTime,
       ctSize,
-      type: data.side === 'Buy' ? 'long' : 'short',
+      type: pos.side === 'Buy' ? 'long' : 'short',
       posSide: 'net',
       realizedPnlUsd,
       fee: 0,
