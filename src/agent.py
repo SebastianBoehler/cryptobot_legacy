@@ -9,33 +9,29 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from collections import deque
 import random
+import pickle
+
+MEMORY_FILE = "agent_memory.pkl"  # File to store agent's memory
 
 
 class DQNAgent:
     def __init__(self, state_size, action_space):
         self.state_size = state_size
         self.action_space = action_space
-        self.memory = deque(maxlen=2000)
-        self.gamma = 0.9  # discount rate (default: 0.95)
-        self.epsilon = 1.0  # exploration rate
+        self.memory = deque(maxlen=2000)  # Initialize memory as a deque
+        self.gamma = 0.95  # Discount rate
+        self.epsilon = 1.0  # Exploration rate
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.model = self._build_model()
-        self.metrics = {  # Initialize metrics dictionary
-            "loss": [],
-            "epsilon": [],
-            "reward": [],
-            # ... add other metrics you want to track
-        }
+        self.metrics = {"loss": [], "epsilon": [], "reward": []}
 
     def _build_model(self):
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation="relu"))
         model.add(Dense(24, activation="relu"))
-        model.add(
-            Dense(6, activation="linear")
-        )  # Output 6 values / amount of parameters
+        model.add(Dense(6, activation="linear"))  # Output 6 values
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
         return model
 
@@ -44,17 +40,10 @@ class DQNAgent:
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            # Explore: Return random actions within defined spaces
+            # Explore
             steps = np.random.randint(
                 self.action_space["steps"][0], self.action_space["steps"][1] + 1
             )
-            # multiplier = round(
-            #     np.random.uniform(
-            #         self.action_space["multiplier"][0],
-            #         self.action_space["multiplier"][1],
-            #     ),
-            #     2,
-            # )
             stop_loss = int(
                 np.random.uniform(
                     self.action_space["stopLoss"][0], self.action_space["stopLoss"][1]
@@ -86,11 +75,9 @@ class DQNAgent:
                 ),
                 2,
             )
-
             return np.array(
                 [
                     steps,
-                    # multiplier,
                     stop_loss,
                     lever_reduce,
                     take_profit_rate,
@@ -99,22 +86,14 @@ class DQNAgent:
                 ]
             )
         else:
-            # Exploit: Predict actions using the learned model
+            # Exploit
             act_values = self.model.predict(state)
-
             steps = int(
                 max(
                     min(round(act_values[0][0]), self.action_space["steps"][1]),
                     self.action_space["steps"][0],
                 )
             )
-            # multiplier = round(
-            #     max(
-            #         min(act_values[0][1], self.action_space["multiplier"][1]),
-            #         self.action_space["multiplier"][0],
-            #     ),
-            #     2,
-            # )
             stop_loss = int(
                 max(
                     min(act_values[0][1], self.action_space["stopLoss"][1]),
@@ -153,7 +132,6 @@ class DQNAgent:
             return np.array(
                 [
                     steps,
-                    # multiplier,
                     stop_loss,
                     lever_reduce,
                     take_profit_rate,
@@ -163,6 +141,7 @@ class DQNAgent:
             )
 
     def replay(self, batch_size):
+        print(f"Replaying with batch size: {batch_size}")
         minibatch = random.sample(self.memory, batch_size)
         for state, action, reward, next_state, done in minibatch:
             target = reward
@@ -171,19 +150,17 @@ class DQNAgent:
                     self.model.predict(next_state)[0]
                 )
             target_f = self.model.predict(state)
-            target_f[0] = target  # Update the entire output layer
-            history = self.model.fit(state, target_f, epochs=1, verbose=0)
+            target_f[0] = target
+            history = self.model.fit(state, target_f, epochs=32, verbose=0)
             loss = history.history["loss"][0]
-
-            # Store metrics
             self.metrics["loss"].append(loss)
             self.metrics["epsilon"].append(self.epsilon)
             self.metrics["reward"].append(reward)
+            print(f"Loss: {loss}, Epsilon: {self.epsilon}")
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
     def load(self, name):
-        print("Loading model from", name)
         self.model.load_weights(name)
 
     def save(self, name):
@@ -195,11 +172,10 @@ class TradingEnv(gym.Env):
         super(TradingEnv, self).__init__()
         self.action_space = {
             "steps": (2, 10),
-            # "multiplier": (0.8, 1.2),
             "stopLoss": (-30, -10),
             "leverReduce": (-30, -5),
             "takeProfitRate": (1.01, 1.10),
-            "takeProfitThreshold": (20, 80),  # Updated range
+            "takeProfitThreshold": (20, 80),
             "buyLowRate": (0.90, 0.99),
         }
         self.observation_space = spaces.Box(low=0, high=1, shape=(3,), dtype=np.float32)
@@ -216,55 +192,74 @@ class TradingEnv(gym.Env):
         return self.observation_space.sample(), {}
 
 
+# Initialize environment and agent
 env = TradingEnv()
 state_size = env.observation_space.shape[0]
 agent = DQNAgent(state_size, env.action_space)
 
-if len(sys.argv) > 1:
-    # We received results, update the model
-    results = json.loads(sys.argv[1])
-    reward = results["reward"]
-    state = np.array(results.get("state", env.observation_space.sample())).reshape(
-        1, state_size
-    )
-    next_state = np.array(
-        results.get("next_state", env.observation_space.sample())
-    ).reshape(1, state_size)
-    action = np.array(
-        [
-            results.get("steps", 1),
-            # results.get("multiplier", 1.0),
-            results.get("stopLoss", -20),
-            results.get("leverReduce", -10),
-            results.get("takeProfitRate", 1.02),
-            results.get("takeProfitThreshold", 50),
-            results.get("buyLowRate", 0.975),
-        ]
-    )
-    done = results.get("done", False)
+# Load agent's memory
+try:
+    with open(MEMORY_FILE, "rb") as f:
+        agent.memory = pickle.load(f)
+except FileNotFoundError:
+    pass  # Start with an empty memory if the file doesn't exist
 
-    agent.remember(state, action, reward, next_state, done)
+if __name__ == "__main__":
+    action = None  # Define action here, initially as None
+
+    if len(sys.argv) > 1:
+        # We received results, update the model
+        results = json.loads(sys.argv[1])
+        reward = results["reward"]
+        state = np.array(results.get("state", env.observation_space.sample())).reshape(
+            1, state_size
+        )
+        next_state = np.array(
+            results.get("next_state", env.observation_space.sample())
+        ).reshape(1, state_size)
+        action = np.array(
+            [
+                results.get("steps", 1),
+                results.get("stopLoss", -20),
+                results.get("leverReduce", -10),
+                results.get("takeProfitRate", 1.02),
+                results.get("takeProfitThreshold", 50),
+                results.get("buyLowRate", 0.975),
+            ]
+        )
+        done = results.get("done", False)
+
+        agent.remember(state, action, reward, next_state, done)
+
+    # Replay experiences if there are enough in memory
+    print(f"Memory length: {len(agent.memory)}")
     if len(agent.memory) > 32:
         agent.replay(32)
 
-    print(json.dumps({"metrics": agent.metrics}))
-else:
     # No results received, return new parameters
-    state, _ = env.reset()
-    state = np.reshape(state, [1, state_size])
-    action = agent.act(state)
+    if action is None:  # Only execute if action was not set in the previous block
+        state, _ = env.reset()
+        state = np.reshape(state, [1, state_size])
+        action = agent.act(state)
+
+    # Save the updated memory to the file
+    with open(MEMORY_FILE, "wb") as f:
+        pickle.dump(agent.memory, f)
+
+    # Now action is accessible here
     print(
         json.dumps(
             {
-                "steps": int(action[0]),
-                # "multiplier": float(action[1]),
+                "steps": int(action[0]),  # This line should now work
                 "stopLoss": float(action[1]),
                 "leverReduce": int(action[2]),
                 "takeProfitRate": float(action[3]),
                 "takeProfitThreshold": int(action[4]),
                 "buyLowRate": float(action[5]),
+                "loss": agent.metrics["loss"][-1] if agent.metrics["loss"] else None,
             }
         )
     )
-# Save the model after training
+
+# Save the model after training (optional)
 agent.save("trading_model.weights.h5")

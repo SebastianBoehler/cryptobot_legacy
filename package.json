@@ -34,6 +34,7 @@
   "author": "Sebastian Boehler",
   "license": "ISC",
   "devDependencies": {
+    "@types/asciichart": "^1.5.8",
     "@types/cors": "^2.8.12",
     "@types/crypto-js": "^4.1.1",
     "@types/dotenv-parse-variables": "^2.0.0",
@@ -52,6 +53,7 @@
     "@pm2/io": "^5.0.2",
     "@project-serum/anchor": "^0.26.0",
     "@types/jest": "^29.5.5",
+    "asciichart": "^1.5.25",
     "bybit-api": "^3.9.7",
     "cors": "^2.8.5",
     "cryptobot-types": "^1.2.5",

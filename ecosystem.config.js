@@ -73,7 +73,9 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'WIFUSDT',
         STRATEGY: 'SCALP_ALTS',
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.85,
+        STEPS: 2,
+        STOP_LOSS: -21,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'
@@ -87,8 +89,11 @@ module.exports = {
       env_prod: {
         NODE_ENV: "prod",
         SYMBOL: '10000WENUSDT',
-        STRATEGY: 'INDICATORS',
-        MULTIPLIER: 0.95,
+        STRATEGY: 'SCALP_ALTS',
+        MULTIPLIER: 0.93,
+        STEPS: 2,
+        STOP_LOSS: -19,
+        LEVER_REDUCE: -12,
         START_CAPITAL: 100,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'
@@ -103,7 +108,10 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'POPCATUSDT',
         STRATEGY: "BUILD_SCALP_FAST",
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.87,
+        STEPS: 2,
+        STOP_LOSS: -10,
+        LEVER_REDUCE: -7,
         START_CAPITAL: 70,
         EXCHANGE: 'bybit',
         LOG_LEVEL: 'debug'
