@@ -135,6 +135,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
       let buyAmountUSD = margin * 0.2
       const ordId = 'buydca' + createUniqueId(6)
       //if (buyAmountUSD > margin) throw new Error(`[${this.name}] Buy amount is higher than margin`)
+      logger.debug('DCA cond', buyAmountUSD, portfolio)
       if (buyAmountUSD < portfolio) {
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
         return

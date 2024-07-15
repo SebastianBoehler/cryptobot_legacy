@@ -163,10 +163,10 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    const symbols = await mongo.symbolsSortedByVolume(exchange)
+    //const symbols = await mongo.symbolsSortedByVolume(exchange)
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
-    const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
+    const filtered = [{ symbol: 'JUP-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
 
     for (const { symbol } of filtered) {
       const pairs = symbol.split('-')
