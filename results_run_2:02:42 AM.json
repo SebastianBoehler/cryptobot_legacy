@@ -1,0 +1,33 @@
+[
+  {
+    "reward": 1.8509946225,
+    "parameters": {
+      "steps": 9,
+      "stopLoss": -29,
+      "leverReduce": -12,
+      "multiplier": 0.87
+    },
+    "rest": {
+      "trades": 15,
+      "identifier": "opt_9_0.87_-29_-12-JUP-USDT-SWAP-mZSt",
+      "name": "opt_9_0.87_-29_-12",
+      "startCapital": 500,
+      "symbol": "JUP-USDT-SWAP",
+      "margin": 4.990613745454546,
+      "pnl": 3.85,
+      "winRatio": 0.8,
+      "time": "2024-07-17T00:39:16.678Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-07-14T19:49:00.000Z",
+      "pnl_pct": 0.770734878558465,
+      "hodl_pct": -12.878705614073194,
+      "liquidations": 3,
+      "exchange": "okx",
+      "hodl_ratio": 0.059845678723818733,
+      "maxDrawdown": 0.1400537749999999,
+      "sharpeRatio": 14.445225680891408,
+      "_id": "669712b49055fd8a94463cde"
+    },
+    "identifier": "opt_9_0.87_-29_-12-JUP-USDT-SWAP-mZSt"
+  }
+]

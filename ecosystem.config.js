@@ -179,7 +179,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'TURBO-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
-        START_CAPITAL: 100,
+        START_CAPITAL: 120,
         MULTIPLIER: 0.95,
         STEPS: 5,
         STOP_LOSS: -18,
