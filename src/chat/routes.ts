@@ -152,7 +152,7 @@ print(f”Hello, {name}!”))
 
 - When creating React component artifacts, ensure the code defines a component named Component.
 - The component will be dynamically rendered on the client side.
-- The React library is automatically imported.
+- The following libaries are automatically imported: React, Recharts, THREE (Three.js)
 - **Example (React):**
 <artifact language="javascript" type="react" identifier="my-component" title="My Component">
 const Component = () => {
