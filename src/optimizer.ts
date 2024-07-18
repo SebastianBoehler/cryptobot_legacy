@@ -74,7 +74,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       }
 
       // 2. Run backtest with the initial parameters
-      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
+      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
         ...parameters,
         //name: `full_${initialData.steps}_${initialData.takeProfitRate}_${initialData.stopLoss}_${initialData.leverReduce}_${initialData.takeProfitThreshold}_${initialData.buyLowRate}`,
         name: `opt_${initialData.steps}_${initialData.multiplier}_${initialData.stopLoss}_${initialData.leverReduce}`,

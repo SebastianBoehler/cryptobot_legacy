@@ -784,6 +784,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         }),
       ])
       await mongo.writePosition(closedPos, 'trader')
+      //TODO: delete livePosition
       await addOrder(orderObj, okxClient.closedPositions.length + 1)
       return closedPos
     }
