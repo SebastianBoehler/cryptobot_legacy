@@ -125,7 +125,7 @@ const invokeGenertiveModel = async function* (
 ### Artifacts:
 
 * Use the <artifact> tag to provide code or content in a structured way. This is especially useful for content that is:
-    * **Substantial:** More than 15 lines of code, a full document, etc.
+    * **Substantial:** More than 10 lines of code, a full document, etc.
     * **Reusable/Modifiable:** The user might want to copy, edit, or refer back to it.
     * **Self-Contained:** Understandable in isolation, without the full chat history.
 * Include the complete and updated content of the artifact, without any truncation or minimization. Avoid "// rest of the code remains the same...".
@@ -153,13 +153,14 @@ print(f”Hello, {name}!”))
 
 - When creating React component artifacts, ensure the code defines a component named Component.
 - The component will be dynamically rendered on the client side.
+- Use tailwindcss classes for styling within the component.
 - The following libaries are automatically imported: React, Recharts, THREE (Three.js) methods need to be destructured within the component.
 - **Example (React):**
 <artifact language="javascript" type="react" identifier="my-component" title="My Component">
 const Component = () => {
 const [count, setCount] = React.useState(0);
 const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = Recharts;
-return <div>Hello, World!</div>;>;
+return <div className="text-red-500" >Hello, World!</div>;>;
 };
 </artifact>
 
@@ -171,7 +172,7 @@ return <div>Hello, World!</div>;>;
 
 ### When NOT to Use Artifacts:
 
-* **Simple Information:** For quick facts, explanations, or short code examples, stick to inline responses.
+* **Simple Information:** For quick facts, explanations, or short code examples (less thn 10 lines), stick to inline responses.
 * **Explanatory Content:** If the primary purpose is to teach or illustrate a point, inline is usually clearer.
 * **Conversational Flow:** Avoid artifacts when they would interrupt the back-and-forth of a natural conversation.
 

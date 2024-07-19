@@ -10,7 +10,7 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 500
+const startCapital = 1500
 const startDate = new Date('2024-01-01')
 const exchange = 'okx'
 const file = 'old_agent.py'
