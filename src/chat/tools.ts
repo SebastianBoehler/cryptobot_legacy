@@ -533,10 +533,13 @@ export const handleFunctionCalling = async (callParts: FunctionCall[]) => {
     }
   }
 
-  const results = await Promise.all(promises)
-  //console.log("call results", results);
-  const functionResults: FunctionResponsePart[] = results.map((result) => ({
-    functionResponse: result,
-  }))
+  const results = await Promise.allSettled(promises)
+  const functionResults: FunctionResponsePart[] = results.map((result) => {
+    if (result.status === 'fulfilled') {
+      return { functionResponse: result.value }
+    } else {
+      return { functionResponse: `Error: ${result.reason}` }
+    }
+  })
   return functionResults
 }

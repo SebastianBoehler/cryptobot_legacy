@@ -14,9 +14,11 @@ const exchange = 'okx'
     if (pairs[1] === 'USD') continue
     logger.info('starting backtest for', symbol)
     await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
-      steps: 5,
-      stopLoss: -11,
-      multiplier: 0.85,
+      steps: 6,
+      stopLoss: -80,
+      multiplier: 0.95,
+      leverReduce: -200,
+      name: 'really_old_strategy',
     })
   }
 

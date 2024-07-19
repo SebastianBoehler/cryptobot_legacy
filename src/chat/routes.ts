@@ -6,7 +6,7 @@ import {
   geminiRecursiveUrlFunc,
   geminiRequestFunc,
   geminiVectorSearchAddFunc,
-  geminiVectorSearchFunc,
+  //geminiVectorSearchFunc,
   geminiWikiQueryFunc,
   geminiYoutubeQueryFunc,
   handleFunctionCalling,
@@ -42,14 +42,14 @@ const generativeModel = vertexAI.getGenerativeModel({
   ],
   generationConfig: {
     maxOutputTokens: 8192, // max limit
-    temperature: 0.6,
+    temperature: 0.4,
   },
 })
 
 const tools = [
   {
     functionDeclarations: [
-      geminiVectorSearchFunc,
+      //geminiVectorSearchFunc,
       geminiVectorSearchAddFunc,
       geminiWikiQueryFunc,
       geminiPupQueryFunc,
@@ -249,7 +249,7 @@ export const Component = () => <div>Hello, welcome to our website!</div>;
 </assistant_response>
     `,
     generationConfig: {
-      temperature: 0.3,
+      temperature: 0.4,
       //stopSequences: ["#STOP#"],
     },
   }
