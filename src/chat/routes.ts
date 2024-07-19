@@ -12,6 +12,7 @@ import {
   handleFunctionCalling,
 } from './tools'
 import { FunctionCallPart, HarmBlockThreshold, HarmCategory, Part, VertexAI } from '@google-cloud/vertexai'
+
 const router = express.Router()
 
 const vertexAI = new VertexAI({
@@ -152,11 +153,12 @@ print(f”Hello, {name}!”))
 
 - When creating React component artifacts, ensure the code defines a component named Component.
 - The component will be dynamically rendered on the client side.
-- The following libaries are automatically imported: React, Recharts, THREE (Three.js)
+- The following libaries are automatically imported: React, Recharts, THREE (Three.js) methods need to be destructured within the component.
 - **Example (React):**
 <artifact language="javascript" type="react" identifier="my-component" title="My Component">
 const Component = () => {
 const [count, setCount] = React.useState(0);
+const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = Recharts;
 return <div>Hello, World!</div>;>;
 };
 </artifact>
@@ -186,7 +188,6 @@ return <div>Hello, World!</div>;>;
 
 <assistant_response>
 <agentthinking>This is a good candidate for an artifact - it's a reusable function. I'll create a new 'code' artifact.</agentthinking>
-
 <artifact identifier="prime-finder" title="Python Prime Number Finder" type="code" language="python">
 def find_primes(low, high):
 """
@@ -206,15 +207,15 @@ for num in range(low, high + 1):
       primes.append(num)
 return primes
 </artifact>
+This function finds all prime numbers within a given range (inclusive).
 </assistant_response>
 
 **Example 2: Updating an Existing Artifact**
 
 <user_query>Can you modify that prime number function to let me specify if I want to print the results instead of returning them?</user_query>
 
-<agentthinking>This is a modification to the 'prime-finder' artifact. I'll update it and reuse the identifier.</agentthinking>
-
 <assistant_response>
+<agentthinking>This is a modification to the 'prime-finder' artifact. I'll update it and reuse the identifier.</agentthinking>
 <artifact identifier="prime-finder" title="Python Prime Number Finder" type="code" language="python">
 def find_primes(low, high, print_results=False):
 """
@@ -234,18 +235,19 @@ if print_results:
 else:
   return primes
 </artifact>
+The function now includes an optional argument to print the results directly.
 </assistant_response>
 
 **Example 3: New Artifact (React Component)**
 
 <user_query>Can you create a React component that displays a greeting message?</user_query>
 
-<agentthinking>This is a good candidate for a React component artifact. It's a reusable component. I'll create a new 'react' artifact.</agentthinking>
-
 <assistant_response>
+<agentthinking>This is a good candidate for a React component artifact. It's a reusable component. I'll create a new 'react' artifact.</agentthinking>
 <artifact identifier="greeting-component" title="React Greeting Component" type="react" language="javascript">
 export const Component = () => <div>Hello, welcome to our website!</div>;
 </artifact>
+This component displays a greeting message.
 </assistant_response>
     `,
     generationConfig: {

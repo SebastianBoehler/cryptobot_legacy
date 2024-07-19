@@ -21,8 +21,6 @@ import config from './config/config'
 import bodyParser from 'body-parser'
 
 server.use(cors())
-//server.use(express.json())
-server.use(cors())
 server.use(bodyParser.json({ limit: '30mb' }))
 
 const middleware = async (req: Request, res: Response, next: any) => {
