@@ -11,7 +11,14 @@ import {
   geminiYoutubeQueryFunc,
   handleFunctionCalling,
 } from './tools'
-import { FunctionCallPart, HarmBlockThreshold, HarmCategory, Part, VertexAI } from '@google-cloud/vertexai'
+import {
+  FunctionCallPart,
+  GenerateContentRequest,
+  HarmBlockThreshold,
+  HarmCategory,
+  Part,
+  VertexAI,
+} from '@google-cloud/vertexai'
 
 const router = express.Router()
 
@@ -103,7 +110,7 @@ const invokeGenertiveModel = async function* (
   count: number = 0
 ): AsyncGenerator<any> {
   console.log('invokeGenertiveModel', hasMultimodality, count)
-  const request = {
+  const request: GenerateContentRequest = {
     contents: [...history],
     tools: count > 3 || hasMultimodality ? undefined : tools,
     // toolConfig: {
@@ -127,12 +134,13 @@ const invokeGenertiveModel = async function* (
 * Use the <artifact> tag to provide code or content in a structured way. This is especially useful for content that is:
     * **Substantial:** More than 10 lines of code, a full document, etc.
     * **Reusable/Modifiable:** The user might want to copy, edit, or refer back to it.
+    * **Artifact over Markdown** please prefer an artifact with html or react pages over an markdown response
     * **Self-Contained:** Understandable in isolation, without the full chat history.
 * Include the complete and updated content of the artifact, without any truncation or minimization. Avoid "// rest of the code remains the same...".
 
 ### Artifact Format:
 
-- Do NOT use triple backticks when putting code in an artifact.
+- Do **NOT** use triple backticks as in markdown when putting code in an artifact.
 - Use the <artifact> tag to encapsulate the content.
 
 ### Artifact Types: 
@@ -181,7 +189,20 @@ return <div className="text-red-500" >Hello, World!</div>;>;
 1. **Evaluate:** Before creating an artifact, use <agentthinking> to briefly assess if it meets the criteria.
 2. **New or Update:** If it's artifact-worthy, determine if it's a brand new one or an update to a previous one. Reuse identifiers for updates.
 
-### Multi-Shot Examples:
+### BAD Artifact example
+* Do not defined markdown in artifacts that way otherwise the code can be executed and rendered
+
+<artifact language="javascript" type="react" identifier="my-component" title="My Component">
+\`\`\`javascript
+const Component = () => {
+const [count, setCount] = React.useState(0);
+const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = Recharts;
+return <div className="text-red-500" >Hello, World!</div>;>;
+};
+\`\`\`
+</artifact>
+
+### Multi-Shot Good Examples:
 
 **Example 1: New Artifact (Python)**
 
@@ -246,7 +267,7 @@ The function now includes an optional argument to print the results directly.
 <assistant_response>
 <agentthinking>This is a good candidate for a React component artifact. It's a reusable component. I'll create a new 'react' artifact.</agentthinking>
 <artifact identifier="greeting-component" title="React Greeting Component" type="react" language="javascript">
-export const Component = () => <div>Hello, welcome to our website!</div>;
+export const Component = () => <div className="font-serif" >Hello, welcome to our website!</div>;
 </artifact>
 This component displays a greeting message.
 </assistant_response>

@@ -3,22 +3,22 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 1500
-const startDate = new Date('2024-01-01')
+const startCapital = 700
+const startDate = new Date('2024-04-05')
 const exchange = 'okx'
 
 ;(async () => {
-  const symbols = [{ symbol: 'JUP-USDT-SWAP' }] //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
+  const symbols = [{ symbol: 'AR-USDT-SWAP' }] //[{ symbol: 'SOL-USDT-SWAP' }] // await mongo.symbolsSortedByVolume(exchange) //
   for (const { symbol } of symbols.filter((s) => s.symbol.includes('USDT'))) {
     const pairs = symbol.split('-')
     if (pairs[1] === 'USD') continue
     logger.info('starting backtest for', symbol)
-    await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
-      steps: 6,
-      //stopLoss: -80,
-      multiplier: 0.95,
+    await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
+      steps: 2,
+      stopLoss: -19,
+      multiplier: 0.94,
       //leverReduce: -200,
-      name: 'old_strategy',
+      name: 'optimized_324234',
     })
   }
 
