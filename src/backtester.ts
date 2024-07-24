@@ -18,7 +18,7 @@ const exchange = 'okx'
       stopLoss: -19,
       multiplier: 0.94,
       //leverReduce: -200,
-      name: 'optimized_324234',
+      name: 'test',
     })
   }
 

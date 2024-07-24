@@ -31,7 +31,7 @@ const vertexAI = new VertexAI({
 })
 
 const generativeModel = vertexAI.getGenerativeModel({
-  model: 'gemini-1.5-pro',
+  model: 'gemini-1.5-flash',
   // The following parameters are optional
   // They can also be passed to individual content generation requests
   safetySettings: [
@@ -50,7 +50,7 @@ const generativeModel = vertexAI.getGenerativeModel({
   ],
   generationConfig: {
     maxOutputTokens: 8192, // max limit
-    temperature: 0.4,
+    temperature: 0.6,
   },
 })
 
@@ -305,7 +305,30 @@ This component displays a greeting message.
 
   console.log('functionCalls', functionCalls.length)
 
-  const responseParts = await handleFunctionCalling(functionCalls.map((part: any) => part.functionCall))
+  if (!functionCalls.length) return
+
+  yield [
+    {
+      role: 'model',
+      parts: functionCalls,
+    },
+  ]
+
+  const responseParts = await handleFunctionCalling(functionCalls.map((part: any) => part.functionCall)).catch(
+    (error) => {
+      console.error('Error handling function calling')
+      return {
+        text: `Error handling function calling: ${error}`,
+      }
+    }
+  )
+
+  yield [
+    {
+      role: 'user',
+      parts: responseParts,
+    },
+  ]
 
   const newMessages = [
     {
@@ -317,13 +340,10 @@ This component displays a greeting message.
       parts: responseParts,
     },
   ]
-
   const updatedHistory = [...history, ...newMessages]
 
-  if (functionCalls.length) {
-    yield newMessages
-    yield* invokeGenertiveModel(updatedHistory, hasMultimodality, count + 1)
-  }
+  //yield newMessages
+  yield* invokeGenertiveModel(updatedHistory, hasMultimodality, count + 1)
 }
 
 const mapHistory = (history: any[]) => {

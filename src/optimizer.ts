@@ -97,26 +97,28 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         result[0].liquidations * -1 * 0.1 +
         result[0].maxDrawdown * -1 * 0.1
 
-      // 4. Log the loss and store it for plotting
-      if (initialData.loss) {
-        lossValues.push(initialData.loss)
-        // Apply logarithmic transformation to the loss values (using natural log)
-        const transformedLossValues = lossValues.map((loss) => Math.log(loss))
-
-        // Plot the loss values after each new loss is added
-        console.clear()
-        console.log('\nLoss Progress:')
-        // @ts-ignore
-        console.log(AsciiChart.plot(transformedLossValues, { height: 9, colors: [AsciiChart.green] }))
-        logger.info(`Iteration ${i + 1} for ${symbol}, Loss: ${initialData.loss}, Profit: ${result[0].pnl}`)
-      }
-
       // 5. Send reward and parameters back to the agent for learning
       const agentOutput = await runPythonScript(`/Users/sebastianboehler/Documents/GitHub/cryptobot3.0/src/${file}`, [
         JSON.stringify({ reward, ...parameters /*, ... other data you need to send */ }),
       ])
 
       logger.info(`Agent: ${JSON.stringify(agentOutput)}`)
+
+      const latestLossValue = agentOutput.loss
+
+      if (latestLossValue) {
+        lossValues.push(latestLossValue)
+        // Apply logarithmic transformation to the loss values (using natural log)
+        const transformedLossValues = lossValues.map((loss) => loss)
+
+        // Plot the loss values after each new loss is added
+        console.clear()
+        console.log('\nLoss Progress:')
+        if (lossValues.length > 32)
+          // @ts-ignore
+          console.log(AsciiChart.plot(transformedLossValues, { height: 9, colors: [AsciiChart.green] }))
+        logger.info(`Iteration ${i + 1} for ${symbol}, Loss: ${latestLossValue}, Profit: ${result[0].pnl}`)
+      }
 
       // 6. Keep track of the best result
       if (!bestResult || result[0].pnl > bestResult.rest.pnl) {
@@ -166,7 +168,7 @@ async function main() {
     //const symbols = await mongo.symbolsSortedByVolume(exchange)
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
-    const filtered = [{ symbol: 'JUP-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
+    const filtered = [{ symbol: 'SOL-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
 
     for (const { symbol } of filtered) {
       const pairs = symbol.split('-')

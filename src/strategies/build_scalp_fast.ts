@@ -107,7 +107,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         let buyAmountUSD = entrySizeUSD
         const ratio = 1 - margin / buyAmountUSD
         if (ratio > 0.95) {
-          buyAmountUSD = margin * 16.5
+          buyAmountUSD = margin * 3
         }
         const ordId = 'buyhigh' + createUniqueId(6)
         if (buyAmountUSD < portfolio) {
