@@ -11,7 +11,7 @@ const prodMongo = new MongoWrapper(
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
 const startCapital = 1500
-const startDate = new Date('2024-01-01')
+const startDate = new Date('2024-02-01')
 const exchange = 'okx'
 const file = 'old_agent.py'
 
@@ -50,7 +50,7 @@ async function runPythonScript(scriptPath: string, args: string[] = []): Promise
   })
 }
 
-async function runBacktestWithOptimization(symbol: string, maxIterations: number = 100) {
+async function runBacktestWithOptimization(symbol: string, maxIterations: number = 80) {
   let bestResult = null
   let noResultCount = 0
   let lossValues: number[] = [] // Array to store loss values
@@ -74,7 +74,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       }
 
       // 2. Run backtest with the initial parameters
-      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
+      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
         ...parameters,
         //name: `full_${initialData.steps}_${initialData.takeProfitRate}_${initialData.stopLoss}_${initialData.leverReduce}_${initialData.takeProfitThreshold}_${initialData.buyLowRate}`,
         name: `opt_${initialData.steps}_${initialData.multiplier}_${initialData.stopLoss}_${initialData.leverReduce}`,
@@ -165,10 +165,10 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    //const symbols = await mongo.symbolsSortedByVolume(exchange)
+    const symbols = await mongo.symbolsSortedByVolume(exchange)
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
-    const filtered = [{ symbol: 'SOL-USDT-SWAP' }] //symbols.filter((s: any) => s.symbol.includes('USDT'))
+    const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
 
     for (const { symbol } of filtered) {
       const pairs = symbol.split('-')

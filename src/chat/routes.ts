@@ -50,7 +50,7 @@ const generativeModel = vertexAI.getGenerativeModel({
   ],
   generationConfig: {
     maxOutputTokens: 8192, // max limit
-    temperature: 0.6,
+    temperature: 0.7,
   },
 })
 

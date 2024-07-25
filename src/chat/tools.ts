@@ -419,7 +419,7 @@ const sendEmail = async ({ to, subject, html }: Record<string, any>) => {
 const requestSchema = z.object({
   url: z.string().url().describe('The URL of the API'),
   method: z.enum(['GET', 'POST', 'PUT', 'DELETE']).describe('The HTTP method'),
-  //headers: z.record(z.string()).optional().describe("The HTTP headers"),
+  headers: z.record(z.string()).optional().describe('The HTTP headers'),
   //data: z.record(z.unknown()).optional().describe("The HTTP body"),
 })
 
@@ -429,14 +429,15 @@ export const geminiRequestFunc: FunctionDeclaration = {
   parameters: zodToGeminiParameters(requestSchema) as unknown as FunctionDeclarationSchema,
 }
 
-const request = async ({ url, method }: Record<string, any>) => {
-  console.log('request', url, method)
+const request = async ({ url, method, headers }: Record<string, any>) => {
+  console.log('request', url, method, headers)
 
   let data
 
   try {
     const response = await fetch(url, {
       method,
+      headers,
     })
     data = await response.json()
   } catch (error) {

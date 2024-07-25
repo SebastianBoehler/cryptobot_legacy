@@ -591,9 +591,16 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
     const order = await okxClient
       .placeMarketOrder(this.symbol, 'buy', amountContracts, clOrdId, false, type)
-      .catch((e) => {
-        if (e.data[0].sMsg.includes('Insufficient USDT balance in account.')) {
+      .catch(async (e) => {
+        const errData = e.data[0]
+        if (errData.sMsg.includes('Insufficient USDT balance in account.')) {
           logger.warn('Insufficient balance')
+          return
+        }
+        if (errData.sCode === '51004' && errData.sMsg.includes('Please lower the leverage') && this.leverage > 25) {
+          logger.error('Leverage too high for position size, reducing leverage')
+          //WARN: this will cause a loop if leverage is too high
+          await this.setLeverage(this.leverage - 1, type, Infinity)
           return
         }
         throw e
