@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import {
   geminiEmailFunc,
   geminiGithubQueryFunc,
+  geminiGoogleSearchFunc,
   geminiPupQueryFunc,
   geminiRecursiveUrlFunc,
   geminiRequestFunc,
@@ -29,7 +30,7 @@ const vertexAI = new VertexAI({
     keyFilename: './src/chat/service_account.json',
   },
 })
-
+const temperature = 0.7
 const generativeModel = vertexAI.getGenerativeModel({
   model: 'gemini-1.5-flash',
   // The following parameters are optional
@@ -50,7 +51,7 @@ const generativeModel = vertexAI.getGenerativeModel({
   ],
   generationConfig: {
     maxOutputTokens: 8192, // max limit
-    temperature: 0.7,
+    temperature,
   },
 })
 
@@ -67,6 +68,7 @@ const tools = [
       geminiRecursiveUrlFunc,
       geminiEmailFunc,
       geminiRequestFunc,
+      geminiGoogleSearchFunc,
     ],
   },
 ]
@@ -273,7 +275,7 @@ This component displays a greeting message.
 </assistant_response>
     `,
     generationConfig: {
-      temperature: 0.4,
+      temperature,
       //stopSequences: ["#STOP#"],
     },
   }

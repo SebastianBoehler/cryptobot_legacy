@@ -11,6 +11,7 @@
     "backtester4": "ts-node src/backtester.ts 0 5",
     "test": "jest",
     "trader": "export NODE_ENV=dev && ts-node src/trader.ts",
+    "server": "export NODE_ENV=dev && ts-node src/server.ts",
     "worker": "export NODE_ENV=dev && ts-node src/worker.ts",
     "optimizer": "export NODE_ENV=dev && ts-node src/optimizer.ts",
     "backtester": "export NODE_ENV=dev && ts-node src/backtester.ts",

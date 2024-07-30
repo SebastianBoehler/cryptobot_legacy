@@ -144,6 +144,8 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
     } catch (error) {
       logger.error(`Error in iteration ${i + 1} for ${symbol}:`, error)
     }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 2))
   }
 
   // Plot the loss values using asciichart

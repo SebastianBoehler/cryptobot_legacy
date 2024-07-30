@@ -17,9 +17,24 @@ import {
   FunctionDeclaration,
   FunctionDeclarationSchema,
   FunctionResponsePart,
+  GenerateContentRequest,
+  VertexAI,
 } from '@google-cloud/vertexai'
 import fs from 'fs'
 import { sleep } from 'openai/core'
+
+const vertexAI = new VertexAI({
+  project: 'desktopassistant-423912',
+  location: 'us-central1',
+  googleAuthOptions: {
+    keyFilename: './src/chat/service_account.json',
+  },
+})
+
+const model = vertexAI.getGenerativeModel({
+  model: 'gemini-1.5-flash',
+  // The following parameters are optional
+})
 
 //Vector search | grounding
 const vectorSearchSchema = z.object({
@@ -116,8 +131,10 @@ const vectorStoreAddFunc = async ({ document, metadata }: Record<string, any>) =
   //now create a record of random name as key and doc as value
   const data: Record<string, any> = {}
   for (const doc of docs) {
-    const name = Math.random().toString(36).substring(2, 25)
-    data[name] = doc
+    const name = Math.random().toString(36).substring(2, 25) + '.json'
+    data[name] = {
+      pageContent: doc,
+    }
   }
 
   await store.add(data)
@@ -491,6 +508,54 @@ const executePython = async ({ code }: Record<string, any>) => {
   }
 }
 
+const geminiGoogleSearchSchema = z.object({
+  query: z.string().describe('The prompt the llm gets which grounds its response with google search'),
+})
+
+export const geminiGoogleSearchFunc: FunctionDeclaration = {
+  name: 'googleSearchTool',
+  description:
+    'Calls an llm which is grounded in google search. Use this tool to get latest news or data and access google search',
+  parameters: zodToGeminiParameters(geminiGoogleSearchSchema) as unknown as FunctionDeclarationSchema,
+}
+
+const googleSearch = async ({ query }: Record<string, any>) => {
+  console.log('google search', query)
+
+  const request: GenerateContentRequest = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: query,
+          },
+        ],
+      },
+    ],
+    tools: [
+      {
+        googleSearchRetrieval: {},
+      },
+    ],
+    systemInstruction: 'You are a helpful AI assistant. You **MUST ALWAYS** execute the google grounding',
+    generationConfig: {
+      temperature: 0.7,
+    },
+  }
+
+  const { response } = await model.generateContent(request)
+
+  console.log(response.candidates?.[0])
+
+  return {
+    name: 'googleSearchTool',
+    response: {
+      result: response.candidates?.[0],
+    },
+  }
+}
+
 export const handleFunctionCalling = async (callParts: FunctionCall[]) => {
   const promises: Promise<any>[] = []
   for (const callPart of callParts) {
@@ -528,6 +593,9 @@ export const handleFunctionCalling = async (callParts: FunctionCall[]) => {
         break
       case 'pythonTool':
         promises.push(executePython(args))
+        break
+      case 'googleSearchTool':
+        promises.push(googleSearch(args))
         break
       default:
         throw new Error(`Unknown function call: ${name}`)

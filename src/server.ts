@@ -15,6 +15,7 @@ const port = process.env.PORT || 3001
 
 import mongoRoutes from './mongodb/routes'
 import chatRoutes from './chat/routes'
+import strategyRoutes from './strategies/routes'
 import pm2Routes from './pm2/routes'
 import { logger } from './utils'
 import config from './config/config'
@@ -71,6 +72,7 @@ server.use('/mongodb', mongoRoutes)
 server.use(limiter)
 
 server.use('/pm2', pm2Routes)
+server.use('/strategy', strategyRoutes)
 
 // server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
 //   if (config.NODE_ENV === 'prod') {

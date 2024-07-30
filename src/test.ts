@@ -1,22 +1,40 @@
-import * as tf from '@tensorflow/tfjs-node'
+import loadCompanyData from './sec'
+;(async () => {
+  const tickers: any[] = [] //['AAPL', 'GOOGL', 'AMZN', 'MSFT']
 
-async function trainAndSaveModel() {
-  // 1. Create a simple linear regression model
-  const model = tf.sequential()
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] }))
+  for (const ticker of tickers) {
+    await loadCompanyData(ticker)
+  }
 
-  // 2. Compile the model
-  model.compile({ loss: 'meanSquaredError', optimizer: 'sgd' })
+  const resp = await fetch('http://localhost:3001/strategy/backtest', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      strategy: `
+      class TestStrategy {
+        constructor() {
+          this.name = 'test-strategy'
+          this.startCapital = 250
+          this.steps = 6
+          this.multiplier = 0.95
+          this.stopLoss = -80
+          this.leverReduce = -60
+        }
+        async update(price, indicators, time) {
+          if (!this.orderHelper) throw new Error('OrderHelper not initialized')
+          console.log('price', price)
+        }
+      }
+      `,
+    }),
+  })
 
-  // 3. Generate some sample data
-  const xs = tf.tensor2d([1, 2, 3, 4], [4, 1])
-  const ys = tf.tensor2d([2, 4, 6, 8], [4, 1])
+  const data = await resp.json()
+  console.log(data)
 
-  // 4. Train the model
-  await model.fit(xs, ys, { epochs: 100 })
+  console.log('done')
 
-  // 5. Save the model to a file
-  await model.save('file://./src/model')
-}
-
-trainAndSaveModel()
+  process.exit(0)
+})()

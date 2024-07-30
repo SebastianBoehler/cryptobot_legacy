@@ -1,8 +1,9 @@
-import { BacktestingResult, Indicators } from 'cryptobot-types'
+import { BacktestingResult, Indicators, Strategy } from 'cryptobot-types'
 import { GenerateIndicators } from './indicators'
 import MongoWrapper from './mongodb'
 import strategies from './strategies'
 import { calculateSharpeRatio, createUniqueId, logger } from './utils'
+import { Base } from './strategies/base'
 
 const mongo = new MongoWrapper('backtests')
 const prodMongo = new MongoWrapper(
@@ -19,6 +20,8 @@ interface StrategyParams {
   [key: string]: any
 }
 
+type ParsedStrategy<T extends Base & Strategy> = T
+
 export async function backtest(
   symbol: string,
   exchange = 'okx',
@@ -26,7 +29,8 @@ export async function backtest(
   identifier?: string,
   amount?: number,
   strategyName?: keyof typeof strategies,
-  params: StrategyParams = {}
+  params: StrategyParams = {},
+  strategy?: ParsedStrategy<any>
 ) {
   const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>(exchange, symbol, {
     close: 1,
@@ -44,7 +48,8 @@ export async function backtest(
 
   const rndStr = createUniqueId(4)
 
-  const strategyArray = strategyName ? [strategies[strategyName]] : Object.values(strategies)
+  const strategyArray = strategy ? [strategy] : strategyName ? [strategies[strategyName]] : Object.values(strategies)
+  //console.log(strategy, strategyArray)
   for (const strategy of strategyArray) {
     //for every parameter in params, set the value in the strategy
     for (const [key, value] of Object.entries(params)) {

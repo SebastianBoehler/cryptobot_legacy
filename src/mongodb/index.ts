@@ -96,6 +96,13 @@ class MongoWrapper {
     return result
   }
 
+  async readMany(query: Record<string, any>, collectionName: string, database?: string) {
+    const db = this.client.db(database || this.db)
+    const collection = db.collection(collectionName)
+    const result = await collection.find(query).toArray()
+    return result
+  }
+
   async delete(query: Record<string, any> = {}, collectionName: string, database?: string) {
     const db = this.client.db(database || this.db)
     const collection = db.collection(collectionName)
@@ -523,6 +530,22 @@ class MongoWrapper {
       },
       {
         $set: position,
+      },
+      {
+        upsert: true,
+      }
+    )
+  }
+
+  async updateUpsert(data: any, key: string, collectionName: string, database: string) {
+    const db = this.client.db(database)
+    const collection = db.collection(collectionName)
+    await collection.updateOne(
+      {
+        [key]: data[key],
+      },
+      {
+        $set: data,
       },
       {
         upsert: true,

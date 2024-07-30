@@ -409,7 +409,7 @@ module.exports = {
         NODE_ENV: "prod",
         SYMBOL: 'CORE-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
-        START_CAPITAL: 270,
+        START_CAPITAL: 320,
         MULTIPLIER: 0.96,
         STEPS: 5,
         STOP_LOSS: -13,

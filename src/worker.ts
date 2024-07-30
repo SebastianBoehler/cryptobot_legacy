@@ -12,7 +12,8 @@ const accounts = [
 
 const mongo = new MongoWrapper('trader')
 
-async function main() {
+// ** JOB 1: Account Balances **
+async function accountBalances() {
   const array = []
   const time = new Date()
   for (const account of accounts) {
@@ -53,6 +54,10 @@ async function main() {
 
   logger.info(`Writing ${array.length} account balances to database`)
   await mongo.writeMany('accountBalances', array)
+}
+
+async function main() {
+  await Promise.all([accountBalances()])
   await mongo.close()
 
   process.exit(0)

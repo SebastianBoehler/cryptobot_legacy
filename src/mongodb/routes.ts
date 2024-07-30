@@ -3,6 +3,7 @@ const router = express.Router()
 import mongo from './index'
 import { GenerateIndicators } from '../indicators'
 import config from '../config/config'
+import { cikLookup } from '../sec/utils'
 const client = new mongo('admin')
 
 const FIVE_MIN = 60 * 5
@@ -259,6 +260,17 @@ router.get('/user/profile/:user', async (req: Request, res: Response) => {
 
   res.set('Cache-control', `public, max-age=0`)
   res.json(profile)
+})
+
+router.get('/sec/lookup/:ticker', async (req: Request, res: Response) => {
+  const { ticker } = req.params
+  if (!ticker) {
+    res.status(400).send('ticker query parameter is required')
+    return
+  }
+
+  const CIK = await cikLookup(ticker)
+  res.json(CIK)
 })
 
 export default router
