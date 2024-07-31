@@ -66,7 +66,7 @@ async function loadSecFilings() {
       logger.error('Error loading company data', e)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 5))
   }
 }
 

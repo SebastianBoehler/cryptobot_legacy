@@ -1,5 +1,6 @@
 const cikLookup = async (ticker: string) => {
   const response = await fetch('https://www.sec.gov/files/company_tickers_exchange.json')
+  console.log('status', response.status)
   const { data } = await response.json()
 
   const item = data.find((item: string[]) => item[2] === ticker)
