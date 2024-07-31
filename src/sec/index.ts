@@ -23,6 +23,7 @@ const mongo = new MongoWrapper(database)
 
 const loadCompanyData = async (ticker: string) => {
   const CIK = await cikLookup(ticker)
+  console.log('CIK', CIK)
   if (!CIK) return
 
   const latestReport = await mongo.getLatestEntry('sec_data', 'reports', 'filingDate', { cik: CIK })

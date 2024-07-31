@@ -80,7 +80,7 @@ async function main() {
   }
 
   const endTime = new Date()
-  logger.info(`Finished in ${endTime.getTime() - startTime.getTime() / 1000}s`)
+  logger.info(`Finished in ${endTime.getTime() - startTime.getTime()}ms`)
 
   await mongo.close()
   process.exit(0)
