@@ -61,18 +61,12 @@ async function accountBalances() {
 async function loadSecFilings() {
   const tickers = ['AAPL', 'GOOGL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'PYPL', 'ADBE']
   console.log('Loading company data for', tickers)
-  const promises = []
   for (const ticker of tickers) {
-    promises.push(loadCompanyData(ticker))
-  }
+    await loadCompanyData(ticker).catch((e) => {
+      logger.error('Error loading company data', e)
+    })
 
-  const result = await Promise.allSettled(promises)
-  const errors = result.filter((r) => r.status === 'rejected')
-  if (errors.length > 0) {
-    logger.error('Errors occurred during processing')
-    for (const error of errors) {
-      logger.error(error)
-    }
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   }
 }
 
