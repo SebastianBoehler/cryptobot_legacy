@@ -75,7 +75,7 @@ async function main() {
   if (errors.length > 0) {
     logger.error('Errors occurred during processing')
     for (const error of errors) {
-      logger.error(error.reason)
+      logger.error(error)
     }
   }
 
