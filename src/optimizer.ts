@@ -125,6 +125,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         const { orders, stringifiedFunc, ...rest } = result[0]
 
         if (bestResult) {
+          // Delete old best result
           await Promise.all([
             prodMongo.delete({ identifier: bestResult.identifier }, 'positions', 'backtests'),
             prodMongo.delete({ identifier: bestResult.identifier }, 'results', 'backtests'),
@@ -172,7 +173,7 @@ async function main() {
     const runName = `run_${new Date().toLocaleTimeString()}`
     const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
 
-    for (const { symbol } of filtered) {
+    for (const { symbol } of filtered.slice(2, 30)) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
 

@@ -16,7 +16,11 @@ const getCompanyData = async (cik: string) => {
   return data
 }
 
-const getQuarterlyReports = async (cik: string) => {
+const getReports = async (
+  cik: string,
+  after: Date = new Date('2024-01-01'),
+  forms: string[] = ['10-Q', '10-K', '8-K']
+) => {
   const latestFilings = await getCompanyData(cik)
   const { recent } = latestFilings.filings
 
@@ -32,18 +36,14 @@ const getQuarterlyReports = async (cik: string) => {
       primaryDocDescription: recent.primaryDocDescription[index],
     }
   })
-
-  const after = new Date('2024-01-01')
   //set of form types
-  const formTypes = new Set(mapped.map((filing: any) => filing.form))
-  console.log(formTypes)
-  const forms = ['10-Q', '10-K']
-  const quarterlyReportAccessions = mapped.filter(
-    (filing: any) => forms.includes(filing.form) && filing.filingDate > after
-  )
+  // const formTypes = new Set(mapped.map((filing: any) => filing.form))
+  // console.log(formTypes)
 
-  const quarterlyReports = await Promise.all(
-    quarterlyReportAccessions.map(async (filing: Record<string, any>) => {
+  const reportAccessions = mapped.filter((filing: any) => forms.includes(filing.form) && filing.filingDate > after)
+
+  const reports = await Promise.all(
+    reportAccessions.map(async (filing: Record<string, any>) => {
       //https://www.sec.gov/Archives/edgar/data/320193/000032019319000076/a10-qq320196292019.htm
       const filingUrl = `https://www.sec.gov/Archives/edgar/data/${cik}/${filing.accessionNumber.split('-').join('')}/${
         filing.primaryDocument
@@ -63,7 +63,7 @@ const getQuarterlyReports = async (cik: string) => {
     })
   )
 
-  return quarterlyReports
+  return reports
 }
 
 //https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json
@@ -75,4 +75,4 @@ const getCompanyFacts = async (cik: string) => {
   return data
 }
 
-export { cikLookup, getCompanyData, getQuarterlyReports, getCompanyFacts }
+export { cikLookup, getCompanyData, getReports, getCompanyFacts }

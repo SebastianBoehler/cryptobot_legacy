@@ -6,7 +6,7 @@ import {
   geminiPupQueryFunc,
   geminiRecursiveUrlFunc,
   geminiRequestFunc,
-  geminiVectorSearchAddFunc,
+  //geminiVectorSearchAddFunc,
   //geminiVectorSearchFunc,
   geminiWikiQueryFunc,
   geminiYoutubeQueryFunc,
@@ -59,7 +59,7 @@ const tools = [
   {
     functionDeclarations: [
       //geminiVectorSearchFunc,
-      geminiVectorSearchAddFunc,
+      //geminiVectorSearchAddFunc,
       geminiWikiQueryFunc,
       geminiPupQueryFunc,
       //geminiPupScreenshotFunc,

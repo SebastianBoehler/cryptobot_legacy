@@ -1,11 +1,12 @@
 import loadCompanyData from './sec'
 ;(async () => {
-  const tickers: any[] = [] //['AAPL', 'GOOGL', 'AMZN', 'MSFT']
+  const tickers: any[] = ['AAPL'] //['AAPL', 'GOOGL', 'AMZN', 'MSFT']
 
   for (const ticker of tickers) {
     await loadCompanyData(ticker)
   }
 
+  //TODO: needs historic data on prod server
   const resp = await fetch('http://localhost:3001/strategy/backtest', {
     method: 'POST',
     headers: {

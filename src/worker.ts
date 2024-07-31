@@ -4,6 +4,7 @@ import config from './config/config'
 import { OkxClient } from './okx/utils'
 import MongoWrapper from './mongodb'
 import { logger } from './utils'
+import loadCompanyData from './sec'
 
 const accounts = [
   { exchange: 'bybit', apiKey: config.BYBIT_KEY, apiSecret: config.BYBIT_SECRET },
@@ -56,10 +57,32 @@ async function accountBalances() {
   await mongo.writeMany('accountBalances', array)
 }
 
-async function main() {
-  await Promise.all([accountBalances()])
-  await mongo.close()
+// ** JOB 2: Load SEC Filings **
+async function loadSecFilings() {
+  const tickers = ['AAPL', 'GOOGL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'PYPL', 'ADBE']
+  const promises = []
+  for (const ticker of tickers) {
+    promises.push(loadCompanyData(ticker))
+  }
 
+  await Promise.allSettled(promises)
+}
+
+async function main() {
+  const startTime = new Date()
+  const result = await Promise.allSettled([accountBalances(), loadSecFilings()])
+  const errors = result.filter((r) => r.status === 'rejected')
+  if (errors.length > 0) {
+    logger.error('Errors occurred during processing')
+    for (const error of errors) {
+      logger.error(error.reason)
+    }
+  }
+
+  const endTime = new Date()
+  logger.info(`Finished in ${endTime.getTime() - startTime.getTime() / 1000}s`)
+
+  await mongo.close()
   process.exit(0)
 }
 

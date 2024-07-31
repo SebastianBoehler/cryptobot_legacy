@@ -1,14 +1,15 @@
 import { GenerateContentRequest, VertexAI } from '@google-cloud/vertexai'
-import { cikLookup, getCompanyData, getQuarterlyReports } from './utils'
+import { cikLookup, getCompanyData, getReports } from './utils'
 import MongoWrapper from '../mongodb'
-import { geminiWikiQueryFunc } from '../chat/tools'
+import path from 'path'
 
 const vertexAI = new VertexAI({
   project: 'desktopassistant-423912',
   location: 'us-central1',
-  // googleAuthOptions: {
-  //   keyFilename: './src/chat/service_account.json',
-  // },
+  googleAuthOptions: {
+    //'./src/chat/service_account.json',
+    keyFilename: path.join(__dirname, '../chat/service_account.json'),
+  },
 })
 const database = 'sec_data'
 const generativeModel = vertexAI.getGenerativeModel({
@@ -20,23 +21,18 @@ const generativeModel = vertexAI.getGenerativeModel({
 })
 const mongo = new MongoWrapper(database)
 
-const tools = [
-  {
-    functionDeclarations: [
-      //geminiVectorSearchFunc,
-      geminiWikiQueryFunc,
-    ],
-  },
-]
-
 const loadCompanyData = async (ticker: string) => {
   const CIK = await cikLookup(ticker)
   if (!CIK) return
-  const [companyData, quarterlyReports] = await Promise.all([getCompanyData(CIK), getQuarterlyReports(CIK)])
 
-  for (const report of quarterlyReports) {
+  const latestReport = await mongo.getLatestEntry('sec_data', 'reports', 'filingDate', { cik: CIK })
+  console.log('latestReport', latestReport?.filingDate)
+  const latestReportDate = latestReport?.filingDate
+
+  const [companyData, loadedReports] = await Promise.all([getCompanyData(CIK), getReports(CIK, latestReportDate)])
+
+  for (const report of loadedReports) {
     const request: GenerateContentRequest = {
-      tools,
       contents: [
         {
           role: 'user',
@@ -48,27 +44,40 @@ const loadCompanyData = async (ticker: string) => {
           ],
         },
       ],
-      // @ts-ignore
-      toolConfig: {
-        function_calling_config: {
-          mode: 'ANY', //AUTO, ANY, NONE - force function calling
-          //allowed_function_names: ['name']
-        },
+      systemInstruction: `
+        **You are a helpful AI assistant and expert in analyzing financial statements and stock market data.**
+
+        **Instruction:**
+        - **Analyze Changes:** Explain the changes in financial statements or stock market data.
+        - **Impact Analysis:** Describe how these changes specifically impact the market and the stock price of the company.
+        - **Sentiment Analysis:** Provide a sentiment analysis of the report single word (bullish, bearish, neutral).
+
+        **Output Schema:**
+        {
+          "summary": "summary of the report in about 20 sentences max",
+          "short": "2/3 sentence short summary of key findings of the report",
+          "sentiment": "bullish/bearish/neutral",
+        }
+      `,
+      generationConfig: {
+        responseMimeType: 'application/json',
       },
-      systemInstruction: `You are an helpful AI assistant and export in analyzing financial statements and stock market data.
-      Explain the changes and with that how they specifically impact the market and the stock price of the company.
-      DO NOT reply in markdown`,
     }
 
     const { response } = await generativeModel.generateContent(request)
-    report.summarization = response.candidates?.[0].content.parts[0].text
+    const text = response.candidates?.[0].content.parts[0].text
+    if (!text) continue
+    const json = JSON.parse(text)
+    report.summary = json.summary
+    report.short = json.short
+    report.sentiment = json.sentiment
   }
 
   delete companyData.filings
 
   const promises = []
   const time = new Date()
-  for (const report of quarterlyReports) {
+  for (const report of loadedReports) {
     report.time = time
     promises.push(mongo.updateUpsert(report, 'accessionNumber', 'reports', 'sec_data'))
   }

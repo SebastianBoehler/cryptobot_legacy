@@ -556,6 +556,32 @@ const googleSearch = async ({ query }: Record<string, any>) => {
   }
 }
 
+// fetch(
+//   'https://fred.stlouisfed.org/graph/fredgraph.csv?bgcolor=%23e1e9f0&chart_type=line&drp=0&fo=open%20sans&graph_bgcolor=%23ffffff&height=450&mode=fred&recession_bars=on&txtcolor=%23444444&ts=12&tts=12&width=958&nt=0&thu=0&trc=0&show_legend=yes&show_axis_titles=yes&show_tooltip=yes&id=SOFR90DAYAVG&scale=left&cosd=2019-07-30&coed=2024-07-30&line_color=%234572a7&link_values=false&line_style=solid&mark_type=none&mw=3&lw=2&ost=-99999&oet=99999&mma=0&fml=a&fq=Daily&fam=avg&fgst=lin&fgsnd=2020-02-01&line_index=1&transformation=lin&vintage_date=2024-07-30&revision_date=2024-07-30&nd=2018-07-02',
+//   {
+//     headers: {
+//       accept:
+//         'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+//       'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+//       priority: 'u=0, i',
+//       'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
+//       'sec-ch-ua-mobile': '?0',
+//       'sec-ch-ua-platform': '"macOS"',
+//       'sec-fetch-dest': 'document',
+//       'sec-fetch-mode': 'navigate',
+//       'sec-fetch-site': 'same-origin',
+//       'sec-fetch-user': '?1',
+//       'upgrade-insecure-requests': '1',
+//     },
+//     referrer: 'https://fred.stlouisfed.org/series/SOFR90DAYAVG',
+//     referrerPolicy: 'strict-origin-when-cross-origin',
+//     body: null,
+//     method: 'GET',
+//     mode: 'cors',
+//     credentials: 'include',
+//   }
+// )
+
 export const handleFunctionCalling = async (callParts: FunctionCall[]) => {
   const promises: Promise<any>[] = []
   for (const callPart of callParts) {
