@@ -66,7 +66,14 @@ async function loadSecFilings() {
     promises.push(loadCompanyData(ticker))
   }
 
-  await Promise.allSettled(promises)
+  const result = await Promise.allSettled(promises)
+  const errors = result.filter((r) => r.status === 'rejected')
+  if (errors.length > 0) {
+    logger.error('Errors occurred during processing')
+    for (const error of errors) {
+      logger.error(error)
+    }
+  }
 }
 
 async function main() {
