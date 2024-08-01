@@ -4,7 +4,6 @@ import config from './config/config'
 import { OkxClient } from './okx/utils'
 import MongoWrapper from './mongodb'
 import { logger } from './utils'
-import loadCompanyData from './sec'
 
 const accounts = [
   { exchange: 'bybit', apiKey: config.BYBIT_KEY, apiSecret: config.BYBIT_SECRET },
