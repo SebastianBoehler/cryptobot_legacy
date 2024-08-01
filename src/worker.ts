@@ -59,7 +59,7 @@ async function accountBalances() {
 
 // ** JOB 2: Load SEC Filings **
 async function loadSecFilings() {
-  const tickers = ['AAPL', 'GOOGL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'PYPL', 'ADBE']
+  const tickers = ['AAPL']
   console.log('Loading company data for', tickers)
   for (const ticker of tickers) {
     await loadCompanyData(ticker).catch((e) => {
