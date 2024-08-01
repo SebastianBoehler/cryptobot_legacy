@@ -728,9 +728,7 @@ class MongoWrapper {
     const result = await collection
       .find<TraderAction>({
         action: 'leverage change',
-        after: { $gt: '$prev' },
         symbol,
-        //$expr: { $gt: ['$after', '$prev'] },
         accHash,
       })
       .sort({ time: -1 })
