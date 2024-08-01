@@ -730,7 +730,7 @@ class MongoWrapper {
         action: 'leverage change',
         after: { $gt: '$prev' },
         symbol,
-        $expr: { $gt: ['$after', '$prev'] },
+        //$expr: { $gt: ['$after', '$prev'] },
         accHash,
       })
       .sort({ time: -1 })
