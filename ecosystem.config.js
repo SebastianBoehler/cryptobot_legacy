@@ -31,7 +31,8 @@ module.exports = {
       //error_file: "/dev/null"
       env_prod: {
         NODE_ENV: "prod",
-        PORT: 443
+        PORT: 443,
+        LOG_LEVEL: 'debug'
       },
       watch: true,
       log_date_format,

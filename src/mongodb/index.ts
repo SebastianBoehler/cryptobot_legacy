@@ -790,6 +790,39 @@ class MongoWrapper {
     const profile = await collection.findOne({ userId })
     return profile
   }
+
+  async loadSECReports(cik?: string, after: Date = subDays(new Date(), 7), forms?: string[]) {
+    const db = this.client.db('sec_data')
+    const collection = db.collection('reports')
+
+    const pipeline = [
+      {
+        $match: {
+          cik,
+          filingDate: {
+            $gt: after,
+          },
+        },
+      },
+    ]
+
+    if (forms) {
+      // @ts-ignore
+      pipeline[0].$match['form'] = {
+        $in: forms,
+      }
+    }
+
+    const cursor = await collection.aggregate(pipeline)
+
+    const reports = []
+    while (await cursor.hasNext()) {
+      const report = await cursor.next()
+      if (report) reports.push(report)
+    }
+
+    return reports
+  }
 }
 
 export default MongoWrapper

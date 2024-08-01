@@ -17,6 +17,7 @@ import mongoRoutes from './mongodb/routes'
 import chatRoutes from './chat/routes'
 import strategyRoutes from './strategies/routes'
 import pm2Routes from './pm2/routes'
+import secRoutes from './sec/routes'
 import { logger } from './utils'
 import config from './config/config'
 import bodyParser from 'body-parser'
@@ -47,6 +48,7 @@ const middleware = async (req: Request, res: Response, next: any) => {
     return
   }
 
+  logger.debug(`Received ${req.method} request for ${req.url} from ${IP}`)
   const cacheInSeconds = 30
   res.set('Cache-control', `public, max-age=${cacheInSeconds}`)
   next()
@@ -73,6 +75,7 @@ server.use(limiter)
 
 server.use('/pm2', pm2Routes)
 server.use('/strategy', strategyRoutes)
+server.use('/sec', secRoutes)
 
 // server.post('/backtest/trigger/:symbol', async (req: Request, res: Response) => {
 //   if (config.NODE_ENV === 'prod') {

@@ -127,8 +127,8 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         if (bestResult) {
           // Delete old best result
           await Promise.all([
-            prodMongo.delete({ identifier: bestResult.identifier }, 'positions', 'backtests'),
             prodMongo.delete({ identifier: bestResult.identifier }, 'results', 'backtests'),
+            prodMongo.delete({ identifier: bestResult.identifier }, 'positions', 'backtests'),
           ])
         }
 
@@ -136,8 +136,8 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         bestResult = { reward, parameters, rest, identifier: result[0].identifier }
       } else {
         await Promise.all([
-          prodMongo.delete({ identifier: result[0].identifier }, 'positions', 'backtests'),
           prodMongo.delete({ identifier: result[0].identifier }, 'results', 'backtests'),
+          prodMongo.delete({ identifier: result[0].identifier }, 'positions', 'backtests'),
         ])
       }
 

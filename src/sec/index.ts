@@ -53,6 +53,13 @@ const loadCompanyData = async (ticker: string) => {
         - **Impact Analysis:** Describe how these changes specifically impact the market and the stock price of the company.
         - **Sentiment Analysis:** Provide a sentiment analysis of the report single word (bullish, bearish, neutral).
 
+        You **DON NOT** need to say what document it is like:
+        - "Apple Inc. released their financial results"
+        - "Apple Inc. released their 10-K report"
+
+        **GOOD EXAMPLES ARE**:
+        - "Apple Inc. reported a 20% increase in revenue and sales for the iPhone"
+
         **Output Schema:**
         {
           "summary": "summary of the report in about 20 sentences max",

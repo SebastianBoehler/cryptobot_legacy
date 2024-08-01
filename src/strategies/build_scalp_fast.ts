@@ -54,6 +54,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     }
 
     if (!lastLeverIncrease && isLiveOrderHelper(this.orderHelper)) {
+      logger.debug('lastLeverIncrease not set')
       const lastIncrease = await this.orderHelper.loadLastLeverIncrease()
       if (lastIncrease) lastLeverIncrease = lastIncrease.price
     }
