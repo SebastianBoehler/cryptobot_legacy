@@ -58,21 +58,21 @@ async function accountBalances() {
 }
 
 // ** JOB 2: Load SEC Filings **
-async function loadSecFilings() {
-  const tickers = ['AAPL']
-  console.log('Loading company data for', tickers)
-  for (const ticker of tickers) {
-    await loadCompanyData(ticker).catch((e) => {
-      logger.error('Error loading company data', e)
-    })
+// async function loadSecFilings() {
+//   const tickers = ['AAPL']
+//   console.log('Loading company data for', tickers)
+//   for (const ticker of tickers) {
+//     await loadCompanyData(ticker).catch((e) => {
+//       logger.error('Error loading company data', e)
+//     })
 
-    await new Promise((resolve) => setTimeout(resolve, 1000 * 20))
-  }
-}
+//     await new Promise((resolve) => setTimeout(resolve, 1000 * 20))
+//   }
+// }
 
 async function main() {
   const startTime = new Date()
-  const result = await Promise.allSettled([accountBalances(), loadSecFilings()])
+  const result = await Promise.allSettled([accountBalances()])
   const errors = result.filter((r) => r.status === 'rejected')
   if (errors.length > 0) {
     logger.error('Errors occurred during processing')

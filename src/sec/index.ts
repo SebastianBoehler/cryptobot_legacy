@@ -86,7 +86,8 @@ const loadCompanyData = async (ticker: string) => {
   const promises = []
   const time = new Date()
   for (const report of loadedReports) {
-    report.time = time
+    report.time = time.getTime()
+    report.filingDate = report.filingDate.getTime()
     promises.push(mongo.updateUpsert(report, 'accessionNumber', 'reports', 'sec_data'))
   }
   companyData.cik = CIK

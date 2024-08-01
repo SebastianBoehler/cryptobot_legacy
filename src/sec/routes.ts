@@ -4,9 +4,9 @@ const router = express.Router()
 const mongo = new MongoWrapper('sec_data')
 
 router.post('/reports', async (req: Request, res: Response) => {
-  const { CIK } = req.body
+  const { CIK, after, forms } = req.body
 
-  const reports = await mongo.loadSECReports(CIK)
+  const reports = await mongo.loadSECReports(CIK, after, forms)
 
   res.json(reports)
 })

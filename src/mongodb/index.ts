@@ -21,6 +21,7 @@ class MongoWrapper {
   private client: MongoClient
   constructor(db: string, url?: string) {
     this.db = db
+    logger.info(`[mongodb] connecting to ${url || config.MONGO_URL}`)
     this.client = new MongoClient(url || config.MONGO_URL, {
       appName: `cryptobot-${config.NODE_ENV} ${config.SYMBOL}`,
       //heartbeatFrequencyMS: FIVE_MINUTES,
@@ -789,20 +790,23 @@ class MongoWrapper {
     return profile
   }
 
-  async loadSECReports(cik?: string, after: Date = subDays(new Date(), 7), forms?: string[]) {
+  async loadSECReports(cik?: string, after: Date = subDays(new Date(), 31 * 10), forms?: string[]) {
     const db = this.client.db('sec_data')
     const collection = db.collection('reports')
 
     const pipeline = [
       {
         $match: {
-          cik,
           filingDate: {
-            $gt: after,
+            $gt: after.getTime(),
           },
         },
       },
     ]
+    if (cik) {
+      // @ts-ignore
+      pipeline[0].$match['cik'] = cik
+    }
 
     if (forms) {
       // @ts-ignore
@@ -811,7 +815,9 @@ class MongoWrapper {
       }
     }
 
-    const cursor = await collection.aggregate(pipeline)
+    console.log(JSON.stringify(pipeline))
+
+    const cursor = collection.aggregate(pipeline)
 
     const reports = []
     while (await cursor.hasNext()) {
