@@ -261,6 +261,7 @@ module.exports = {
       },
       watch: false
     },
+    //UPDATED
     {
       name: 'hb_trader_jup',
       script: traderPath,
@@ -269,7 +270,10 @@ module.exports = {
         SYMBOL: 'JUP-USDT-SWAP',
         STRATEGY: 'SCALP_ALTS',
         START_CAPITAL: 500,
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.91,
+        STEPS: 2,
+        STOP_LOSS: -18,
+        LEVER_REDUCE: -10,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },

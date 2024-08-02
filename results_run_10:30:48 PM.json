@@ -1,0 +1,33 @@
+[
+  {
+    "reward": 319.3901441708241,
+    "parameters": {
+      "steps": 2,
+      "stopLoss": -18,
+      "leverReduce": -10,
+      "multiplier": 0.91
+    },
+    "rest": {
+      "trades": 41,
+      "identifier": "opt_2_-18_-10_0.91___-JUP-USDT-SWAP-II8Y",
+      "name": "opt_2_-18_-10_0.91___",
+      "startCapital": 500,
+      "symbol": "JUP-USDT-SWAP",
+      "margin": 604.125,
+      "pnl": 643.29,
+      "winRatio": 0.3902439024390244,
+      "time": "2024-08-02T21:00:03.473Z",
+      "start": "2024-04-01T00:00:00.000Z",
+      "end": "2024-08-02T20:15:00.000Z",
+      "pnl_pct": 128.65748314588512,
+      "hodl_pct": -1.2053425996307958,
+      "liquidations": 23,
+      "exchange": "okx",
+      "hodl_ratio": 106.73934795409515,
+      "maxDrawdown": 0.7192899990760517,
+      "sharpeRatio": 6.06776341278002,
+      "_id": "66ad48d3ab9a21487587fc12"
+    },
+    "identifier": "opt_2_-18_-10_0.91___-JUP-USDT-SWAP-II8Y"
+  }
+]
