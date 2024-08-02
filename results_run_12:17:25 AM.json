@@ -1,0 +1,33 @@
+[
+  {
+    "reward": 504.2914594765626,
+    "parameters": {
+      "steps": 5,
+      "stopLoss": -23,
+      "leverReduce": -10,
+      "multiplier": 0.95
+    },
+    "rest": {
+      "trades": 10,
+      "identifier": "opt_5_-23_-10_0.95___-SOL-USDT-SWAP-z690",
+      "name": "opt_5_-23_-10_0.95___",
+      "startCapital": 1600,
+      "symbol": "SOL-USDT-SWAP",
+      "margin": 907.085,
+      "pnl": 1009.19,
+      "winRatio": 0.4,
+      "time": "2024-08-01T22:23:02.293Z",
+      "start": "2024-04-01T00:00:00.000Z",
+      "end": "2024-08-01T19:05:00.000Z",
+      "pnl_pct": 63.074341247988805,
+      "hodl_pct": -20.49913516184828,
+      "liquidations": 4,
+      "exchange": "okx",
+      "hodl_ratio": 3.0769269410632925,
+      "maxDrawdown": 0.2354052343749999,
+      "sharpeRatio": 7.51906756702782,
+      "_id": "66ac0ac64a32316ccfb150ed"
+    },
+    "identifier": "opt_5_-23_-10_0.95___-SOL-USDT-SWAP-z690"
+  }
+]

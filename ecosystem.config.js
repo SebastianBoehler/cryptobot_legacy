@@ -205,6 +205,7 @@ module.exports = {
       },
       watch: false
     },
+    //UPDATED
     {
       name: 'hb_trader_ar',
       script: traderPath,
@@ -214,14 +215,16 @@ module.exports = {
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 720,
-        MULTIPLIER: 0.94,
+        MULTIPLIER: 0.95,
         STEPS: 2,
-        STOP_LOSS: -19,
+        STOP_LOSS: -12,
+        LEVER_REDUCE: -5,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },
       watch: false
     },
+    //UPDATED
     {
       name: 'hb_trader_sol',
       script: traderPath,
@@ -231,9 +234,10 @@ module.exports = {
         SYMBOL: 'SOL-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 1600,
-        MULTIPLIER: 0.85,
-        STOP_LOSS: -11,
+        MULTIPLIER: 0.95,
+        STOP_LOSS: -23,
         STEPS: 5,
+        LEVER_REDUCE: -10,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },

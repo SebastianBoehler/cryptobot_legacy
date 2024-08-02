@@ -4,14 +4,15 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 import { writeFileSync } from 'fs'
 import AsciiChart from 'asciichart' // Import asciichart
+import { differenceInSeconds } from 'date-fns'
 
 const mongo = new MongoWrapper('backtests')
 const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 1500
-const startDate = new Date('2024-02-01')
+const startCapital = 350
+const startDate = new Date('2024-04-01')
 const exchange = 'okx'
 const file = 'old_agent.py'
 
@@ -57,6 +58,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
   for (let i = 0; i < maxIterations; i++) {
     logger.info(`Starting optimization iteration ${i + 1} for ${symbol}`)
+    const start = new Date()
 
     try {
       // 1. Get initial parameters from the RL agent
@@ -74,10 +76,10 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       }
 
       // 2. Run backtest with the initial parameters
-      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
+      const result = await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
         ...parameters,
         //name: `full_${initialData.steps}_${initialData.takeProfitRate}_${initialData.stopLoss}_${initialData.leverReduce}_${initialData.takeProfitThreshold}_${initialData.buyLowRate}`,
-        name: `opt_${initialData.steps}_${initialData.multiplier}_${initialData.stopLoss}_${initialData.leverReduce}`,
+        name: `opt_${Object.values(parameters).join('_')}`,
       })
 
       let reward: number
@@ -112,7 +114,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
         const transformedLossValues = lossValues.map((loss) => loss)
 
         // Plot the loss values after each new loss is added
-        console.clear()
+        //console.clear()
         console.log('\nLoss Progress:')
         if (lossValues.length > 32)
           // @ts-ignore
@@ -146,6 +148,8 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
       logger.error(`Error in iteration ${i + 1} for ${symbol}:`, error)
     }
 
+    logger.info('Final duration', differenceInSeconds(new Date(), start))
+
     await new Promise((resolve) => setTimeout(resolve, 1000 * 2))
   }
 
@@ -168,12 +172,12 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    const symbols = await mongo.symbolsSortedByVolume(exchange)
+    const symbols = [{ symbol: 'TIA-USDT-SWAP' }] //await mongo.symbolsSortedByVolume(exchange)
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
     const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))
 
-    for (const { symbol } of filtered.slice(2, 30)) {
+    for (const { symbol } of filtered) {
       const pairs = symbol.split('-')
       if (pairs[1] === 'USD') continue
 

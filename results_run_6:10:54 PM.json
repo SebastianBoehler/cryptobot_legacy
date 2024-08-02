@@ -1,0 +1,33 @@
+[
+  {
+    "reward": -5.797417939983251,
+    "parameters": {
+      "steps": 7,
+      "stopLoss": -22,
+      "leverReduce": -26,
+      "multiplier": 0.92
+    },
+    "rest": {
+      "trades": 53,
+      "identifier": "opt_7_-22_-26_0.92___-TIA-USDT-SWAP-6h8x",
+      "name": "opt_7_-22_-26_0.92___",
+      "startCapital": 350,
+      "symbol": "TIA-USDT-SWAP",
+      "margin": 21.6812,
+      "pnl": -5.32,
+      "winRatio": 0.32075471698113206,
+      "time": "2024-08-02T16:17:42.802Z",
+      "start": "2024-04-01T00:00:00.000Z",
+      "end": "2024-08-01T19:06:00.000Z",
+      "pnl_pct": -1.5191528106816123,
+      "hodl_pct": -63.77875673029858,
+      "liquidations": 32,
+      "exchange": "okx",
+      "hodl_ratio": -0.02381910354737171,
+      "maxDrawdown": 0.33644355077590454,
+      "sharpeRatio": 52.77970103638382,
+      "_id": "66ad06a6926a0b27066ab41a"
+    },
+    "identifier": "opt_7_-22_-26_0.92___-TIA-USDT-SWAP-6h8x"
+  }
+]

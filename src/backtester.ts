@@ -3,8 +3,8 @@ import MongoWrapper from './mongodb'
 import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
-const startCapital = 700
-const startDate = new Date('2024-04-05')
+const startCapital = 720
+const startDate = new Date('2024-07-01')
 const exchange = 'okx'
 
 ;(async () => {
@@ -13,11 +13,11 @@ const exchange = 'okx'
     const pairs = symbol.split('-')
     if (pairs[1] === 'USD') continue
     logger.info('starting backtest for', symbol)
-    await backtest(symbol, exchange, startDate, undefined, startCapital, 'build_scalp_fast', {
+    await backtest(symbol, exchange, startDate, undefined, startCapital, 'alts', {
       steps: 2,
-      stopLoss: -19,
-      multiplier: 0.94,
-      //leverReduce: -200,
+      stopLoss: -12,
+      multiplier: 0.95,
+      leverReduce: -5,
       name: 'old',
     })
   }

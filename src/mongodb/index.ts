@@ -21,7 +21,7 @@ class MongoWrapper {
   private client: MongoClient
   constructor(db: string, url?: string) {
     this.db = db
-    logger.info(`[mongodb] connecting to ${url || config.MONGO_URL}`)
+    //logger.info(`[mongodb] connecting to ${url || config.MONGO_URL}`)
     this.client = new MongoClient(url || config.MONGO_URL, {
       appName: `cryptobot-${config.NODE_ENV} ${config.SYMBOL}`,
       //heartbeatFrequencyMS: FIVE_MINUTES,
