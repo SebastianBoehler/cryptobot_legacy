@@ -1,5 +1,17 @@
 const cikLookup = async (ticker: string) => {
-  const response = await fetch('https://www.sec.gov/files/company_tickers_exchange.json')
+  const randomUserAgent = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+  ]
+
+  const rndmUrlParam = Math.random().toString(36).substring(7)
+
+  const response = await fetch(`https://www.sec.gov/files/company_tickers_exchange.json?random=${rndmUrlParam}`, {
+    headers: {
+      'User-Agent': randomUserAgent[0],
+      'Accept-Encoding': 'gzip, deflate',
+      host: 'www.sec.gov',
+    },
+  })
   console.log('status', response.status)
   if (response.status !== 200) throw await response.text()
   const { data } = await response.json()
