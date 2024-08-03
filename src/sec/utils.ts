@@ -1,33 +1,40 @@
+import axios from 'axios'
+
+const randomUserAgent = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
+  'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; yie8)',
+  'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0',
+  'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x86_64; rv:102.0) Gecko/20100101 Firefox/102.0',
+  'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+]
+
 const cikLookup = async (ticker: string) => {
-  const randomUserAgent = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-  ]
-
   const rndmUrlParam = Math.random().toString(36).substring(7)
-
-  const response = await fetch(`https://www.sec.gov/files/company_tickers_exchange.json?random=${rndmUrlParam}`, {
+  const randomUserAgentIndex = Math.floor(Math.random() * randomUserAgent.length)
+  const response = await axios.get(`https://www.sec.gov/files/company_tickers_exchange.json?time=${rndmUrlParam}`, {
     headers: {
-      'User-Agent': randomUserAgent[0],
+      'User-Agent': randomUserAgent[randomUserAgentIndex],
       'Accept-Encoding': 'gzip, deflate',
       host: 'www.sec.gov',
     },
   })
-  console.log('status', response.status)
-  if (response.status !== 200) throw await response.text()
-  const { data } = await response.json()
+  if (response.status !== 200) throw response.data
+  const { data } = response.data
 
   const item = data.find((item: string[]) => item[2] === ticker)
 
-  // Ensure the returned value is a string and always 10 characters long
   return item ? String(item[0]).padStart(10, '0') : null
 }
 
 const getCompanyData = async (cik: string) => {
   const latestFilingsUrl = `https://data.sec.gov/submissions/CIK${cik}.json`
-  const response = await fetch(latestFilingsUrl)
-  const data = await response.json()
-
-  return data
+  const response = await axios.get(latestFilingsUrl)
+  return response.data
 }
 
 const getReports = async (
@@ -50,26 +57,21 @@ const getReports = async (
       primaryDocDescription: recent.primaryDocDescription[index],
     }
   })
-  //set of form types
-  // const formTypes = new Set(mapped.map((filing: any) => filing.form))
-  // console.log(formTypes)
 
   const reportAccessions = mapped.filter((filing: any) => forms.includes(filing.form) && filing.filingDate > after)
 
   const reports = await Promise.all(
     reportAccessions.map(async (filing: Record<string, any>) => {
-      //https://www.sec.gov/Archives/edgar/data/320193/000032019319000076/a10-qq320196292019.htm
       const filingUrl = `https://www.sec.gov/Archives/edgar/data/${cik}/${filing.accessionNumber.split('-').join('')}/${
         filing.primaryDocument
       }`
-      console.log(filingUrl)
-      const response = await fetch(filingUrl, {
+      const response = await axios.get(filingUrl, {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
         },
       })
-      const filingContent = await response.text()
+      const filingContent = response.data
       return {
         content: filingContent,
         ...filing,
@@ -83,10 +85,8 @@ const getReports = async (
 //https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json
 const getCompanyFacts = async (cik: string) => {
   const companyFactsUrl = `https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`
-  const response = await fetch(companyFactsUrl)
-  const data = await response.json()
-
-  return data
+  const response = await axios.get(companyFactsUrl)
+  return response.data
 }
 
 export { cikLookup, getCompanyData, getReports, getCompanyFacts }
