@@ -215,10 +215,10 @@ module.exports = {
         SYMBOL: 'AR-USDT-SWAP',
         STRATEGY: 'BUILD_SCALP_FAST',
         START_CAPITAL: 720,
-        MULTIPLIER: 0.95,
+        MULTIPLIER: 0.94,
         STEPS: 2,
-        STOP_LOSS: -12,
-        LEVER_REDUCE: -5,
+        STOP_LOSS: -19,
+        //LEVER_REDUCE: -5,
         EXCHANGE: 'okx',
         LOG_LEVEL: 'debug'
       },
