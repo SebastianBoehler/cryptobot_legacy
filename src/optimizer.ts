@@ -51,7 +51,7 @@ async function runPythonScript(scriptPath: string, args: string[] = []): Promise
   })
 }
 
-async function runBacktestWithOptimization(symbol: string, maxIterations: number = 1_500) {
+async function runBacktestWithOptimization(symbol: string, maxIterations: number = 120) {
   let bestResult = null
   let noResultCount = 0
   let lossValues: number[] = [] // Array to store loss values
