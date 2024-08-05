@@ -9,6 +9,7 @@ let initialSizeInCts: number
 let lastLeverIncrease: number | null
 
 export class BUILD_SCALP_FAST extends Base implements Strategy {
+  public readonly requiresIndicators = true
   public readonly name = 'build-scalp-fast'
   public startCapital = 250
   public steps = 6
@@ -31,7 +32,12 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const { position } = this.orderHelper
     logger.debug({ entrySizeUSD, portfolio })
 
+    const mappedIndicators = this.mapIndicators(indicators)
+    const indicators12h = mappedIndicators[60 * 12]
+    const { HA } = indicators12h
+
     if (!position) {
+      if (HA.c < HA.o) return
       if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)

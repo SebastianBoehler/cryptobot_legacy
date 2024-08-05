@@ -40,7 +40,7 @@ export async function backtest(
   const indicators: GenerateIndicators[] = [
     new GenerateIndicators(exchange, symbol, 5),
     //new GenerateIndicators(exchange, symbol, 60),
-    new GenerateIndicators(exchange, symbol, 60 * 8),
+    new GenerateIndicators(exchange, symbol, 60 * 12),
   ]
 
   //returns & deletes first 5k candles

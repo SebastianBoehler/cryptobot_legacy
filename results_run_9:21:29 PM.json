@@ -1,0 +1,33 @@
+[
+  {
+    "reward": 192653.6422283835,
+    "parameters": {
+      "steps": 2,
+      "stopLoss": -9,
+      "leverReduce": -8,
+      "multiplier": 0.87
+    },
+    "rest": {
+      "trades": 170,
+      "identifier": "opt_2_-9_-8_0.87___-AR-USDT-SWAP-J3Mg",
+      "name": "opt_2_-9_-8_0.87___",
+      "startCapital": 720,
+      "symbol": "AR-USDT-SWAP",
+      "margin": 85482.71960000001,
+      "pnl": 385404.65,
+      "winRatio": 0.23529411764705882,
+      "time": "2024-08-03T19:31:26.599Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-08-03T18:47:00.000Z",
+      "pnl_pct": 53528.42389293178,
+      "hodl_pct": 132.7792207792208,
+      "liquidations": 138,
+      "exchange": "okx",
+      "hodl_ratio": 403.13856022650106,
+      "maxDrawdown": 349.5335985182701,
+      "sharpeRatio": 6.748722902421375,
+      "_id": "66ae858e088e43b4cc8eb1d6"
+    },
+    "identifier": "opt_2_-9_-8_0.87___-AR-USDT-SWAP-J3Mg"
+  }
+]

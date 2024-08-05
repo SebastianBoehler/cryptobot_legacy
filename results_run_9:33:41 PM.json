@@ -1,0 +1,33 @@
+[
+  {
+    "reward": 262741.10170457617,
+    "parameters": {
+      "steps": 5,
+      "stopLoss": -22,
+      "leverReduce": -8,
+      "multiplier": 0.95
+    },
+    "rest": {
+      "trades": 22,
+      "identifier": "opt_5_-22_-8_0.95___-AR-USDT-SWAP-BADx",
+      "name": "opt_5_-22_-8_0.95___",
+      "startCapital": 720,
+      "symbol": "AR-USDT-SWAP",
+      "margin": 0,
+      "pnl": 525604.59,
+      "winRatio": 0.45454545454545453,
+      "time": "2024-08-04T20:18:58.511Z",
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-08-04T19:02:00.000Z",
+      "pnl_pct": 73000.63707950065,
+      "hodl_pct": 119.52207792207794,
+      "liquidations": 12,
+      "exchange": "okx",
+      "hodl_ratio": 610.7711508085828,
+      "maxDrawdown": 601.2965906013093,
+      "sharpeRatio": 3.1566954829013407,
+      "_id": "66afe23269813ad053bebd40"
+    },
+    "identifier": "opt_5_-22_-8_0.95___-AR-USDT-SWAP-BADx"
+  }
+]
