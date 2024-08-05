@@ -19,7 +19,6 @@ import { OBV, VWAP } from 'technicalindicators'
 import { VWAPDeviation } from './vwap_deviation'
 import { AvgCandleSize } from './avg_candle_size'
 import { Candle, GeneratedCandle, Indicators } from 'cryptobot-types'
-import { log } from 'node:console'
 import { logger } from '../utils'
 
 class GenerateIndicators {
