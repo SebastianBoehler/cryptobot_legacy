@@ -31,12 +31,8 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
     logger.debug({ entrySizeUSD, portfolio })
 
     //USE CLOSE PRICE OF INDICATORS GRANULARITY X FOR TRIGGERS
-    const mappedIndicators = this.mapIndicators(indicators)
-    const indicators12h = mappedIndicators[60 * 12]
-    const { HA } = indicators12h
 
     if (!position) {
-      if (HA.c < HA.o) return
       if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)
       await this.orderHelper.setLeverage(2, 'long', portfolio)
