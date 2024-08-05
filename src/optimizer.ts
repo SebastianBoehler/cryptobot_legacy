@@ -11,7 +11,7 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 720
+const startCapital = 300
 const startDate = new Date('2024-04-01')
 const exchange = 'okx'
 const file = 'old_agent.py'
@@ -171,7 +171,7 @@ async function runBacktestWithOptimization(symbol: string, maxIterations: number
 
 async function main() {
   try {
-    const symbols = [{ symbol: 'AR-USDT-SWAP' }] //await mongo.symbolsSortedByVolume(exchange)
+    const symbols = [{ symbol: 'PYTH-USDT-SWAP' }] //await mongo.symbolsSortedByVolume(exchange)
     const results = []
     const runName = `run_${new Date().toLocaleTimeString()}`
     const filtered = symbols.filter((s: any) => s.symbol.includes('USDT'))

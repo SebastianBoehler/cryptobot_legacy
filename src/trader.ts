@@ -45,7 +45,7 @@ logger.debug(`Set shouldEndTrading to ${strategy.shouldEndTrading}`)
 
 let indicators: GenerateIndicators[] = [
   new GenerateIndicators(exchange, symbol, 5),
-  new GenerateIndicators(exchange, symbol, 60 * 8),
+  new GenerateIndicators(exchange, symbol, 60 * 12),
 ]
 
 async function main() {
