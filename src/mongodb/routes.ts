@@ -197,7 +197,7 @@ router.post('/trader/calendarProfits', async (req: Request, res: Response) => {
   ]
 
   try {
-    const result = await client.aggregate(pipeline, 'trader', 'orders')
+    const result = await client.aggregate(pipeline, 'orders', 'trader')
     const data = await result.toArray()
 
     if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)

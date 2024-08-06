@@ -34,7 +34,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
 
     const mappedIndicators = this.mapIndicators(indicators)
     const indicators12h = mappedIndicators[60 * 12]
-    logger.debug(JSON.stringify(indicators12h))
+    //logger.debug(JSON.stringify(indicators12h))
     const { HA } = indicators12h
 
     if (!position) {
