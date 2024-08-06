@@ -1,0 +1,33 @@
+[
+  {
+    "reward": -146.49850364844147,
+    "parameters": {
+      "steps": 2,
+      "stopLoss": -27,
+      "leverReduce": -26,
+      "multiplier": 1.01
+    },
+    "rest": {
+      "trades": 14,
+      "identifier": "opt_2_-27_-26_1.01____step1-PYTH-USDT-SWAP-RW4x",
+      "name": "opt_2_-27_-26_1.01____step1",
+      "startCapital": 300,
+      "symbol": "PYTH-USDT-SWAP",
+      "margin": 0,
+      "pnl": -290.4890622077921,
+      "winRatio": 0.14285714285714285,
+      "time": "2024-08-05T19:06:08.608Z",
+      "start": "2024-04-01T00:00:00.000Z",
+      "end": "2024-08-04T19:03:00.000Z",
+      "pnl_pct": -96.82968740259736,
+      "hodl_pct": -72.44641239810807,
+      "liquidations": 12,
+      "exchange": "okx",
+      "hodl_ratio": -1.336569806528143,
+      "maxDrawdown": 0.9682968740259742,
+      "sharpeRatio": 13.89922532119102,
+      "_id": "66b122a07ff54865369b952c"
+    },
+    "identifier": "opt_2_-27_-26_1.01____step1-PYTH-USDT-SWAP-RW4x"
+  }
+]

@@ -19,7 +19,6 @@ import { OBV, VWAP } from 'technicalindicators'
 import { VWAPDeviation } from './vwap_deviation'
 import { AvgCandleSize } from './avg_candle_size'
 import { Candle, GeneratedCandle, Indicators } from 'cryptobot-types'
-import { logger } from '../utils'
 
 class GenerateIndicators {
   private symbol: string
@@ -113,7 +112,9 @@ class GenerateIndicators {
 
   async loadHistoricData(afterTimestamp?: Date) {
     const candles = await this.mongodb.loadHistoricCandles(this.granularity, this.symbol, afterTimestamp)
-    logger.debug(`[indicators] loaded ${candles.length} candles for ${this.symbol} at ${this.granularity} granularity`)
+    // logger.debug(
+    //   `[indicators] loaded ${candles.length} historic candles for ${this.symbol} at ${this.granularity} granularity`
+    // )
 
     const data = candles.map((candle) => {
       return this.handleNewCandle(candle)

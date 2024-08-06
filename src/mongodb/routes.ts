@@ -4,6 +4,7 @@ import mongo from './index'
 import { GenerateIndicators } from '../indicators'
 import config from '../config/config'
 import { cikLookup } from '../sec/utils'
+import { subDays } from 'date-fns'
 const client = new mongo('admin')
 
 const FIVE_MIN = 60 * 5
@@ -152,6 +153,59 @@ router.get('/trader/accBalances', async (req: Request, res: Response) => {
   const result = await client.getAccBalances(accHash as string, +(granularity || 15), $limit)
   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
   res.json(result)
+})
+
+router.post('/trader/calendarProfits', async (req: Request, res: Response) => {
+  const { accHashes, limit } = req.body
+  if (!accHashes || !limit) {
+    res.status(400).send('accHashes and limit body parameter is required')
+    return
+  }
+
+  const pipeline: any[] = [
+    {
+      $match: {
+        accHash: { $in: accHashes }, // Replace with actual accHash array
+        time: { $gte: subDays(new Date(), +limit) }, // Filter last 30 days
+      },
+    },
+    {
+      $project: {
+        year: { $year: '$time' },
+        month: { $month: '$time' },
+        day: { $dayOfMonth: '$time' },
+        bruttoPnlUSD: 1,
+      },
+    },
+    {
+      $addFields: {
+        date: { $dateFromParts: { year: '$year', month: '$month', day: '$day' } },
+      },
+    },
+    {
+      $group: {
+        _id: '$date',
+        totalProfit: { $sum: '$bruttoPnlUSD' },
+      },
+    },
+    {
+      $sort: { _id: -1 },
+    },
+    {
+      $limit: parseInt(limit as string), // Replace with the actual limit
+    },
+  ]
+
+  try {
+    const result = await client.aggregate(pipeline, 'trader', 'orders')
+    const data = await result.toArray()
+
+    if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+    res.json(data)
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Internal Server Error')
+  }
 })
 
 router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
