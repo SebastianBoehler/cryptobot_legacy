@@ -38,6 +38,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
     const { HA } = indicators12h
 
     if (!position) {
+      logger.debug('heikin ashi', HA.c < HA.o)
       if (HA.c < HA.o) return
       if (this.shouldEndTrading) return
       const clOrdId = 'first' + createUniqueId(10)

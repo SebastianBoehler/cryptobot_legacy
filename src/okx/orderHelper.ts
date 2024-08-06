@@ -850,7 +850,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async loadLastLeverIncrease() {
-    const action = await mongo.loadLastLeverIncrease(this.symbol, this.accHash)
+    const action = await mongo.loadLastLeverIncrease(this.symbol, this.accHash, this.positionId)
     return action
   }
 }

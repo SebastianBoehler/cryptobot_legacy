@@ -723,7 +723,7 @@ class MongoWrapper {
     return actions
   }
 
-  async loadLastLeverIncrease(symbol: string, accHash: string) {
+  async loadLastLeverIncrease(symbol: string, accHash: string, posId: string) {
     const db = this.client.db('trader')
     const collection = db.collection('actions')
     const result = await collection
@@ -731,6 +731,7 @@ class MongoWrapper {
         action: 'leverage change',
         symbol,
         accHash,
+        posId,
       })
       .sort({ time: -1 })
       .limit(1)

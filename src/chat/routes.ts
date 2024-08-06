@@ -30,7 +30,7 @@ const vertexAI = new VertexAI({
     keyFilename: './src/chat/service_account.json',
   },
 })
-const temperature = 0.75
+const temperature = 0.9
 const generativeModel = vertexAI.getGenerativeModel({
   model: 'gemini-1.5-flash',
   // The following parameters are optional
