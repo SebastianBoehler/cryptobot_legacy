@@ -1,0 +1,6 @@
+{
+  "main": "hello.js",
+  "devDependencies": {
+    "typescript": "^4"
+  }
+}

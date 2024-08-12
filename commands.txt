@@ -21,3 +21,6 @@ change vs code python venv
 Press Cmd+Shift+P (Mac) to open the Command Palette.
 	2.	Select Interpreter:
 Type Python: Select Interpreter in the Command Palette and select it.
+
+
+doctl serverless deploy example-project

@@ -1,81 +1,154 @@
-import sys
-import json
 import tensorflow as tf
 from tensorflow import keras
+import numpy as np
+import sys
+import json
+import time
 
-print("Starting agent...", file=sys.stderr)
+# Define the number of parameters
+num_parameters = 4
 
-# Example Deep Learning Model (MLP) - Using Input layer
+# Define the parameter ranges
+parameter_ranges = [
+    (2, 10),  # Range for "steps"
+    (0.85, 1.1),  # Range for "multiplier"
+    (-30, -10),  # Range for "stopLoss"
+    (-30, -5),  # Range for "leverReduce"
+]
+
+# Define the model architecture
 model = keras.Sequential(
     [
-        keras.Input(shape=(1,)),  # Input: Reward
+        keras.Input(shape=(1,)),  # Input: reward
         keras.layers.Dense(128, activation="relu"),
         keras.layers.Dense(64, activation="relu"),
-        keras.layers.Dense(3),  # Output: 3 Strategy Parameters
+        keras.layers.Dense(num_parameters),  # Output: predicted parameters
     ]
 )
 
 model.compile(optimizer="adam", loss="mse")
 
-# Placeholder for training data
+# Training data (initialize empty)
 training_data = []
 
 
-def generate_parameters(reward):
-    # Predict new parameters using the model
-    reward = tf.convert_to_tensor([[reward]], dtype=tf.float32)
-    new_parameters = model.predict(reward)
-    print(f"Predict: {new_parameters}", file=sys.stderr)
-    return new_parameters.tolist()
+# Function to generate random parameters within specified ranges
+def generate_random_parameters(parameter_ranges):
+    parameters = []
+    for range_min, range_max in parameter_ranges:
+        parameters.append(np.random.uniform(range_min, range_max))
+    return parameters
 
 
-def handle_stdin():
-    for line in sys.stdin:
-        print(f"Data received: {line.strip()}", file=sys.stderr)
+# Function to train the model
+def train_model(training_data):
+    print(f"Training model with {len(training_data)} data points", file=sys.stderr)
+    if len(training_data) > 10:  # Example: Train after 10 data points
+        X, y = zip(*training_data)
+        # Correctly shape the y array
+        y = np.array(y)  # Convert to NumPy array
+        y = y.reshape(-1, num_parameters)  # Reshape to (number of data points, 4)
+        history = model.fit(
+            np.array(X), y, epochs=5, verbose=0
+        )  # Suppress training output
+        print("Model trained", file=sys.stderr)
+        loss = history.history["loss"][-1]
+        print(f"Loss: {loss}", file=sys.stderr)  # Log the loss value
+        print(f"Loss: {loss}", file=sys.stdout)  # Send loss value to the optimizer
+        return loss
 
 
-# Start the listener
-# handle_stdin()
+# Main loop
+def optimize_parameters(
+    model, parameter_ranges, num_parameters, iterations=200, training_iterations=5
+):
+    losses = []
+    for iteration in range(iterations):
+        print(f"Iteration: {iteration}", file=sys.stderr)
+        print("Generating initial parameters", file=sys.stderr)
 
-if __name__ == "__main__":
-    print("Inside main", file=sys.stderr)
+        # Epsilon-Greedy Exploration
+        epsilon = 0.9  # High exploration rate
+        if iteration < training_iterations:
+            parameters = generate_random_parameters(parameter_ranges)
+            print("Using random parameters", file=sys.stderr)
+        else:
+            if np.random.rand() < epsilon:
+                parameters = generate_random_parameters(parameter_ranges)
+                print("Using random parameters", file=sys.stderr)
+            else:
+                # Predict parameters using reward as input
+                predicted_parameters = model.predict(np.array([[reward]]))[
+                    0
+                ]  # Use reward as input
+                parameters = predicted_parameters.tolist()
+                print("Using predicted parameters", file=sys.stderr)
+            print(f"Predicted parameters: {parameters}", file=sys.stderr)
 
-    # Main loop
-    while True:
-        print("Waiting for reward", file=sys.stderr)
-        try:
-            # Read reward from STDIN
-            print("Check1", file=sys.stderr)
-            # reward_json = sys.stdin.readline().strip()  # No need for this anymore
-            # reward = float(reward_json)
-            string = sys.stdin.readline().strip()
-            reward_json = json.loads(string)
-            reward = float(reward_json["reward"])
+        print("Outputing params", file=sys.stderr)
+        print(
+            json.dumps({"parameters": parameters}), file=sys.stdout
+        )  # Output predicted parameters
+        sys.stdout.flush()
 
-            print(f"Received reward: {reward_json}", file=sys.stderr)
+        # Wait for reward from optimizer with timeout and retry loop
+        start_time = time.time()
+        timeout_seconds = 15  # Increased timeout to 15 seconds
+        reward_data = None
+        while True:
+            print("Waiting for reward...", file=sys.stderr)
+            try:
+                # Wrap the readline in a try-except block
+                reward_data = json.loads(sys.stdin.readline().strip())
+                print("Reward received!", file=sys.stderr)
+                # Update currentParameters from the received data
+                currentParameters = reward_data[
+                    "parameters"
+                ]  # Get parameters from the JSON
+                break  # Exit the loop if reward is received
+            except json.JSONDecodeError:
+                print("Invalid JSON input", file=sys.stderr)
+                pass  # Ignore invalid JSON input
+            except Exception as e:
+                print(f"Error reading reward: {e}", file=sys.stderr)
+                if time.time() - start_time > timeout_seconds:
+                    print(
+                        f"Timeout waiting for reward. Iteration {iteration} skipped.",
+                        file=sys.stderr,
+                    )
+                    break  # Exit the loop if timeout occurs
+                else:
+                    continue  # Retry reading reward
 
-            # Print to stderr (which is captured by Node.js)
-            sys.stderr.write(f"Reward: {reward}\n")
-            # sys.stderr.flush()
+        if reward_data is None:
+            continue  # Skip to the next iteration if no reward is received
 
-            # Train the model (if enough data is available)
-            training_data.append((reward, generate_parameters(reward)))
+        reward = reward_data["reward"]
 
-            print(f"Training data: {training_data}", file=sys.stderr)
+        print(f"Received reward: {reward}", file=sys.stderr)
 
-            if len(training_data) > 10:  # Example: Train after 10 data points
-                X, y = zip(*training_data)
-                model.fit(X, y, epochs=5)
+        # Append data to training set
+        training_data.append(
+            (reward, currentParameters)
+        )  # Use reward as input and parameters as output
 
-            # Generate and send new parameters to STDOUT
-            new_parameters = generate_parameters(reward)
-            print(f"New parameters: {new_parameters}", file=sys.stderr)
-            print(json.dumps(new_parameters), file=sys.stdout)
-            # sys.stdout.write(json.dumps(new_parameters) + "\n")
-            sys.stdout.flush()  # Ensure output is sent immediately
+        print("Training model", file=sys.stderr)
+        # Train the model
+        loss = train_model(training_data)
+        if loss:
+            losses.append(loss)
 
-        except (EOFError, KeyboardInterrupt):
-            print("Exiting", file=sys.stderr)
-            break
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+        # Print the best parameters and reward so far
+        # Only attempt to find best parameters if training_data is not empty
+        if training_data:
+            best_params, best_reward = training_data[
+                np.argmax([x[1] for x in training_data])
+            ]
+            print(
+                f"Best Parameters: {best_params}, Best Reward: {best_reward}",
+                file=sys.stdout,
+            )
+
+
+# Run the optimization process
+optimize_parameters(model, parameter_ranges, num_parameters)
