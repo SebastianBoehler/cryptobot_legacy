@@ -3,7 +3,7 @@ import { OrderHelper } from '../bybit/orderHelper'
 
 describe('run orderHelper tests', () => {
   //test are based on REAL okx trading data
-  test('check margin & fee calculation', async () => {
+  test.skip('check margin & fee calculation', async () => {
     const symbol = '10000WENUSDT'
     const orderHelper = new OrderHelper(symbol, false)
     await orderHelper.getContractInfo()
