@@ -1,6 +1,12 @@
 {
-  "main": "hello.js",
-  "devDependencies": {
-    "typescript": "^4"
+  "name": "name",
+  "description": "description",
+  "authors": "author",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^3.6.9",
+    "http-status-codes": "^2.2.0",
+    "node-fetch": "^2.6.0"
   }
 }

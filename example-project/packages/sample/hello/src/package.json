@@ -1,6 +1,0 @@
-{
-  "main": "hello.js",
-  "dependencies": {
-    "slugify": "1.6.5"
-  }
-}
