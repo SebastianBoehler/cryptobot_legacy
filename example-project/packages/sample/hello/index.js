@@ -39,18 +39,14 @@ async function main(args) {
     "mode": "cors",
     "credentials": "include"
   });
+
   console.log(resp.status);
   const json = await resp.json();
 
-  return { "body": json };
-}
+  //TODO: log my IP adress to see if it changes every startup
+  console.log(await fetch('https://api.ipify.org?format=json').then(res => res.json()));
 
-async function promise(greeting) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve({ "body": greeting });
-    }, 1000);
-  });
+  return { "body": json };
 }
 
 exports.main = main;

@@ -340,7 +340,8 @@ module.exports = {
         START_CAPITAL: 120,
         MULTIPLIER: 0.95,
         EXCHANGE: 'okx',
-        LOG_LEVEL: 'debug'
+        LOG_LEVEL: 'debug',
+        SHOULD_END_TRADING: 'true'
       },
       watch: false
     },
