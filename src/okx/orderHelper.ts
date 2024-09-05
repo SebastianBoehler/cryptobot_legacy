@@ -375,10 +375,18 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       })
     if (!marginInfo) return
     const estMgn = +marginInfo.estMgn
+    const estAvailTrans = +marginInfo.estAvailTrans
 
-    let marginChange = +marginInfo.estAvailTrans * -1 // means how much margins to transfer out
-    //FIXME: if no value returned
-    if (marginInfo.estAvailTrans.length < 1) {
+    let marginChange = estAvailTrans * -1 // means how much margins to transfer out
+
+    logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
+    logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
+    logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
+
+    logger.debug(JSON.stringify(marginInfo, null, 2))
+    logger.debug('[orderhelper > setLeverage]', margin - estMgn)
+
+    if (marginInfo.estAvailTrans.length < 1 || estAvailTrans === 0) {
       logger.debug(`[orderHelper > setLeverage] No margin change value returned, calculating manually`)
       const leverIncrease = prevLever < leverage
       switch (leverIncrease) {
@@ -389,13 +397,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
           marginChange = margin - estMgn
           break
       }
+      logger.debug(`[orderHelper > setLeverage] Margin change: ${marginChange}`)
     }
-    logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
-    logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
-    logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
-
-    logger.debug(JSON.stringify(marginInfo, null, 2))
-    logger.debug('[orderhelper > setLeverage]', margin - estMgn)
 
     if (marginChange === 0) {
       logger.error('[orderhelper > setLeverage] margin change is zero on lev change')
