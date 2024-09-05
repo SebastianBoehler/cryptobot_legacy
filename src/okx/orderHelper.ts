@@ -383,10 +383,10 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       const leverIncrease = prevLever < leverage
       switch (leverIncrease) {
         case true:
-          marginChange = (estMgn - margin) * 0.98
+          marginChange = estMgn - margin
           break
         case false:
-          marginChange = (margin - estMgn) * 1.01
+          marginChange = margin - estMgn
           break
       }
     }
