@@ -367,13 +367,12 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const margin = this.position.margin
     const posSide = okxClient.position.posSide
-    const marginInfo = await okxClient.getAdjustLeverageInfo(
-      'SWAP',
-      'isolated',
-      leverage.toString(),
-      posSide,
-      this.symbol
-    )
+    const marginInfo = await okxClient
+      .getAdjustLeverageInfo('SWAP', 'isolated', leverage.toString(), posSide, this.symbol)
+      .catch((e) => {
+        logger.error(`[orderHelper > setLeverage] Error loading leverage info`, e)
+      })
+    if (!marginInfo) return
     const estMgn = +marginInfo.estMgn
 
     const marginChange = +marginInfo.estAvailTrans * -1 // means how much margins to transfer out
@@ -382,7 +381,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
 
-    if (marginChange === 0) await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+    logger.debug(JSON.stringify(marginInfo, null, 2))
+    logger.debug('[orderhelper > setLeverage]', margin - estMgn)
+
+    if (marginChange === 0) {
+      logger.error('[orderhelper > setLeverage] margin change is zero on lev change')
+      await okxClient.setLeverage(this.symbol, leverage, 'isolated', type)
+    }
 
     if (marginChange > 0) {
       const increaseBy = marginChange * 1.01
