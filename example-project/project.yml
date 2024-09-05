@@ -17,3 +17,13 @@ packages:
         environment: {}
         annotations: {}
         limits: {}
+      - name: sec_func
+        binary: false
+        main: ''
+        runtime: nodejs:18
+        web: true
+        webSecure: false
+        parameters: {}
+        environment: {}
+        annotations: {}
+        limits: {}

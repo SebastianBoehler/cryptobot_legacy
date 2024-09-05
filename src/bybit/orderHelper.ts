@@ -204,6 +204,7 @@ export class OrderHelper implements IOrderHelper {
       fee: (this.position?.fee || 0) + fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
       accHash: 'backtester',
+      posIdx: this.lastPosition?.posIdx || 0,
     }
 
     return order
@@ -620,6 +621,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: client.position.fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
       accHash: this.accHash,
+      posIdx: this.lastPosition?.posIdx || 0,
     }
 
     await mongo.writeOrder({

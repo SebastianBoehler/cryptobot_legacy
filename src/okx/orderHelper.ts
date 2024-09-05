@@ -199,6 +199,7 @@ export class OrderHelper implements IOrderHelper {
       fee: (this.position?.fee || 0) + fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
       accHash: 'backtester',
+      posIdx: this.lastPosition?.posIdx || 0,
     }
 
     return order
@@ -375,8 +376,20 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!marginInfo) return
     const estMgn = +marginInfo.estMgn
 
-    const marginChange = +marginInfo.estAvailTrans * -1 // means how much margins to transfer out
-
+    let marginChange = +marginInfo.estAvailTrans * -1 // means how much margins to transfer out
+    //FIXME: if no value returned
+    if (marginInfo.estAvailTrans.length < 1) {
+      logger.debug(`[orderHelper > setLeverage] No margin change value returned, calculating manually`)
+      const leverIncrease = prevLever < leverage
+      switch (leverIncrease) {
+        case true:
+          marginChange = (estMgn - margin) * 0.98
+          break
+        case false:
+          marginChange = (margin - estMgn) * 1.01
+          break
+      }
+    }
     logger.debug(`[orderHelper > setLeverage] EstMgn: ${estMgn}, Margin: ${margin}, MarginChange: ${marginChange}`)
     logger.debug(`[orderHelper > setLeverage] current leverage: ${okxClient.position.lever}, new leverage: ${leverage}`)
     logger.debug(`[orderHelper > setLeverage] availCapital: ${availCapital}`)
@@ -442,8 +455,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     await mongo.storeAction([levChangeAction, mmChangeAction])
     await Promise.allSettled([
-      addAction(levChangeAction, okxClient.closedPositions.length + 1),
-      addAction(mmChangeAction, okxClient.closedPositions.length + 1),
+      //TODO: closedPos is reset on every restart find better way
+      addAction(levChangeAction, this.position.posIdx),
+      addAction(mmChangeAction, this.position.posIdx),
     ])
   }
 
@@ -559,6 +573,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       //use if no position existing otherwise overwrite with proper values
       highestPrice: okxClient.position.avgEntryPrice,
       lowestPrice: okxClient.position.avgEntryPrice,
+      posIdx: 0,
       ...savedPos,
       ...this.position,
       //everything that MUST be updated after ...this.position
@@ -665,6 +680,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       fee: okxClient.position.fee,
       amountUSD: (this.position?.amountUSD || 0) + amountUSD,
       accHash: this.accHash,
+      posIdx: this.lastPosition?.posIdx || 0,
     }
 
     const baseAction = {
