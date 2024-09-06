@@ -368,6 +368,20 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const margin = this.position.margin
     const posSide = okxClient.position.posSide
+    logger.debug(
+      JSON.stringify(
+        {
+          instType: 'SWAP',
+          mgnMode: 'isolated',
+          leverage: leverage.toString(),
+          posSide,
+          symbol: this.symbol,
+          currLever: this.leverage.toString(),
+        },
+        null,
+        2
+      )
+    )
     const marginInfo = await okxClient
       .getAdjustLeverageInfo('SWAP', 'isolated', leverage.toString(), posSide, this.symbol)
       .catch((e) => {
