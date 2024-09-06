@@ -19,7 +19,7 @@ import loadCompanyData from './sec'
     )
   )
 
-  const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', '31', 'long', 'JUP-USDT-SWAP')
+  const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', '20', 'long', 'JUP-USDT-SWAP')
 
   console.log(JSON.stringify(marginInfo, null, 2))
 
