@@ -13,6 +13,10 @@ import loadCompanyData from './sec'
   const positions = await okxClient.getPositions()
   console.log(JSON.stringify(positions, null, 2))
 
+  const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', '31', 'long', 'JUP-USDT-SWAP')
+
+  console.log(JSON.stringify(marginInfo, null, 2))
+
   for (const ticker of tickers) {
     await loadCompanyData(ticker)
   }
