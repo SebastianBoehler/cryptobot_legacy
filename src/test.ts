@@ -11,7 +11,13 @@ import loadCompanyData from './sec'
   })
 
   const positions = await okxClient.getPositions()
-  console.log(JSON.stringify(positions, null, 2))
+  console.log(
+    JSON.stringify(
+      positions.filter((p) => p.instId === 'JUP-USDT-SWAP'),
+      null,
+      2
+    )
+  )
 
   const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', '31', 'long', 'JUP-USDT-SWAP')
 
