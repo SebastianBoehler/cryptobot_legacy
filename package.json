@@ -23,6 +23,7 @@
     "nodemon:trader": "export NODE_ENV=dev && nodemon src/trader.ts",
     "nodemon:server": "export NODE_ENV=debug && nodemon src/server.ts",
     "testing": "export NODE_ENV=debug && ts-node src/test.ts",
+    "testingProd": "export NODE_ENV=prod && ts-node src/test.ts",
     "trader:test": "export NODE_ENV=dev && ts-node src/trader.ts",
     "trader:debug": "export NODE_ENV=debug && ts-node src/trader.ts",
     "pm2:start": "pm2 start ecosystem.config.js --env prod",
