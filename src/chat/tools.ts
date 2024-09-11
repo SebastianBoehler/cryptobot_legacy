@@ -201,7 +201,11 @@ export const geminiPupQueryFunc: FunctionDeclaration = {
 
 const pupQuery = async ({ url }: Record<string, any>) => {
   console.log('puppeteer', url)
-  const loader = new PuppeteerWebBaseLoader(url)
+  const loader = new PuppeteerWebBaseLoader(url, {
+    launchOptions: {
+      headless: true,
+    },
+  })
 
   const docs = await loader.load().catch((e) => {
     console.error(e)
@@ -285,6 +289,7 @@ const pupScreenshot = async ({ url }: Record<string, any>) => {
 //YouTube
 const ytSchema = z.object({
   url: z.string().describe('The youtube video url to load, always use this tool when provided a youtube video url'),
+  lan: z.string().describe('The language of the video eg. en, de').optional(),
 })
 
 export const geminiYoutubeQueryFunc: FunctionDeclaration = {
@@ -293,14 +298,19 @@ export const geminiYoutubeQueryFunc: FunctionDeclaration = {
   parameters: zodToGeminiParameters(ytSchema) as unknown as FunctionDeclarationSchema,
 }
 
-const youtubeQuery = async ({ url }: Record<string, any>) => {
+const youtubeQuery = async ({ url, lan }: Record<string, any>) => {
   console.log('youtube', url)
-  const loader = YoutubeLoader.createFromUrl(url, {
-    //language: "en",
-    addVideoInfo: true,
-  })
+  let docs
+  try {
+    const loader = YoutubeLoader.createFromUrl(url, {
+      language: lan,
+      addVideoInfo: true,
+    })
 
-  const docs = await loader.load()
+    docs = await loader.load()
+  } catch (error) {
+    docs = { error: error || 'An error occurred' }
+  }
   return {
     name: 'youtubeVideoTool',
     response: {
@@ -434,7 +444,7 @@ const sendEmail = async ({ to, subject, html }: Record<string, any>) => {
 
 // Define the schema for the HTTP request tool
 const requestSchema = z.object({
-  url: z.string().url().describe('The URL of the API'),
+  url: z.string().url().describe('The full URL of the API endpoint'),
   method: z.enum(['GET', 'POST', 'PUT', 'DELETE']).describe('The HTTP method'),
   headers: z.record(z.string()).optional().describe('The HTTP headers'),
   //data: z.record(z.unknown()).optional().describe("The HTTP body"),
@@ -456,10 +466,10 @@ const request = async ({ url, method, headers }: Record<string, any>) => {
       method,
       headers,
     })
-    data = await response.json()
+    data = await response.text()
   } catch (error) {
     console.error(error)
-    data = { error: error }
+    data = { error: error || 'An error occurred' }
   }
 
   return {
