@@ -375,6 +375,8 @@ export const geminiRecursiveUrlFunc: FunctionDeclaration = {
     - https://fred.stlouisfed.org/searchresults/?st=rates&t=housing%3Bquarterly%3Bmei&ob=sr&od=desc
     - https://research.stlouisfed.org/ssi/search.php?q=fintech&partialfields=year:2021
     - https://www.nature.com/search?q=nutrition+muscle+growth&order=relevance
+    - https://pubmed.ncbi.nlm.nih.gov/?term=increase+iq
+    - https://pubmed.ncbi.nlm.nih.gov/?term=increase+iq&filter=simsearch2.ffrft&sort=date&size=50
     `,
   parameters: zodToGeminiParameters(recursiveUrlSchema) as unknown as FunctionDeclarationSchema,
 }
@@ -452,7 +454,13 @@ const requestSchema = z.object({
 
 export const geminiRequestFunc: FunctionDeclaration = {
   name: 'requestTool',
-  description: 'Send an HTTP request to an API',
+  description: `
+    Send an HTTP request to any API or url.
+    Examples:
+    - https://api.coindesk.com/v1/bpi/currentprice.json
+    - https://pubmed.ncbi.nlm.nih.gov/39224641/
+    - https://arxiv.org/html/2407.08332v1
+  `,
   parameters: zodToGeminiParameters(requestSchema) as unknown as FunctionDeclarationSchema,
 }
 
