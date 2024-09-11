@@ -466,6 +466,7 @@ const request = async ({ url, method, headers }: Record<string, any>) => {
       method,
       headers,
     })
+    console.log(response.status)
     data = await response.text()
   } catch (error) {
     console.error(error)

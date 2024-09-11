@@ -818,7 +818,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
           {
             ...baseAction,
             action: 'margin change',
-            prev: positionPre?.margin || 0,
+            prev: positionPre.margin,
             after: 0,
           },
         ]),
@@ -830,7 +830,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       ])
       await mongo.writePosition(closedPos, 'trader')
       //TODO: delete livePosition
-      await addOrder(orderObj, okxClient.closedPositions.length + 1)
+      await addOrder(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
+        logger.error('[solana] Failed saving order', e)
+      })
       return closedPos
     }
 
@@ -861,7 +863,9 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }),
     ])
 
-    await addOrder(orderObj, okxClient.closedPositions.length + 1)
+    await addOrder(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
+      logger.error('[solana] Failed saving order', e)
+    })
 
     return order
   }

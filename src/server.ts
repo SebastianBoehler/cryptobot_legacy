@@ -39,7 +39,11 @@ const middleware = async (req: Request, res: Response, next: any) => {
   //server side auth
   const validAuth = req.headers['hb-capital-auth'] === hash
   if (!validAuth && !isWhitelisted) {
-    logger.warn(`Unauthorized request from ${IP}`)
+    logger.warn(
+      `Unauthorized request from ${IP} to ${req.url} hasAuth: ${req.headers['hb-capital-auth'] !== undefined} hasBody ${
+        req.body !== undefined
+      }`
+    )
     const reason = `Invalid auth, please contact support to get access.`
     res.status(401).send({
       message: 'Unauthorized',
