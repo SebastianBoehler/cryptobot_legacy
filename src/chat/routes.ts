@@ -310,6 +310,7 @@ This component displays a greeting message.
 
   if (!functionCalls.length) return
 
+  console.log('yield functionCalls')
   yield [
     {
       role: 'model',
@@ -326,6 +327,7 @@ This component displays a greeting message.
     }
   )
 
+  console.log('yield responseParts')
   yield [
     {
       role: 'user',

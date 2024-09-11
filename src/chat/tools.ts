@@ -377,21 +377,28 @@ export const geminiRecursiveUrlFunc: FunctionDeclaration = {
     - https://www.nature.com/search?q=nutrition+muscle+growth&order=relevance
     - https://pubmed.ncbi.nlm.nih.gov/?term=increase+iq
     - https://pubmed.ncbi.nlm.nih.gov/?term=increase+iq&filter=simsearch2.ffrft&sort=date&size=50
+    - https://pubmed.ncbi.nlm.nih.gov/?term=increase+iq&filter=pubt.clinicaltrial&filter=pubt.randomizedcontrolledtrial&filter=pubt.review&filter=years.2010-2024&sort=date&size=50
     `,
   parameters: zodToGeminiParameters(recursiveUrlSchema) as unknown as FunctionDeclarationSchema,
 }
 
 const recursiveUrlLoader = async ({ url, maxAmount }: Record<string, any>) => {
-  console.log('recursive url', url)
+  console.log('recursive url', url, maxAmount)
   const compiledConvert = compile({ wordwrap: 120 }) // returns (text: string) => string;
 
-  const loader = new RecursiveUrlLoader(url, {
-    extractor: compiledConvert,
-    maxDepth: 1,
-    //excludeDirs: ["/docs/api/"],
-  })
+  let docs = []
 
-  const docs = await loader.load()
+  try {
+    const loader = new RecursiveUrlLoader(url, {
+      extractor: compiledConvert,
+      maxDepth: 1,
+      //excludeDirs: ["/docs/api/"],
+    })
+
+    docs = await loader.load()
+  } catch (error) {
+    docs = [{ error: `Failed to load ${url}, error: ${error}` }]
+  }
   //console.log(docs.length);
   return {
     name: 'recursiveUrlTool',
