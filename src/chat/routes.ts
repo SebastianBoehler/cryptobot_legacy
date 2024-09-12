@@ -320,10 +320,17 @@ This component displays a greeting message.
 
   const responseParts = await handleFunctionCalling(functionCalls.map((part: any) => part.functionCall)).catch(
     (error) => {
-      console.error('Error handling function calling')
-      return {
-        text: `Error handling function calling: ${error}`,
-      }
+      console.error('Error handling function calling', error)
+      return [
+        {
+          role: 'model',
+          parts: [
+            {
+              text: `Error handling function calling: ${error}`,
+            },
+          ],
+        },
+      ]
     }
   )
 

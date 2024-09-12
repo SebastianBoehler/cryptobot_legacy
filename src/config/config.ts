@@ -33,6 +33,9 @@ const config = {
   NODE_ENV: parsedConfig.NODE_ENV as 'prod' | 'dev' | 'hb' | 'test' | 'local',
   LOG_LEVEL,
 
+  //STRIPE
+  STRIPE_KEY: parsedConfig.STRIPE_KEY as string,
+
   //API
   API_SECRET: parsedConfig.API_SECRET as string,
   API_WHITELIST: parsedConfig.API_WHITELIST as string[],

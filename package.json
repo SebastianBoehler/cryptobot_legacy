@@ -88,6 +88,7 @@
     "pyodide": "^0.26.2",
     "shelljs": "^0.8.5",
     "slugify": "^1.6.6",
+    "stripe": "^16.10.0",
     "swr": "^2.2.5",
     "technicalindicators": "^3.1.0",
     "ts-jest": "^29.2.5",

@@ -16,6 +16,7 @@ const port = process.env.PORT || 3001
 import mongoRoutes from './mongodb/routes'
 import chatRoutes from './chat/routes'
 import strategyRoutes from './strategies/routes'
+import stripeRoutes from './stripe/routes'
 import pm2Routes from './pm2/routes'
 import secRoutes from './sec/routes'
 import { logger } from './utils'
@@ -63,6 +64,8 @@ server.get('/health', (_req: Request, res: Response) => {
     message: 'Server is running',
   })
 })
+
+server.use('/stripe', stripeRoutes)
 
 server.use(middleware)
 server.use('/chat', chatRoutes)

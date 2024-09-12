@@ -462,7 +462,9 @@ const requestSchema = z.object({
 export const geminiRequestFunc: FunctionDeclaration = {
   name: 'requestTool',
   description: `
-    Send an HTTP request to any API or url.
+    Send an HTTP request to any API or url. 
+    May return raw unparsed data
+
     Examples:
     - https://api.coindesk.com/v1/bpi/currentprice.json
     - https://pubmed.ncbi.nlm.nih.gov/39224641/
@@ -612,6 +614,7 @@ export const handleFunctionCalling = async (callParts: FunctionCall[]) => {
   const promises: Promise<any>[] = []
   for (const callPart of callParts) {
     const { name, args } = callPart
+    console.log('handleFunctionCalling', name)
     switch (name) {
       case 'vectorSearchTool':
         promises.push(vectorSearch(args))
