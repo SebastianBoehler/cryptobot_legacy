@@ -6,20 +6,10 @@ const getCompanyData = async (cik) => {
   console.log(`Fetching company data from: ${latestFilingsUrl}`)
   const response = await fetch(latestFilingsUrl, {
     headers: {
-      'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
-      'cache-control': 'max-age=0',
-      'priority': 'u=0, i',
-      'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
-      'sec-ch-ua-mobile': '?0',
-      'sec-ch-ua-platform': '"macOS"',
-      'sec-fetch-dest': 'document',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-site': 'none',
-      'sec-fetch-user': '?1',
-      'upgrade-insecure-requests': '1',
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.1 Safari/537.36',
-      'Content-Type': 'application/json',
+      'User-Agent': 'HB Capital contact@hb-capital.app',
+      'accept-encoding': 'gzip, deflate',
+      accept: 'application/json',
+      //host: 'www.sec.gov'
     }
   })
   console.log(`Company data fetch status: ${response.status}`)
@@ -58,20 +48,10 @@ const getReports = async (
       console.log(`Fetching report from: ${filingUrl}`)
       const response = await fetch(filingUrl, {
         headers: {
-          'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-          'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
-          'cache-control': 'max-age=0',
-          'priority': 'u=0, i',
-          'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
-          'sec-ch-ua-mobile': '?0',
-          'sec-ch-ua-platform': '"macOS"',
-          'sec-fetch-dest': 'document',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'none',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': '1',
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.1 Safari/537.36',
-          'Content-Type': 'application/json',
+          'User-Agent': 'HB Capital contact@hb-capital.app',
+          'accept-encoding': 'gzip, deflate',
+          accept: 'application/json',
+          host: 'www.sec.gov'
         },
       })
       console.log(`Report fetch status: ${response.status}`)

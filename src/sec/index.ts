@@ -1,7 +1,11 @@
 import { GenerateContentRequest, VertexAI } from '@google-cloud/vertexai'
-import { cikLookup, getCompanyData, getReports } from './utils'
 import MongoWrapper from '../mongodb'
+import { SECClient, Filing } from 'sec-data-fetcher'
 import path from 'path'
+
+const client = new SECClient({
+  userAgent: 'HB Capital contact@hb-capital.app',
+})
 
 const vertexAI = new VertexAI({
   project: 'desktopassistant-423912',
@@ -22,7 +26,7 @@ const generativeModel = vertexAI.getGenerativeModel({
 const mongo = new MongoWrapper(database)
 
 const loadCompanyData = async (ticker: string) => {
-  const CIK = await cikLookup(ticker)
+  const CIK = await client.cikLookup(ticker)
   console.log('CIK', CIK)
   if (!CIK) return
 
@@ -30,9 +34,23 @@ const loadCompanyData = async (ticker: string) => {
   console.log('latestReport', latestReport?.filingDate)
   const latestReportDate = latestReport?.filingDate
 
-  const [companyData, loadedReports] = await Promise.all([getCompanyData(CIK), getReports(CIK, latestReportDate)])
+  //create a iinterface that exetdns filing with any T
+  interface ExtendedFiling extends Omit<Filing, 'filingDate'> {
+    summary?: string
+    short?: string
+    sentiment?: string
+    time?: number
+    filingDate: number | Date
+  }
 
+  const [companyData, loadedReports]: [any, ExtendedFiling[]] = await Promise.all([
+    client.getCompanyData(CIK),
+    client.getReports(CIK, latestReportDate),
+  ])
+
+  const time = new Date()
   for (const report of loadedReports) {
+    if (!report.content) continue
     const request: GenerateContentRequest = {
       contents: [
         {
@@ -79,15 +97,14 @@ const loadCompanyData = async (ticker: string) => {
     report.summary = json.summary
     report.short = json.short
     report.sentiment = json.sentiment
+    report.time = time.getTime()
+    report.filingDate = report.filingDate
   }
 
   delete companyData.filings
 
   const promises = []
-  const time = new Date()
   for (const report of loadedReports) {
-    report.time = time.getTime()
-    report.filingDate = report.filingDate.getTime()
     promises.push(mongo.updateUpsert(report, 'accessionNumber', 'reports', 'sec_data'))
   }
   companyData.cik = CIK
