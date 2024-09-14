@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express'
 const router = express.Router()
 import mongo from './index'
-import { GenerateIndicators } from '../indicators'
 import config from '../config/config'
 import { subDays } from 'date-fns'
 const client = new mongo('admin')
@@ -9,62 +8,65 @@ const client = new mongo('admin')
 const FIVE_MIN = 60 * 5
 const ONE_DAY = 60 * 60 * 24
 
-router.get('/databases', async (req: Request, res: Response) => {
-  const databases = await client.listDatabases()
-  res.send(databases)
-})
+// Remove these unused routes:
 
-router.get('/collections/:database', async (req: Request, res: Response) => {
-  const { database } = req.params
-  if (!database) {
-    res.status(400).send('database query parameter is required')
-    return
-  }
-  const collections = await client.existingCollections(database)
-  res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
-  res.json(collections)
-})
+// router.get('/databases', async (req: Request, res: Response) => {
+//   const databases = await client.listDatabases()
+//   res.send(databases)
+// })
 
-router.get('/count/:database/:collection', async (req: Request, res: Response) => {
-  const { database, collection } = req.params
-  if (!collection || !database) {
-    res.status(400).send('database and collection query parameter is required')
-    return
-  }
-  const count = await client.getCount(collection, database)
-  res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
-  res.json(count)
-})
+// router.get('/count/:database/:collection', async (req: Request, res: Response) => {
+//   const { database, collection } = req.params
+//   if (!collection || !database) {
+//     res.status(400).send('database and collection query parameter is required')
+//     return
+//   }
+//   const count = await client.getCount(collection, database)
+//   res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+//   res.json(count)
+// })
 
-router.get('/timeframe/:database/:collection', async (req: Request, res: Response) => {
-  const { database, collection } = req.params
-  if (!database) {
-    res.status(400).send('database query parameter is required')
-    return
-  }
+// router.get('/timeframe/:database/:collection', async (req: Request, res: Response) => {
+//   const { database, collection } = req.params
+//   if (!database) {
+//     res.status(400).send('database query parameter is required')
+//     return
+//   }
 
-  const result = await client.getStartAndEndDates(database, collection)
-  res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
-  res.json(result)
-})
+//   const result = await client.getStartAndEndDates(database, collection)
+//   res.set('Cache-control', `public, max-age=${FIVE_MIN}`)
+//   res.json(result)
+// })
 
-router.get('/indicators/:exchange/:symbol/:granularity', async (req: Request, res: Response) => {
-  const { exchange, symbol, granularity } = req.params
-  if (!exchange || !symbol || !granularity) {
-    res.status(400).send('exchange, symbol and granularity query parameter is required')
-    return
-  }
+// router.get('/indicators/:exchange/:symbol/:granularity', async (req: Request, res: Response) => {
+//   const { exchange, symbol, granularity } = req.params
+//   if (!exchange || !symbol || !granularity) {
+//     res.status(400).send('exchange, symbol and granularity query parameter is required')
+//     return
+//   }
 
-  const indicator = new GenerateIndicators(exchange, symbol, +granularity)
-  const data = await indicator.loadHistoricData()
-  //res.set("Cache-control", `public, max-age=${ONE_DAY}`);
-  res.json({
-    count: data.length,
-    symbol,
-    granularity,
-    data,
-  })
-})
+//   const indicator = new GenerateIndicators(exchange, symbol, +granularity)
+//   const data = await indicator.loadHistoricData()
+//   //res.set("Cache-control", `public, max-age=${ONE_DAY}`);
+//   res.json({
+//     count: data.length,
+//     symbol,
+//     granularity,
+//     data,
+//   })
+// })
+
+// router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
+//   const { exchange } = req.params
+//   if (!exchange) {
+//     res.status(400).send('exchange query parameter is required')
+//     return
+//   }
+
+//   const result = await client.symbolsSortedByVolume(exchange, true)
+//   if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
+//   res.json(result)
+// })
 
 router.post('/backtest', async (req: Request, res: Response) => {
   const { $match, $sort, page, $project } = req.body
@@ -205,18 +207,6 @@ router.post('/trader/calendarProfits', async (req: Request, res: Response) => {
     console.error(error)
     res.status(500).send('Internal Server Error')
   }
-})
-
-router.get('/symbolsSortedByVol/:exchange', async (req: Request, res: Response) => {
-  const { exchange } = req.params
-  if (!exchange) {
-    res.status(400).send('exchange query parameter is required')
-    return
-  }
-
-  const result = await client.symbolsSortedByVolume(exchange, true)
-  if (config.NODE_ENV === 'prod') res.set('Cache-control', `public, max-age=${ONE_DAY}`)
-  res.json(result)
 })
 
 router.get('/chat/history', async (req: Request, res: Response) => {
