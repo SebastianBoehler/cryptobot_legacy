@@ -14,17 +14,23 @@ const server = express()
 const port = process.env.PORT || 3001
 
 import mongoRoutes from './mongodb/routes'
-import chatRoutes from './chat/routes'
 import strategyRoutes from './strategies/routes'
 import stripeRoutes from './stripe/routes'
 import pm2Routes from './pm2/routes'
-import secRoutes from './sec/routes'
 import { logger } from './utils'
 import config from './config/config'
 import bodyParser from 'body-parser'
 
 server.use(cors())
 server.use(bodyParser.json({ limit: '30mb' }))
+
+server.get('/health', (_req: Request, res: Response) => {
+  res.status(200).send({
+    message: 'Server is running',
+  })
+})
+
+server.use('/stripe', stripeRoutes)
 
 const middleware = async (req: Request, res: Response, next: any) => {
   const IP = req.ip || req.connection.remoteAddress
@@ -59,16 +65,7 @@ const middleware = async (req: Request, res: Response, next: any) => {
   next()
 }
 
-server.get('/health', (_req: Request, res: Response) => {
-  res.status(200).send({
-    message: 'Server is running',
-  })
-})
-
-server.use('/stripe', stripeRoutes)
-
 server.use(middleware)
-server.use('/chat', chatRoutes)
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -82,7 +79,6 @@ server.use(limiter)
 
 server.use('/pm2', pm2Routes)
 server.use('/strategy', strategyRoutes)
-server.use('/sec', secRoutes)
 
 server.options('*', (_req, res: Response) => {
   res.status(200).send()

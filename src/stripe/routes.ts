@@ -64,7 +64,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 
   // Return a 200 response to acknowledge receipt of the event
-  res.send()
+  res.send().status(200)
 })
 
 export default router
