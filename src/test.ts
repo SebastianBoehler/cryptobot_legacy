@@ -1,9 +1,6 @@
 import config from './config/config'
 import { OkxClient } from './okx/utils'
-import loadCompanyData from './sec'
 ;(async () => {
-  const tickers: any[] = [] //['AAPL', 'GOOGL', 'AMZN', 'MSFT']
-
   const okxClient = new OkxClient({
     apiKey: config.OKX_KEY,
     apiSecret: config.OKX_SECRET,
@@ -22,10 +19,6 @@ import loadCompanyData from './sec'
   const marginInfo = await okxClient.getAdjustLeverageInfo('SWAP', 'isolated', '20', 'long', 'JUP-USDT-SWAP')
 
   console.log(JSON.stringify(marginInfo, null, 2))
-
-  for (const ticker of tickers) {
-    await loadCompanyData(ticker)
-  }
 
   //TODO: needs historic data on prod server
   // const resp = await fetch('http://localhost:3001/strategy/backtest', {
