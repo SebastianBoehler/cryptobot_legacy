@@ -108,8 +108,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         if (entrySizeUSD < portfolio) {
           await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
           return
-        }
-        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
+        } else logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
 
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
@@ -122,8 +121,7 @@ export class BUILD_SCALP_FAST extends Base implements Strategy {
         if (buyAmountUSD < portfolio) {
           await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
           return
-        }
-        logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
+        } else logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
     }
 

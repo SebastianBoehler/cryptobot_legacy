@@ -80,8 +80,10 @@ export class BUILD_SCALP_FAST_INDICATORS extends Base implements Strategy {
     if (buyingPowerInCts > this.orderHelper.minSize && indicators5min?.RSI < 40) {
       if (price < avgEntryPrice * 0.975 * this.multiplier && price < lastOrder.avgPrice * 0.975 * this.multiplier) {
         const ordId = 'buylow' + createUniqueId(6)
-        await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
-        return
+        if (entrySizeUSD < portfolio) {
+          await this.orderHelper.openOrder('long', entrySizeUSD, ordId)
+          return
+        } else logger.debug(`[Strategy] Buy amount is higher than portfolio ${entrySizeUSD} ${portfolio}`)
       }
 
       if (price < highestPrice * 0.95 * this.multiplier && price > avgEntryPrice * 1.05) {
