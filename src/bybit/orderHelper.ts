@@ -310,7 +310,6 @@ export class OrderHelper implements IOrderHelper {
   }
 }
 
-const accHash = createHash('sha256').update(config.BYBIT_KEY).digest('hex')
 export class LiveOrderHelper implements ILiveOrderHelper {
   private symbol: string
   private maxLever: number | null = null
@@ -323,7 +322,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   public profitUSD = 0
   public lastPosition: ClosedPosition | null = null
   private positionId: string = `TT${createUniqueId(10)}TT`
-  accHash = accHash
+  public accHash = createHash('sha256').update(config.BYBIT_KEY).digest('hex')
 
   constructor(symbol: string) {
     this.symbol = symbol
@@ -336,7 +335,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async initialize() {
-    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier }, 'trader')
+    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier, accHash: this.accHash }, 'trader')
     if (closedPos.length < 1) return
     const lastPos = closedPos[closedPos.length - 1]
     this.lastPosition = lastPos

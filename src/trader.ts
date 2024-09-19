@@ -50,12 +50,10 @@ let indicators: GenerateIndicators[] = [
 ]
 
 async function main() {
-  if (!isLiveOrderHelper(strategy.orderHelper)) throw new Error('orderHelper is not live')
   await strategy.initalize(symbol, exchange, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   if (!strategy.requiresIndicators) indicators = []
-  await strategy.orderHelper.initialize()
   await sleep(1000 * 10)
 
   let index = 0

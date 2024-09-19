@@ -1,5 +1,5 @@
 import { Indicators } from 'cryptobot-types'
-import { createUniqueId, logger } from '../utils'
+import { createUniqueId, logger, isLiveOrderHelper } from '../utils'
 import { ILiveOrderHelper, IOrderHelper } from '../types'
 import { LiveOrderHelper as OkxLiveOrderHelper, OrderHelper as OkxOrderHelper } from '../okx/orderHelper'
 import { OrderHelper as BybitOrderHelper, LiveOrderHelper as BybitLiveOrderHelper } from '../bybit/orderHelper'
@@ -23,6 +23,9 @@ export class Base {
   public async initalize(symbol: string, exchange: string, saveToMongo?: boolean, live: boolean = false) {
     this.symbol = symbol
     this.orderHelper = getOrderHelper(live, exchange, symbol, saveToMongo)
+    if (isLiveOrderHelper(this.orderHelper)) {
+      this.orderHelper.initialize()
+    }
     await this.orderHelper.getContractInfo()
   }
 

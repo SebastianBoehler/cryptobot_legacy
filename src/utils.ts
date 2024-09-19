@@ -66,5 +66,6 @@ export function toDecimals(value: number, decimals: number) {
 
 //typeGuard is LiveOrderHelper
 export const isLiveOrderHelper = (orderHelper?: IOrderHelper | ILiveOrderHelper): orderHelper is ILiveOrderHelper => {
+  if (!orderHelper) return false
   return (orderHelper as ILiveOrderHelper).accHash !== undefined
 }
