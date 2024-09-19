@@ -28,7 +28,9 @@ router.get('/backtest/positions', async (req: Request, res: Response) => {
     return
   }
 
-  const result = await client.loadAllPositions(identifier as string)
+  const result = await client.loadAllPositions({
+    identifier: identifier as string,
+  })
   res.json(result)
 })
 
