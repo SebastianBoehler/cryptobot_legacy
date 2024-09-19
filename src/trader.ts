@@ -8,6 +8,7 @@ import config from './config/config'
 import { BUILD_SCALP_FAST_INDICATORS } from './strategies/scalp_indicators'
 import { BUILD_SCALP_FAST_ALTS } from './strategies/scalp_fast_alts'
 import { IOrderHelperPos } from './types'
+import { isLiveOrderHelper } from './utils'
 
 if (!config.SYMBOL) throw new Error('no symbol')
 if (!config.START_CAPITAL) throw new Error('no start capital')
@@ -49,10 +50,12 @@ let indicators: GenerateIndicators[] = [
 ]
 
 async function main() {
+  if (!isLiveOrderHelper(strategy.orderHelper)) throw new Error('orderHelper is not live')
   await strategy.initalize(symbol, exchange, true, true)
   if (!strategy.orderHelper) throw new Error('no orderHelper')
   strategy.orderHelper.identifier = `${strategy.name}-${symbol}-live`
   if (!strategy.requiresIndicators) indicators = []
+  await strategy.orderHelper.initialize()
   await sleep(1000 * 10)
 
   let index = 0

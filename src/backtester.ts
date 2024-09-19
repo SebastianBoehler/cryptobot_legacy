@@ -4,7 +4,7 @@ import { logger } from './utils'
 
 const mongo = new MongoWrapper('backtests')
 const startCapital = 200
-const startDate = new Date('2024-01-01')
+const startDate = new Date('2024-05-01')
 const exchange = 'okx'
 
 ;(async () => {
@@ -18,7 +18,6 @@ const exchange = 'okx'
       stopLoss: -18,
       multiplier: 0.94,
       leverReduce: -13,
-      name: 'indicators',
     })
   }
 

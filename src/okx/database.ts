@@ -11,24 +11,30 @@ const okxClient = new RestClient({
   apiSecret: config.OKX_SECRET,
   apiPass: config.OKX_PASS,
 })
-const startTime = subMonths(new Date(), 6).getTime()
+
+const isProd = config.NODE_ENV === 'prod'
+const startTime = subMonths(new Date(), isProd ? 1 : 6).getTime()
 
 async function processSymbol(symbol: string) {
   const lastCandle = await mongo.readLastCandle(symbol)
   const lastCandleTime = lastCandle ? lastCandle.start : new Date(startTime)
-  //TODO: las time / ymbol to pm2 value
+
   const secondsAgo = (new Date().getTime() - lastCandleTime.getTime()) / 1000
   if (secondsAgo < 70) return
 
   //logger.info(`Loading candles since ${lastCandleTime} for ${symbol}`);
-  let candles = await okxClient.getHistoricCandles(symbol, '1m', {
-    //after: lastCandleTime.getTime() + "",
+  let candles = await okxClient.getHistoricCandlesV2({
+    instId: symbol,
     after: addMinutes(lastCandleTime, 100).getTime() + '',
+    bar: '1m',
   })
 
   //instrument probably got introduced after start time
   if (!candles.length) {
-    candles = await okxClient.getHistoricCandles(symbol, '1m', {})
+    candles = await okxClient.getHistoricCandlesV2({
+      instId: symbol,
+      bar: '1m',
+    })
   }
 
   if (!candles || candles.length === 0) return

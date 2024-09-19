@@ -1,14 +1,4 @@
-import nodemailer from 'nodemailer'
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com.',
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'admin@sebastian-boehler.com',
-    pass: 'pqfu kbyz ihln uaia',
-  },
-})
+import { IOrderHelper, ILiveOrderHelper } from './types'
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -74,32 +64,7 @@ export function toDecimals(value: number, decimals: number) {
   return +arr[0]
 }
 
-export const sendMail = async (text: string, subject: string = 'Cryptobot') => {
-  try {
-    await transporter.sendMail({
-      from: 'admin@sebastian-boehler.com',
-      to: 'basti.boehler@hotmail.de',
-      subject,
-      html: `
-            <div style="padding=25px"> 
-                <h1>${subject}</h1>
-                <p>${text}</p>
-            </div>
-        `,
-    })
-  } catch (error) {
-    logger.error('Error sending mail', error)
-  }
-}
-
-export function calculateSharpeRatio(returns: number[], baseReturn: number): number {
-  const excessReturns = returns.map((ret) => ret - baseReturn)
-  const stdDev = Math.sqrt(excessReturns.reduce((acc, val) => acc + val * val, 0) / excessReturns.length)
-
-  // Handle cases where standard deviation is zero to avoid division by zero
-  if (stdDev === 0) {
-    return 0
-  }
-
-  return excessReturns.reduce((acc, val) => acc + val, 0) / stdDev
+//typeGuard is LiveOrderHelper
+export const isLiveOrderHelper = (orderHelper?: IOrderHelper | ILiveOrderHelper): orderHelper is ILiveOrderHelper => {
+  return (orderHelper as ILiveOrderHelper).accHash !== undefined
 }

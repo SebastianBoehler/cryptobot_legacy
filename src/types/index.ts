@@ -28,6 +28,8 @@ export interface IOrderHelper {
 export interface ILiveOrderHelper extends Omit<IOrderHelper, 'position' | 'setLeverage' | 'closeOrder' | 'update'> {
   position: IOrderHelperPos | null
   accHash: string
+
+  initialize(): Promise<void>
   setLeverage(leverage: number, type: 'long' | 'short', availCapital: number): Promise<void>
   update(price: number, time: Date, indicators?: Indicators[]): Promise<IOrderHelperPos | undefined>
   closeOrder(amountCts: number, ordId?: string): Promise<ClosedPosition | OrderResult | OrderResultV5>

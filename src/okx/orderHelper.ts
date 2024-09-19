@@ -349,6 +349,16 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     okxClient.subsribeToOrderData(symbol)
   }
 
+  public async initialize() {
+    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier, accHash: this.accHash }, 'trader')
+    if (closedPos.length < 1) return
+    const lastPos = closedPos[closedPos.length - 1]
+    logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
+    const lastOrder = lastPos.orders[lastPos.orders.length - 1]
+    logger.debug(`[orderHelper > initialize] Last position from: ${new Date(lastOrder.time).toISOString()}`)
+    this.lastPosition = lastPos
+  }
+
   public async setLeverage(leverage: number, type: 'long' | 'short', availCapital: number) {
     if (leverage < 1) return
     const maxLever = this.maxLever || 100

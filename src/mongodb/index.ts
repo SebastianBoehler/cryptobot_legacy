@@ -349,10 +349,10 @@ class MongoWrapper {
     return result
   }
 
-  async loadAllPositions(identifier: string) {
-    const db = this.client.db('backtests')
+  async loadAllPositions(query: Record<string, any>, database: string = 'backtests') {
+    const db = this.client.db(database)
     const collectionName = db.collection('positions')
-    const cursor = collectionName.find<ClosedPosition>({ identifier })
+    const cursor = collectionName.find<ClosedPosition>(query)
 
     const data: ClosedPosition[] = []
 

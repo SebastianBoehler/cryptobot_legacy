@@ -334,6 +334,13 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     client.loadLivePosition(symbol)
   }
 
+  public async initialize() {
+    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier, accHash: this.accHash }, 'trader')
+    if (closedPos.length < 1) return
+    const lastPos = closedPos[closedPos.length - 1]
+    this.lastPosition = lastPos
+  }
+
   private trimToStep(value: number, step: number) {
     const inverse = 1 / step
     return Math.floor(value * inverse) / inverse

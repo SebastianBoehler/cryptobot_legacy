@@ -2,7 +2,7 @@ import { OrderHelper } from '../okx/orderHelper'
 
 //!IMPORTANT: will fail with updated fees, data from base fee tier
 
-describe.skip('run orderHelper tests', () => {
+describe('run orderHelper tests', () => {
   //test are based on REAL okx trading data
   test('check fee & margin calculation', async () => {
     const symbol = 'XRP-USDT-SWAP'

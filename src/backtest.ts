@@ -1,8 +1,8 @@
-import { BacktestingResult, Indicators, Strategy } from 'cryptobot-types'
+import { Indicators, Strategy } from 'cryptobot-types'
 import { GenerateIndicators } from './indicators'
 import MongoWrapper from './mongodb'
 import strategies from './strategies'
-import { calculateSharpeRatio, createUniqueId, logger } from './utils'
+import { createUniqueId, logger } from './utils'
 import { Base } from './strategies/base'
 
 const mongo = new MongoWrapper('backtests')
@@ -32,10 +32,10 @@ export async function backtest(
   params: StrategyParams = {},
   strategy?: ParsedStrategy<any>
 ) {
-  const history = await mongo.getHistory<{ close: string; start: Date; high: string; low: string }>(exchange, symbol, {
+  const history = await mongo.getHistory<{ close: string; start: Date }>(exchange, symbol, {
     close: 1,
-    high: 1,
-    low: 1,
+    //high: 1,
+    //low: 1,
   })
   const indicators: GenerateIndicators[] = [
     new GenerateIndicators(exchange, symbol, 5),
@@ -78,17 +78,19 @@ export async function backtest(
     }
   }
 
-  const results: BacktestingResult[] = []
+  //TODO: update BacktestingResult interface
+  const results: { [key: string]: any }[] = []
   for (const strategy of strategyArray) {
-    if (!strategy.orderHelper) throw new Error('no orderHelper')
+    if (!strategy.orderHelper) throw new Error('[backtest] no orderHelper')
     const identifier = strategy.orderHelper.identifier
     const margin = strategy.orderHelper.position?.margin || 0
-    if (!identifier) throw new Error('no identifier')
+    if (!identifier) throw new Error('[backtest] no identifier')
     await strategy.end()
 
     const positions = await mongo.loadAllPositions(identifier)
+    await mongo.delete({ identifier }, 'positions', 'backtests')
     if (!positions.length) continue
-    await prodMongo.writeMany('positions', positions)
+    //await prodMongo.writeMany('positions', positions)
 
     const winRatio = positions.filter((pos) => pos.realizedPnlUSD > 0).length / positions.length
     const pnl = strategy.orderHelper.profitUSD || 0
@@ -101,30 +103,46 @@ export async function backtest(
     const firstCandle = history.find((c) => c.start >= (start || new Date(0))) || history[0]
     const hodl_pct = ((+history[history.length - 1].close - +firstCandle.close) / +firstCandle.close) * 100
 
-    //TODO: Maximum Drawdown: The largest percentage drop from peak to trough in your portfolio's value.
-
-    const diff = pnl_pct - hodl_pct
-    const hodl_ratio = diff / hodl_pct
-
     // --- Risk Metric Calculation Start ---
 
     let runningProfitUSD = 0
     let peakProfitUSD = 0
     let maxDrawdown = 0
     const returns: number[] = []
+    let consecutiveLosses = 0
+    let maxConsecutiveLosses = 0
 
     for (const pos of positions) {
+      const returnPct = pos.realizedPnlUSD / strategy.startCapital
+      returns.push(returnPct)
+
       runningProfitUSD += pos.realizedPnlUSD
-      returns.push(pos.realizedPnlUSD) // Calculate return for this order
-
       peakProfitUSD = Math.max(peakProfitUSD, runningProfitUSD)
-      maxDrawdown = Math.max(maxDrawdown, (peakProfitUSD - runningProfitUSD) / strategy.startCapital)
 
-      // ... (Calculate other risk metrics using the 'returns' array)
+      const currentDrawdown = (peakProfitUSD - runningProfitUSD) / peakProfitUSD
+      maxDrawdown = Math.max(maxDrawdown, currentDrawdown)
+
+      if (pos.realizedPnlUSD < 0) {
+        consecutiveLosses++
+        maxConsecutiveLosses = Math.max(maxConsecutiveLosses, consecutiveLosses)
+      } else {
+        consecutiveLosses = 0
+      }
     }
 
-    const baseReturn = strategy.startCapital * (hodl_pct / 100)
-    const sharpeRatio = calculateSharpeRatio(returns, baseReturn) // Use hodl_pct as base return
+    const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length
+    const stdDevReturn = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length)
+
+    const riskFreeRate = 0.04 // Assume 2% annual risk-free rate
+    const annualizedReturn = (Math.pow(1 + pnl_pct / 100, 365 / positions.length) - 1) * 100
+    const sharpeRatio = (annualizedReturn - riskFreeRate) / (stdDevReturn * Math.sqrt(365 / positions.length))
+
+    const sortinoRatio =
+      (annualizedReturn - riskFreeRate) /
+      (Math.sqrt(returns.filter((r) => r < 0).reduce((sum, r) => sum + Math.pow(r, 2), 0) / returns.length) *
+        Math.sqrt(365 / positions.length))
+
+    const calmarRatio = annualizedReturn / (maxDrawdown * 100)
 
     // --- Risk Metric Calculation End ---
 
@@ -149,11 +167,12 @@ export async function backtest(
       exchange,
       hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
       maxDrawdown,
-      // @ts-ignore
       sharpeRatio,
+      sortinoRatio,
+      calmarRatio,
+      maxConsecutiveLosses,
+      annualizedReturn,
     })
-
-    logger.info('compare ratio calc', { diff, hodl_ratio })
   }
 
   await prodMongo.writeMany('results', results)
