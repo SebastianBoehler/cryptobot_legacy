@@ -327,6 +327,7 @@ export class OrderHelper implements IOrderHelper {
   }
 }
 
+const accHash = createHash('sha256').update(config.OKX_KEY).digest('hex')
 export class LiveOrderHelper implements ILiveOrderHelper {
   private symbol: string
   private ctVal: number | null = null
@@ -340,7 +341,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   public profitUSD = 0
   public lastPosition: ClosedPosition | null = null
   private positionId: string = `TT${createUniqueId(10)}TT`
-  accHash: string = createHash('sha256').update(config.OKX_KEY).digest('hex')
+  accHash = accHash
 
   constructor(symbol: string) {
     this.symbol = symbol
