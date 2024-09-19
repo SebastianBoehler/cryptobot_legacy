@@ -341,7 +341,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   public profitUSD = 0
   public lastPosition: ClosedPosition | null = null
   private positionId: string = `TT${createUniqueId(10)}TT`
-  accHash = accHash
+  public accHash = accHash
 
   constructor(symbol: string) {
     this.symbol = symbol
@@ -351,7 +351,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async initialize() {
-    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier, accHash: this.accHash }, 'trader')
+    logger.debug(`[orderHelper > initialize] acchash ${this.accHash}`)
+    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier }, 'trader')
     if (closedPos.length < 1) return
     const lastPos = closedPos[closedPos.length - 1]
     logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
