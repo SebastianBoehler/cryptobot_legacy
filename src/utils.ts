@@ -1,5 +1,3 @@
-import { IOrderHelper, ILiveOrderHelper } from './types'
-
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const createChunks = <T>(array: T[], chunkSize: number): T[][] => {
@@ -62,10 +60,4 @@ export function toDecimals(value: number, decimals: number) {
     .toString()
     .match(new RegExp('^-?\\d+(?:.\\d{0,' + decimals + '})?'))!
   return +arr[0]
-}
-
-//typeGuard is LiveOrderHelper
-export const isLiveOrderHelper = (orderHelper?: IOrderHelper | ILiveOrderHelper): orderHelper is ILiveOrderHelper => {
-  if (!orderHelper) return false
-  return (orderHelper as ILiveOrderHelper).accHash !== undefined
 }

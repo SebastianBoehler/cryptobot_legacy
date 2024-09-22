@@ -84,42 +84,42 @@ module.exports = {
       watch: false,
       log_date_format
     },
-    {
-      name: 'bybit_trader_wen',
-      script: traderPath,
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: '10000WENUSDT',
-        STRATEGY: 'SCALP_ALTS',
-        MULTIPLIER: 0.93,
-        STEPS: 2,
-        STOP_LOSS: -19,
-        LEVER_REDUCE: -12,
-        START_CAPITAL: 100,
-        EXCHANGE: 'bybit',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false,
-      log_date_format
-    },
-    {
-      name: 'bybit_trader_popcat',
-      script: traderPath,
-      env_prod: {
-        NODE_ENV: "prod",
-        SYMBOL: 'POPCATUSDT',
-        STRATEGY: "BUILD_SCALP_FAST",
-        MULTIPLIER: 0.87,
-        STEPS: 2,
-        STOP_LOSS: -10,
-        LEVER_REDUCE: -7,
-        START_CAPITAL: 70,
-        EXCHANGE: 'bybit',
-        LOG_LEVEL: 'debug'
-      },
-      watch: false,
-      log_date_format
-    },
+    // {
+    //   name: 'bybit_trader_wen',
+    //   script: traderPath,
+    //   env_prod: {
+    //     NODE_ENV: "prod",
+    //     SYMBOL: '10000WENUSDT',
+    //     STRATEGY: 'SCALP_ALTS',
+    //     MULTIPLIER: 0.93,
+    //     STEPS: 2,
+    //     STOP_LOSS: -19,
+    //     LEVER_REDUCE: -12,
+    //     START_CAPITAL: 100,
+    //     EXCHANGE: 'bybit',
+    //     LOG_LEVEL: 'debug'
+    //   },
+    //   watch: false,
+    //   log_date_format
+    // },
+    // {
+    //   name: 'bybit_trader_popcat',
+    //   script: traderPath,
+    //   env_prod: {
+    //     NODE_ENV: "prod",
+    //     SYMBOL: 'POPCATUSDT',
+    //     STRATEGY: "BUILD_SCALP_FAST",
+    //     MULTIPLIER: 0.87,
+    //     STEPS: 2,
+    //     STOP_LOSS: -10,
+    //     LEVER_REDUCE: -7,
+    //     START_CAPITAL: 70,
+    //     EXCHANGE: 'bybit',
+    //     LOG_LEVEL: 'debug'
+    //   },
+    //   watch: false,
+    //   log_date_format
+    // },
     {
       name: 'bybit_trader_arkm',
       script: traderPath,

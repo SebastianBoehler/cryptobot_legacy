@@ -87,10 +87,10 @@ export async function backtest(
     if (!identifier) throw new Error('[backtest] no identifier')
     await strategy.end()
 
-    const positions = await mongo.loadAllPositions(identifier)
+    const positions = await mongo.loadAllPositions({ identifier })
     await mongo.delete({ identifier }, 'positions', 'backtests')
     if (!positions.length) continue
-    //await prodMongo.writeMany('positions', positions)
+    await prodMongo.writeMany('positions', positions)
 
     const winRatio = positions.filter((pos) => pos.realizedPnlUSD > 0).length / positions.length
     const pnl = strategy.orderHelper.profitUSD || 0
@@ -165,7 +165,7 @@ export async function backtest(
       hodl_pct,
       liquidations,
       exchange,
-      hodl_ratio: hodl_pct < 0 || pnl_pct < 0 ? (pnl_pct / hodl_pct) * -1 : pnl_pct / hodl_pct,
+      hodl_ratio: hodl_pct === 0 ? 0 : pnl_pct / hodl_pct,
       maxDrawdown,
       sharpeRatio,
       sortinoRatio,

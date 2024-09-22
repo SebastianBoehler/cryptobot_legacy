@@ -4,6 +4,8 @@ import numpy as np
 import sys
 import json
 import time
+import matplotlib.pyplot as plt
+from collections import deque
 
 # Define the number of parameters
 num_parameters = 4
@@ -35,8 +37,11 @@ training_data = []
 # Function to generate random parameters within specified ranges
 def generate_random_parameters(parameter_ranges):
     parameters = []
-    for range_min, range_max in parameter_ranges:
-        parameters.append(np.random.uniform(range_min, range_max))
+    for i, (range_min, range_max) in enumerate(parameter_ranges):
+        if i == 0:  # Assuming 'steps' is the first parameter
+            parameters.append(np.random.randint(range_min, range_max + 1))
+        else:
+            parameters.append(np.random.uniform(range_min, range_max))
     return parameters
 
 
@@ -63,29 +68,48 @@ def optimize_parameters(
     model, parameter_ranges, num_parameters, iterations=200, training_iterations=5
 ):
     losses = []
-    for iteration in range(iterations):
-        print(f"Iteration: {iteration}", file=sys.stderr)
-        print("Generating initial parameters", file=sys.stderr)
+    initial_epsilon = 0.4
+    epsilon_decay = 0.995  # Decay factor
+    min_epsilon = 0.1  # Minimum epsilon value
 
-        # Epsilon-Greedy Exploration
-        epsilon = 0.9  # High exploration rate
+    # Create a deque to store the last 1000 parameter-reward pairs
+    history = deque(maxlen=1000)
+
+    for iteration in range(iterations):
+        print(f"Iteration: {iteration}")
+        print("Generating initial parameters")
+
+        # Calculate current epsilon
+        epsilon = max(initial_epsilon * (epsilon_decay**iteration), min_epsilon)
+
         if iteration < training_iterations:
             parameters = generate_random_parameters(parameter_ranges)
-            print("Using random parameters", file=sys.stderr)
+            print(f"Using random parameters (Iteration: {iteration})")
         else:
             if np.random.rand() < epsilon:
                 parameters = generate_random_parameters(parameter_ranges)
-                print("Using random parameters", file=sys.stderr)
+                print(f"Using random parameters (epsilon: {epsilon:.4f})")
             else:
                 # Predict parameters using reward as input
-                predicted_parameters = model.predict(np.array([[reward]]))[
-                    0
-                ]  # Use reward as input
-                parameters = predicted_parameters.tolist()
-                print("Using predicted parameters", file=sys.stderr)
-            print(f"Predicted parameters: {parameters}", file=sys.stderr)
+                predicted_parameters = model.predict(np.array([[reward]]))[0]
 
-        print("Outputing params", file=sys.stderr)
+                # Clip predicted parameters and round 'steps'
+                parameters = []
+                for i, (min_val, max_val) in enumerate(parameter_ranges):
+                    if i == 0:  # Assuming 'steps' is the first parameter
+                        clipped_value = int(
+                            round(np.clip(predicted_parameters[i], min_val, max_val))
+                        )
+                    else:
+                        clipped_value = np.clip(
+                            predicted_parameters[i], min_val, max_val
+                        )
+                    parameters.append(clipped_value)
+
+                print(f"Using predicted parameters (epsilon: {epsilon:.4f})")
+            print(f"Parameters: {parameters}")
+
+        print("Outputing params")
         print(
             json.dumps({"parameters": parameters}), file=sys.stdout
         )  # Output predicted parameters
@@ -124,30 +148,86 @@ def optimize_parameters(
             continue  # Skip to the next iteration if no reward is received
 
         reward = reward_data["reward"]
+        currentParameters = reward_data["parameters"]
 
-        print(f"Received reward: {reward}", file=sys.stderr)
+        # Clip received parameters to ensure they're within the specified ranges
+        # and round 'steps' to the nearest integer
+        currentParameters = [
+            (
+                round(np.clip(param, min_val, max_val))
+                if i == 0
+                else np.clip(param, min_val, max_val)
+            )
+            for i, (param, (min_val, max_val)) in enumerate(
+                zip(currentParameters, parameter_ranges)
+            )
+        ]
+
+        print(f"Received reward: {reward}", file=sys.stdout)
 
         # Append data to training set
         training_data.append(
             (reward, currentParameters)
         )  # Use reward as input and parameters as output
 
-        print("Training model", file=sys.stderr)
+        print("Training model", file=sys.stdout)
         # Train the model
         loss = train_model(training_data)
         if loss:
             losses.append(loss)
 
-        # Print the best parameters and reward so far
-        # Only attempt to find best parameters if training_data is not empty
-        if training_data:
-            best_params, best_reward = training_data[
-                np.argmax([x[1] for x in training_data])
+        # After receiving the reward
+        if reward_data is not None:
+            reward = reward_data["reward"]
+            currentParameters = reward_data["parameters"]
+
+            # Clip and round parameters as before
+            currentParameters = [
+                (
+                    round(np.clip(param, min_val, max_val))
+                    if i == 0
+                    else np.clip(param, min_val, max_val)
+                )
+                for i, (param, (min_val, max_val)) in enumerate(
+                    zip(currentParameters, parameter_ranges)
+                )
             ]
-            print(
-                f"Best Parameters: {best_params}, Best Reward: {best_reward}",
-                file=sys.stdout,
-            )
+
+            # Add the parameter-reward pair to the history
+            history.append((currentParameters, reward))
+
+            # Every 50 iterations, plot the parameter-reward relationship
+            if iteration % 5 == 0 and iteration > 0:
+                plot_parameter_reward_relationship(history, parameter_ranges)
+
+    # ... rest of the existing code ...
+
+
+def plot_parameter_reward_relationship(history, parameter_ranges):
+    parameters, rewards = zip(*history)
+    parameters = np.array(parameters)
+    rewards = np.array(rewards)
+
+    fig, axs = plt.subplots(
+        len(parameter_ranges), 1, figsize=(10, 5 * len(parameter_ranges))
+    )
+
+    for i, (param_name, (min_val, max_val)) in enumerate(
+        zip(["steps", "multiplier", "stopLoss", "leverReduce"], parameter_ranges)
+    ):
+        axs[i].scatter(parameters[:, i], rewards, alpha=0.5)
+        axs[i].set_xlabel(param_name)
+        axs[i].set_ylabel("Reward")
+        axs[i].set_title(f"{param_name} vs Reward")
+        axs[i].set_xlim(min_val, max_val)
+
+    plt.tight_layout()
+    plt.savefig(f"parameter_reward_plot.png")
+    plt.close()
+
+    print(
+        f"Parameter-reward plot saved as parameter_reward_plot.png",
+    )
 
 
 # Run the optimization process

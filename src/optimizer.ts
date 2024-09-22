@@ -9,8 +9,8 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 300
-const startDate = new Date('2024-02-01')
+const startCapital = 720
+const startDate = new Date('2024-06-15')
 const exchange = 'okx'
 const symbol = 'AR-USDT-SWAP' // Replace with your symbol
 
@@ -45,7 +45,16 @@ async function main() {
             // Only log if the parameters have changed
             if (JSON.stringify(newParameters) !== JSON.stringify(previousParameters)) {
               currentParameters = newParameters
-              logger.info('New parameters:', newParameters, typeof newParameters) // Log only when new parameters are received
+              logger.info(
+                'New parameters:',
+                {
+                  steps: newParameters[0],
+                  multiplier: newParameters[1],
+                  stopLoss: newParameters[2],
+                  leverReduce: newParameters[3],
+                },
+                typeof newParameters
+              ) // Log only when new parameters are received
               previousParameters = newParameters // Update previous parameters
             }
           } catch (error) {
@@ -85,11 +94,9 @@ async function main() {
       if (backtestResult.length > 0) {
         // Calculate reward based on .pnl and .winRatio
         reward =
-          backtestResult[0].pnl * 0.5 +
-          backtestResult[0].winRatio * 0.3 +
-          backtestResult[0].liquidations * -1 * 0.1 +
-          backtestResult[0].maxDrawdown * -1 * 0.1
+          backtestResult[0].pnl * 0.5 + backtestResult[0].winRatio * 0.3 + backtestResult[0].liquidations * -1 * 0.2
         logger.info(`Backtest result: ${backtestResult[0].pnl}, winRatio: ${backtestResult[0].winRatio}`)
+        logger.info(`Reward: ${reward}`)
       } else {
         logger.info('No trades triggered during backtest.')
       }
@@ -122,7 +129,7 @@ async function main() {
 
 function plotLoss(losses: number[]) {
   logger.info('loss length', losses.length)
-  const everyNth = losses.filter((_, idx) => idx % 10 == 0)
+  const everyNth = losses.filter((_, idx) => idx % 5 == 0)
   if (everyNth.length < 2) return
   // Use asciichart to plot the loss
   // @ts-ignore

@@ -37,6 +37,7 @@ export interface ILiveOrderHelper extends Omit<IOrderHelper, 'position' | 'setLe
 }
 
 export function isLiveOrderHelper(obj: any): obj is ILiveOrderHelper {
+  if (!obj) return false
   return obj.accHash !== undefined
 }
 

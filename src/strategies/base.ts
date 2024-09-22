@@ -1,6 +1,6 @@
 import { Indicators } from 'cryptobot-types'
-import { createUniqueId, logger, isLiveOrderHelper } from '../utils'
-import { ILiveOrderHelper, IOrderHelper } from '../types'
+import { createUniqueId, logger } from '../utils'
+import { ILiveOrderHelper, IOrderHelper, isLiveOrderHelper } from '../types'
 import { LiveOrderHelper as OkxLiveOrderHelper, OrderHelper as OkxOrderHelper } from '../okx/orderHelper'
 import { OrderHelper as BybitOrderHelper, LiveOrderHelper as BybitLiveOrderHelper } from '../bybit/orderHelper'
 
