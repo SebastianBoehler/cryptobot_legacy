@@ -119,7 +119,7 @@ export async function backtest(
       runningProfitUSD += pos.realizedPnlUSD
       peakProfitUSD = Math.max(peakProfitUSD, runningProfitUSD)
 
-      const currentDrawdown = (peakProfitUSD - runningProfitUSD) / peakProfitUSD
+      const currentDrawdown = peakProfitUSD > 0 ? (peakProfitUSD - runningProfitUSD) / peakProfitUSD : 0
       maxDrawdown = Math.max(maxDrawdown, currentDrawdown)
 
       if (pos.realizedPnlUSD < 0) {
@@ -130,19 +130,33 @@ export async function backtest(
       }
     }
 
-    const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length
-    const stdDevReturn = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length)
+    const avgReturn = returns.length > 0 ? returns.reduce((sum, r) => sum + r, 0) / returns.length : 0
+    const variance =
+      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / (returns.length > 1 ? returns.length - 1 : 1)
+    const stdDevReturn = Math.sqrt(variance)
 
-    const riskFreeRate = 0.04 // Assume 2% annual risk-free rate
-    const annualizedReturn = (Math.pow(1 + pnl_pct / 100, 365 / positions.length) - 1) * 100
-    const sharpeRatio = (annualizedReturn - riskFreeRate) / (stdDevReturn * Math.sqrt(365 / positions.length))
+    const negativeReturns = returns.filter((r) => r < 0)
+    const avgNegativeReturn =
+      negativeReturns.length > 0 ? negativeReturns.reduce((sum, r) => sum + r, 0) / negativeReturns.length : 0
+    const varianceNegative =
+      negativeReturns.reduce((sum, r) => sum + Math.pow(r - avgNegativeReturn, 2), 0) /
+      (negativeReturns.length > 1 ? negativeReturns.length - 1 : 1)
+    const stdDevNegative = Math.sqrt(varianceNegative)
 
+    const riskFreeRate = 0.04 // Assume 4% annual risk-free rate
+
+    const periods = positions.length > 0 ? 365 / positions.length : 1
+    const annualizedReturn = positions.length > 0 ? (Math.pow(1 + pnl_pct / 100, periods) - 1) * 100 : 0
+
+    const sharpeRatioDenominator = stdDevReturn * Math.sqrt(periods)
+    const sharpeRatio =
+      sharpeRatioDenominator !== 0 ? (annualizedReturn - riskFreeRate * 100) / sharpeRatioDenominator : 0
+
+    const sortinoRatioDenominator = stdDevNegative * Math.sqrt(periods)
     const sortinoRatio =
-      (annualizedReturn - riskFreeRate) /
-      (Math.sqrt(returns.filter((r) => r < 0).reduce((sum, r) => sum + Math.pow(r, 2), 0) / returns.length) *
-        Math.sqrt(365 / positions.length))
+      sortinoRatioDenominator !== 0 ? (annualizedReturn - riskFreeRate * 100) / sortinoRatioDenominator : 0
 
-    const calmarRatio = annualizedReturn / (maxDrawdown * 100)
+    const calmarRatio = maxDrawdown > 0 ? annualizedReturn / (maxDrawdown * 100) : 0
 
     // --- Risk Metric Calculation End ---
 

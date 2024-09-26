@@ -10,7 +10,7 @@ const prodMongo = new MongoWrapper(
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
 const startCapital = 720
-const startDate = new Date('2024-06-15')
+const startDate = new Date('2024-04-01')
 const exchange = 'okx'
 const symbol = 'AR-USDT-SWAP' // Replace with your symbol
 
@@ -93,8 +93,7 @@ async function main() {
       let reward = 0
       if (backtestResult.length > 0) {
         // Calculate reward based on .pnl and .winRatio
-        reward =
-          backtestResult[0].pnl * 0.5 + backtestResult[0].winRatio * 0.3 + backtestResult[0].liquidations * -1 * 0.2
+        reward = backtestResult[0].pnl * 0.6 + backtestResult[0].winRatio * 0.4
         logger.info(`Backtest result: ${backtestResult[0].pnl}, winRatio: ${backtestResult[0].winRatio}`)
         logger.info(`Reward: ${reward}`)
       } else {
@@ -129,7 +128,7 @@ async function main() {
 
 function plotLoss(losses: number[]) {
   logger.info('loss length', losses.length)
-  const everyNth = losses.filter((_, idx) => idx % 5 == 0)
+  const everyNth = losses.filter((_, idx) => idx % 2 == 0)
   if (everyNth.length < 2) return
   // Use asciichart to plot the loss
   // @ts-ignore

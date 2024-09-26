@@ -33,6 +33,11 @@ model.compile(optimizer="adam", loss="mse")
 # Training data (initialize empty)
 training_data = []
 
+# Lists to store metrics for plotting
+loss_history = []
+reward_history = []
+average_reward_history = []
+
 
 # Function to generate random parameters within specified ranges
 def generate_random_parameters(parameter_ranges):
@@ -47,28 +52,28 @@ def generate_random_parameters(parameter_ranges):
 
 # Function to train the model
 def train_model(training_data):
-    print(f"Training model with {len(training_data)} data points", file=sys.stderr)
+    global loss_history
+    print(f"Training model with {len(training_data)} data points")
     if len(training_data) > 10:  # Example: Train after 10 data points
         X, y = zip(*training_data)
         # Correctly shape the y array
+        X = np.array(X).reshape(-1, 1)  # Reshape to (number of data points, 1)
         y = np.array(y)  # Convert to NumPy array
         y = y.reshape(-1, num_parameters)  # Reshape to (number of data points, 4)
-        history = model.fit(
-            np.array(X), y, epochs=5, verbose=0
-        )  # Suppress training output
-        print("Model trained", file=sys.stderr)
+        history = model.fit(X, y, epochs=5, verbose=0)  # Suppress training output
+        print("Model trained")
         loss = history.history["loss"][-1]
-        print(f"Loss: {loss}", file=sys.stderr)  # Log the loss value
-        print(f"Loss: {loss}", file=sys.stdout)  # Send loss value to the optimizer
+        loss_history.append(loss)  # Append loss to history
+        print(f"Loss: {loss}")  # Send loss value to the optimizer
         return loss
 
 
 # Main loop
 def optimize_parameters(
-    model, parameter_ranges, num_parameters, iterations=200, training_iterations=5
+    model, parameter_ranges, num_parameters, iterations=800, training_iterations=35
 ):
     losses = []
-    initial_epsilon = 0.4
+    initial_epsilon = 0.3
     epsilon_decay = 0.995  # Decay factor
     min_epsilon = 0.1  # Minimum epsilon value
 
@@ -109,7 +114,7 @@ def optimize_parameters(
                 print(f"Using predicted parameters (epsilon: {epsilon:.4f})")
             print(f"Parameters: {parameters}")
 
-        print("Outputing params")
+        print("Outputting params")
         print(
             json.dumps({"parameters": parameters}), file=sys.stdout
         )  # Output predicted parameters
@@ -120,11 +125,11 @@ def optimize_parameters(
         timeout_seconds = 15  # Increased timeout to 15 seconds
         reward_data = None
         while True:
-            print("Waiting for reward...", file=sys.stderr)
+            print("Waiting for reward...")
             try:
                 # Wrap the readline in a try-except block
                 reward_data = json.loads(sys.stdin.readline().strip())
-                print("Reward received!", file=sys.stderr)
+                print("Reward received!")
                 # Update currentParameters from the received data
                 currentParameters = reward_data[
                     "parameters"
@@ -163,14 +168,20 @@ def optimize_parameters(
             )
         ]
 
-        print(f"Received reward: {reward}", file=sys.stdout)
+        print(f"Received reward: {reward}")
 
         # Append data to training set
         training_data.append(
             (reward, currentParameters)
         )  # Use reward as input and parameters as output
 
-        print("Training model", file=sys.stdout)
+        reward_history.append(reward)  # Store reward for plotting
+        average_reward = np.mean(
+            reward_history[-50:]
+        )  # Moving average of last 50 rewards
+        average_reward_history.append(average_reward)
+
+        print("Training model")
         # Train the model
         loss = train_model(training_data)
         if loss:
@@ -196,38 +207,51 @@ def optimize_parameters(
             # Add the parameter-reward pair to the history
             history.append((currentParameters, reward))
 
-            # Every 50 iterations, plot the parameter-reward relationship
-            if iteration % 5 == 0 and iteration > 0:
-                plot_parameter_reward_relationship(history, parameter_ranges)
+            # Every 10 iterations, plot the metrics
+            if iteration % 10 == 0 and iteration > 0:
+                plot_metrics()
 
-    # ... rest of the existing code ...
+    # Final plot after all iterations
+    plot_metrics()
 
 
-def plot_parameter_reward_relationship(history, parameter_ranges):
-    parameters, rewards = zip(*history)
-    parameters = np.array(parameters)
-    rewards = np.array(rewards)
+def plot_metrics():
+    global loss_history, reward_history, average_reward_history
+    plt.figure(figsize=(14, 10))
 
-    fig, axs = plt.subplots(
-        len(parameter_ranges), 1, figsize=(10, 5 * len(parameter_ranges))
-    )
+    # Plot Loss with Y-axis on log scale
+    plt.subplot(3, 1, 1)
+    plt.plot(loss_history, label="Loss", color="red")
+    plt.yscale("log")
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+    plt.title("Training Loss Over Iterations (Log Scale)")
+    plt.legend()
+    plt.grid(True, which="both", ls="--")
 
-    for i, (param_name, (min_val, max_val)) in enumerate(
-        zip(["steps", "multiplier", "stopLoss", "leverReduce"], parameter_ranges)
-    ):
-        axs[i].scatter(parameters[:, i], rewards, alpha=0.5)
-        axs[i].set_xlabel(param_name)
-        axs[i].set_ylabel("Reward")
-        axs[i].set_title(f"{param_name} vs Reward")
-        axs[i].set_xlim(min_val, max_val)
+    # Plot Reward
+    plt.subplot(3, 1, 2)
+    plt.plot(reward_history, label="Reward", color="green")
+    plt.xlabel("Iterations")
+    plt.ylabel("Reward")
+    plt.title("Reward Over Iterations")
+    plt.legend()
+    plt.grid(True)
+
+    # Plot Average Reward
+    plt.subplot(3, 1, 3)
+    plt.plot(average_reward_history, label="Average Reward (Last 50)", color="blue")
+    plt.xlabel("Iterations")
+    plt.ylabel("Average Reward")
+    plt.title("Average Reward Over Iterations")
+    plt.legend()
+    plt.grid(True)
 
     plt.tight_layout()
-    plt.savefig(f"parameter_reward_plot.png")
+    plt.savefig("learning_metrics.png")
     plt.close()
 
-    print(
-        f"Parameter-reward plot saved as parameter_reward_plot.png",
-    )
+    print("Learning metrics plot updated as learning_metrics.png")
 
 
 # Run the optimization process

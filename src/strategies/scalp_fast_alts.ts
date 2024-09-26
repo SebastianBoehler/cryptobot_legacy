@@ -126,6 +126,7 @@ export class BUILD_SCALP_FAST_ALTS extends Base implements Strategy {
       if (ratio > 0.1) {
         buyAmountUSD = margin * 0.3
       }
+      logger.debug('DCA cond', buyAmountUSD, portfolio)
       const ordId = 'buydca' + createUniqueId(6)
       if (buyAmountUSD < portfolio) {
         await this.orderHelper.openOrder('long', buyAmountUSD, ordId)
