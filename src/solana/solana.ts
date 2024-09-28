@@ -358,7 +358,7 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
 const addAction = async (action: TraderAction, id: number) => {
   const pdaExists = await doesPdaExist(action.symbol, id)
   if (!pdaExists) {
-    logger.error('[solana] PDA does not exist for action')
+    logger.error('[solana > addAction] PDA does not exist for action')
     return
   }
   const ticker = action.symbol

@@ -1,6 +1,10 @@
 import express, { Router } from 'express'
 import Stripe from 'stripe'
 import config from '../config/config'
+import MongoWrapper from '../mongodb'
+
+const mongo = new MongoWrapper('users')
+// await mongo.updateUserProfile('email', {})
 
 const router = Router()
 const stripe = new Stripe(config.STRIPE_KEY)
@@ -26,37 +30,31 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       const paymentIntent = event.data.object
       console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`)
       break
-    // case 'account.updated':
-    //   //const accountUpdated = event.data.object
-    //   // Then define and call a function to handle the event account.updated
-    //   break
-    // case 'customer.created':
-    //   // Then define and call a function to handle the event customer.created
-    //   break
-    // case 'customer.updated':
-    //   // Then define and call a function to handle the event customer.updated
-    //   break
-    // case 'customer.subscription.created':
-    //   // Then define and call a function to handle the event customer.subscription.created
-    //   break
-    // case 'customer.subscription.deleted':
-    //   // Then define and call a function to handle the event customer.subscription.deleted
-    //   break
-    // case 'customer.subscription.paused':
-    //   // Then define and call a function to handle the event customer.subscription.paused
-    //   break
-    // case 'customer.subscription.pending_update_applied':
-    //   // Then define and call a function to handle the event customer.subscription.pending_update_applied
-    //   break
-    // case 'customer.subscription.pending_update_expired':
-    //   // Then define and call a function to handle the event customer.subscription.pending_update_expired
-    //   break
-    // case 'customer.subscription.resumed':
-    //   // Then define and call a function to handle the event customer.subscription.resumed
-    //   break
-    // case 'customer.subscription.updated':
-    //   // Then define and call a function to handle the event customer.subscription.updated
-    //   break
+
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+    case 'customer.subscription.deleted':
+      const subscription = event.data.object as Stripe.Subscription
+      const customerId = subscription.customer as string
+      const items = subscription.items.data
+      const planId = items.length > 0 ? items[0].plan.id : null
+      const email = subscription.metadata.email
+      console.log('subscription event', email, planId)
+
+      if (planId) {
+        try {
+          // Update the user's plan in the database
+          await mongo.updateUserProfile(email, { plan: planId })
+          console.log(`User with customer ID ${customerId} updated with plan ${planId}.`)
+        } catch (dbError) {
+          console.error(`Failed to update user with customer ID ${customerId}:`, dbError)
+          return res.sendStatus(500)
+        }
+      } else {
+        console.warn(`No plan ID found for subscription ${subscription.id}.`)
+      }
+      break
+
     default:
       // Unexpected event type
       console.log(`Unhandled event type ${event.type}.`)
