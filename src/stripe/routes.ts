@@ -28,6 +28,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   logger.debug('[stripe] webhook received', event)
 
+  console.log('[stripe] event', JSON.stringify(event, null, 2))
+
   // Handle the event
   switch (event.type) {
     case 'payment_intent.succeeded':
