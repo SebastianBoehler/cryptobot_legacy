@@ -43,6 +43,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       const items = subscription.items.data
       const planId = items.length > 0 ? items[0].plan.id : null
       const email = subscription.metadata.email
+      console.log(JSON.stringify(subscription, null, 2))
       console.log('subscription event', email, planId)
 
       if (planId) {
