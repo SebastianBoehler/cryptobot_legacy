@@ -50,6 +50,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           // Update the user's plan in the database
           await mongo.updateUserProfile(email, { plan: planId })
           console.log(`User with customer ID ${customerId} updated with plan ${planId}.`)
+          console.log({ email, metadata: subscription.metadata })
         } catch (dbError) {
           console.error(`Failed to update user with customer ID ${customerId}:`, dbError)
           return res.sendStatus(500)
