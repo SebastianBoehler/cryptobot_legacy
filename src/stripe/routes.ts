@@ -53,7 +53,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       if (planId && email) {
         try {
           // Update the user's plan in the database
-          await mongo.updateUserProfile(email, { plan: subscription.status })
+          await mongo.updateUserProfile(email, { plan: subscription.status, customerId })
           console.log(`User with customer ID ${customerId} updated with plan ${subscription.status}.`)
         } catch (dbError) {
           console.error(`Failed to update user with customer ID ${customerId}:`, dbError)
