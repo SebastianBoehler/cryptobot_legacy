@@ -329,22 +329,23 @@ module.exports = {
       },
       watch: false
     },
-    // {
-    //   name: 'hb_trader_front',
-    //   script: traderPath,
-    //   //out_file: "/dev/null", //disable logs from being written to file
-    //   env_prod: {
-    //     NODE_ENV: "prod",
-    //     SYMBOL: 'FRONT-USDT-SWAP',
-    //     STRATEGY: 'BUILD_SCALP_FAST',
-    //     START_CAPITAL: 120,
-    //     MULTIPLIER: 0.95,
-    //     EXCHANGE: 'okx',
-    //     LOG_LEVEL: 'debug',
-    //     SHOULD_END_TRADING: 'true'
-    //   },
-    //   watch: false
-    // },
+    {
+      name: 'hb_trader_sui',
+      script: traderPath,
+      //out_file: "/dev/null", //disable logs from being written to file
+      env_prod: {
+        NODE_ENV: "prod",
+        SYMBOL: 'SUI-USDT-SWAP',
+        STRATEGY: 'BUILD_SCALP_FAST',
+        START_CAPITAL: 120,
+        MULTIPLIER: 0.85,
+        STOP_LOSS: -14,
+        STEPS: 2,
+        EXCHANGE: 'okx',
+        LOG_LEVEL: 'debug',
+      },
+      watch: false
+    },
     {
       name: 'hb_trader_link',
       script: traderPath,

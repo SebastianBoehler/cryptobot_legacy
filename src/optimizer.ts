@@ -9,10 +9,10 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 720
+const startCapital = 250
 const startDate = new Date('2024-04-01')
 const exchange = 'okx'
-const symbol = 'AR-USDT-SWAP' // Replace with your symbol
+const symbol = 'SUI-USDT-SWAP' // Replace with your symbol
 
 async function main() {
   try {
@@ -87,6 +87,9 @@ async function main() {
         multiplier: currentParameters[1],
         stopLoss: currentParameters[2],
         leverReduce: currentParameters[3],
+        name: `build-scalp-fast-${Number(currentParameters[0].toFixed(0))}-${Number(
+          currentParameters[1].toFixed(2)
+        )}-${Number(currentParameters[2].toFixed(2))}-${Number(currentParameters[3].toFixed(2))}`,
       })
 
       // Handle the case where backtestResult is undefined (no trades)

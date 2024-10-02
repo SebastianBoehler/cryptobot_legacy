@@ -13,8 +13,8 @@ const stripe = new Stripe(config.STRIPE_KEY)
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   let event = req.body
 
-  logger.debug('[stripe] webhook received', event)
-  console.log('[stripe] event', JSON.stringify(event, null, 2))
+  //logger.debug('[stripe] webhook received', event)
+  //console.log('[stripe] event', JSON.stringify(event, null, 2))
 
   // Function to get email from Stripe API using customer ID
   const getEmailFromCustomerId = async (customerId: string): Promise<string | null> => {
@@ -33,13 +33,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object
-      console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`)
+      logger.debug(`PaymentIntent for ${paymentIntent.amount} was successful!`)
       if (paymentIntent.customer) {
         const email = await getEmailFromCustomerId(paymentIntent.customer as string)
-        console.log(`Associated email: ${email}`)
+        logger.debug(`Associated email: ${email}`)
       }
       break
-
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted':
@@ -53,7 +52,11 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       if (planId && email) {
         try {
           // Update the user's plan in the database
-          await mongo.updateUserProfile(email, { plan: subscription.status, customerId })
+          await mongo.updateUserProfile(email, {
+            plan: subscription.status,
+            customerId,
+            updated_at: new Date().getTime(),
+          })
           console.log(`User with customer ID ${customerId} updated with plan ${subscription.status}.`)
         } catch (dbError) {
           console.error(`Failed to update user with customer ID ${customerId}:`, dbError)
@@ -66,10 +69,10 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     default:
       // Unexpected event type
-      console.log(`Unhandled event type ${event.type}.`)
+      logger.error(`Unhandled event type ${event.type}.`)
       if (event.data?.object?.customer) {
         const email = await getEmailFromCustomerId(event.data.object.customer as string)
-        console.log(`Associated email for unhandled event: ${email}`)
+        logger.debug(`Associated email for unhandled event: ${email}`)
       }
   }
 
