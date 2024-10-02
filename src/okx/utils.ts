@@ -240,7 +240,7 @@ class OkxClient {
         instId: symbol,
         ordType: 'market',
         side,
-        tag: 'hb-capital-' + createUniqueId(10),
+        tag: 'hbcap' + createUniqueId(10),
         posSide,
         sz: String(size),
         tdMode: 'isolated',
@@ -280,6 +280,7 @@ class OkxClient {
       instId: symbol,
       px: price,
       ordType: 'ioc', //immediate or cancel
+      tag: 'hbcap' + createUniqueId(10),
       side,
       sz: String(size),
       tdMode: 'isolated',

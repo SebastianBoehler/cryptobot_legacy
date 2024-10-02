@@ -6,7 +6,7 @@ import { omit } from 'lodash'
 import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
 import config from '../config/config'
-import { addAction, addOrder, initializePda } from '../solana/solana'
+import { addActionToBlockchain, addOrderToBlockchain, initializePda } from '../solana/solana'
 
 const okxClient = new OkxClient({
   apiKey: config.OKX_KEY,
@@ -483,8 +483,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     await mongo.storeAction([levChangeAction, mmChangeAction])
     await Promise.allSettled([
       //TODO: closedPos is reset on every restart find better way
-      addAction(levChangeAction, this.position.posIdx),
-      addAction(mmChangeAction, this.position.posIdx),
+      addActionToBlockchain(levChangeAction, this.position.posIdx),
+      addActionToBlockchain(mmChangeAction, this.position.posIdx),
     ])
   }
 
@@ -658,6 +658,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     const details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
 
     while (!okxClient.position || okxClient.position.margin === positionPre?.margin) {
+      logger.debug('[orderHelper] Waiting for position update')
       await sleep(100)
     }
 
@@ -737,7 +738,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     try {
       await Promise.allSettled(promises)
       if (!positionPre) await initializePda(this.position, this.closedPositions.length + 1)
-      await addOrder(orderObj, okxClient.closedPositions.length + 1)
+      await addOrderToBlockchain(orderObj, okxClient.closedPositions.length + 1)
     } catch (error) {
       logger.error('Error during open order', error)
     }
@@ -840,7 +841,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       ])
       await mongo.writePosition(closedPos, 'trader')
       //TODO: delete livePosition
-      await addOrder(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
+      await addOrderToBlockchain(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
         logger.error('[solana] Failed saving order', e)
       })
       return closedPos
@@ -873,7 +874,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       }),
     ])
 
-    await addOrder(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
+    await addOrderToBlockchain(orderObj, okxClient.closedPositions.length + 1).catch((e) => {
       logger.error('[solana] Failed saving order', e)
     })
 

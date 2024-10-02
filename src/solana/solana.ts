@@ -355,7 +355,7 @@ const initializePda = async (pos: IOrderHelperPos, id: number) => {
   logger.debug('[solana] transaction finalized')
 }
 
-const addAction = async (action: TraderAction, id: number) => {
+const addActionToBlockchain = async (action: TraderAction, id: number) => {
   const pdaExists = await doesPdaExist(action.symbol, id)
   if (!pdaExists) {
     logger.error('[solana > addAction] PDA does not exist for action')
@@ -392,7 +392,7 @@ const addAction = async (action: TraderAction, id: number) => {
   await mongo.addFields('actions', { txHash: tx }, { posId: action.posId, time: action.time })
 }
 
-const addOrder = async (order: Order | CloseOrder, id: number) => {
+const addOrderToBlockchain = async (order: Order | CloseOrder, id: number) => {
   const ticker = order.symbol
   const pdaExists = await doesPdaExist(ticker, id)
   if (!pdaExists) {
@@ -456,4 +456,4 @@ const doesPdaExist = async (ticker: string, id: number) => {
 // @ts-ignore
 //addOrder({ symbol: 'BTC-test', action: 'open', avgPrice: 0.00453, size: 100 }, 42)
 
-export { initializePda, addAction, addOrder, doesPdaExist }
+export { initializePda, addActionToBlockchain, addOrderToBlockchain, doesPdaExist }
