@@ -23,7 +23,9 @@ export class Base {
   public async initalize(symbol: string, exchange: string, saveToMongo?: boolean, live: boolean = false) {
     this.symbol = symbol
     this.orderHelper = getOrderHelper(live, exchange, symbol, saveToMongo)
+    logger.debug(`[${this.name}] Initializing order helper`, isLiveOrderHelper(this.orderHelper))
     if (isLiveOrderHelper(this.orderHelper)) {
+      logger.debug(`[${this.name}] Initializing order helper`, this.orderHelper.accHash)
       this.orderHelper.initialize()
     }
     await this.orderHelper.getContractInfo()
