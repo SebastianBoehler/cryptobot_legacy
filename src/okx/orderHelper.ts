@@ -351,7 +351,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
   }
 
   public async initialize() {
-    const closedPos = await mongo.loadAllPositions({ identifier: this.identifier, accHash: this.accHash }, 'trader')
+    const closedPos = await mongo.loadAllPositions({ symbol: this.symbol, accHash: this.accHash }, 'trader')
+    logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
     if (closedPos.length < 1) return
     const lastPos = closedPos[closedPos.length - 1]
     logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
