@@ -77,7 +77,7 @@ async function main() {
     const profitUSD = strategy.orderHelper.profitUSD
     logger.info('pos', {
       ...pos,
-      orders: pos?.orders.map((o) => ({ ordId: o.ordId })),
+      orders: pos?.orders.slice(-10).map((o) => ({ ordId: o.ordId })),
       profitUSD,
     })
 

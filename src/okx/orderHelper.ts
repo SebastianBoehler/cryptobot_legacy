@@ -7,6 +7,7 @@ import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
 import config from '../config/config'
 import { addActionToBlockchain, addOrderToBlockchain, initializePda } from '../solana/solana'
+import { differenceInSeconds } from 'date-fns'
 
 const okxClient = new OkxClient({
   apiKey: config.OKX_KEY,
@@ -657,9 +658,27 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     await sleep(1_000)
     const details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
 
+    logger.debug('[orderHelper] Order details:', details)
+
+    const startTime = new Date()
+    const timeout = 5 // 5 seconds timeout
+
     while (!okxClient.position || okxClient.position.margin === positionPre?.margin) {
+      if (differenceInSeconds(new Date(), startTime) > timeout) {
+        logger.error('[orderHelper] Position did not change after 5 seconds')
+        break
+      }
       logger.debug('[orderHelper] Waiting for position update')
       await sleep(100)
+    }
+
+    if (okxClient.position?.margin === positionPre?.margin) {
+      logger.error('[orderHelper] Position margin did not change')
+    }
+
+    if (!okxClient.position) {
+      logger.error('[orderHelper > openOrder] Position not found')
+      return
     }
 
     //logger.debug('position', okxClient.position)

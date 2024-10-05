@@ -9,10 +9,10 @@ const prodMongo = new MongoWrapper(
   'backtests',
   'mongodb+srv://doadmin:V694QMBq875Ftz31@dbaas-db-4719549-794fc217.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=dbaas-db-4719549'
 )
-const startCapital = 250
-const startDate = new Date('2024-04-01')
+const startCapital = 150
+const startDate = new Date('2024-02-01')
 const exchange = 'okx'
-const symbol = 'SUI-USDT-SWAP' // Replace with your symbol
+const symbol = 'NEAR-USDT-SWAP' // Replace with your symbol
 
 async function main() {
   try {
