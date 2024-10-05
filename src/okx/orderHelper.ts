@@ -7,7 +7,6 @@ import { ILiveOrderHelper, IOrderHelper, IOrderHelperPos } from '../types'
 import { createHash } from 'node:crypto'
 import config from '../config/config'
 import { addActionToBlockchain, addOrderToBlockchain, initializePda } from '../solana/solana'
-import { differenceInSeconds } from 'date-fns'
 
 const okxClient = new OkxClient({
   apiKey: config.OKX_KEY,
@@ -657,28 +656,26 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     if (!order) return
 
     await sleep(1_000)
-    const details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
-
+    let details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
     logger.debug('[orderHelper] Order details:', details)
 
-    const startTime = new Date()
-    const timeout = 5 // 5 seconds timeout
-
-    while (!okxClient.position || okxClient.position.margin === positionPre?.margin) {
-      if (differenceInSeconds(new Date(), startTime) > timeout) {
-        logger.error('[orderHelper] Position did not change after 5 seconds')
-        break
-      }
-      logger.debug('[orderHelper] Waiting for position update')
+    while (details.state !== 'filled') {
       await sleep(100)
-    }
+      details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
+      logger.debug('[orderHelper] Waiting for order to be filled', {
+        state: details.state,
+        amountContracts,
+        filledSize: details.fillSz,
+      })
 
-    if (okxClient.position?.margin === positionPre?.margin) {
-      logger.error('[orderHelper] Position margin did not change')
+      if (details.state === 'canceled' || details.state === 'mmp_canceled') {
+        logger.error('[orderHelper] Order canceled')
+        throw new Error('[orderHelper] Order canceled')
+      }
     }
 
     if (!okxClient.position) {
-      logger.error('[orderHelper > openOrder] Position not found')
+      logger.error('[orderHelper] Position not found')
       return
     }
 
@@ -774,18 +771,34 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
     const posId = okxClient.position.posId
     const positionPre = this.position
-    const realizedProfitPre = positionPre.realizedPnlUSD
     const positionsPre = okxClient.position
     const marginPre = +positionsPre.margin
     const clOrdId = (ordId || createUniqueId(10)) + this.positionId
     const order = await okxClient.placeMarketOrder(this.symbol, 'sell', amountCts, clOrdId, true, this.position.type)
     await sleep(1_000)
-    const details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
+    let details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
+    logger.debug('[orderHelper] Initial order details', details.state)
 
-    while (realizedProfitPre === okxClient.position?.realizedPnlUsd) {
-      //logger.debug('waiting for position update', realizedProfitPre, okxClient.position?.realizedPnlUsd)
+    while (details.state !== 'filled') {
       await sleep(100)
+      details = await okxClient.getOrderDetails(order.clOrdId, this.symbol)
+      logger.debug('[orderHelper] Waiting for order to be filled', {
+        state: details.state,
+        amountCts,
+        filledSize: details.fillSz,
+      })
+
+      if (details.state === 'canceled' || details.state === 'mmp_canceled') {
+        logger.error('[orderHelper] Order canceled')
+        throw new Error('[orderHelper] Order canceled')
+      }
     }
+
+    logger.debug('[orderHelper] Order filled', {
+      state: details.state,
+      amountCts,
+      filledSize: details.fillSz,
+    })
 
     const orderFee = +details.fee
     const pnl = +details.pnl
@@ -827,6 +840,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     }
 
     if (!okxClient.position) {
+      logger.debug(`[orderHelper > closeOrder] Position not found, creating closed position`)
       //@ts-ignore
       const closedPos: ClosedPosition = {
         ...this.position,
