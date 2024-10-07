@@ -351,7 +351,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
 
   public async initialize() {
     const closedPos = await mongo.loadAllPositions({ symbol: this.symbol, accHash: this.accHash }, 'trader')
-    logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
+    logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`, this.accHash)
     if (closedPos.length < 1) return
     const lastPos = closedPos[closedPos.length - 1]
     logger.debug(`[orderHelper > initialize] Loaded ${closedPos.length} positions`)
@@ -520,6 +520,7 @@ export class LiveOrderHelper implements ILiveOrderHelper {
     this.price = +okxClient.lastTicker.last
 
     if (!okxClient.position && this.position) {
+      // position probably closed
       logger.warn('[orderHelper > update] Position not found, but position existing in orderHelper')
       await sleep(1_000)
       const closedPos = okxClient.closedPositions.reverse().find((pos) => pos.posId === this.position!.posId)
@@ -585,10 +586,6 @@ export class LiveOrderHelper implements ILiveOrderHelper {
         //@ts-ignore
         this.profitUSD = savedPos.profitUSD
       }
-      if (orders.length < 1) {
-        logger.debug('loading orders with id', okxClient.position.posId)
-        orders = await mongo.getLiveOrders({ posId: okxClient.position.posId }, undefined, { time: 1 })
-      }
     }
 
     const unrealizedPnlPcnt = +okxClient.position.profit * 100
@@ -620,6 +617,8 @@ export class LiveOrderHelper implements ILiveOrderHelper {
       liquidationPrice: +okxClient.position.liqPrice,
       accHash: this.accHash,
     }
+
+    logger.debug('[orderHelper > update] profitUSD', this.profitUSD, orders.length)
 
     return this.position
   }
