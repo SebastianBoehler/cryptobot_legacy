@@ -24,8 +24,8 @@ import fs from 'fs'
 import { sleep } from 'openai/core'
 
 const vertexAI = new VertexAI({
-  project: 'desktopassistant-423912',
-  location: 'us-central1',
+  project: 'project',
+  location: 'location',
   googleAuthOptions: {
     keyFilename: './src/chat/service_account.json',
   },
@@ -54,13 +54,13 @@ const vectorSearch = async ({ query, k, filter }: Record<string, any>) => {
   //console.log(embeddings2);
 
   const store = new GoogleCloudStorageDocstore({
-    bucket: 'vectorstore_bucket_34',
+    bucket: 'bucket',
   })
 
   const config = {
-    index: '1411724551552761856',
-    indexEndpoint: '8030327153927127040',
-    apiVersion: 'v1beta1',
+    index: 'index',
+    indexEndpoint: 'indexEndpoint',
+    apiVersion: 'apiVersion',
     docstore: store,
   }
 
