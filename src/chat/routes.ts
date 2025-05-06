@@ -24,7 +24,7 @@ import {
 const router = express.Router()
 
 const vertexAI = new VertexAI({
-  project: 'desktopassistant-423912',
+  project: 'project',
   location: 'us-central1',
   googleAuthOptions: {
     keyFilename: './src/chat/service_account.json',

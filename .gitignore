@@ -4,3 +4,4 @@ build
 venv
 .env
 credentials.json
+src/config/*.env*
